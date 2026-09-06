@@ -1,4 +1,5 @@
 export type AuditPriority = "Alta" | "Media" | "Bassa" | "Da definire";
+export type AuditMode = "on-demand";
 
 export type AuditArea = {
   id: string;
@@ -16,6 +17,7 @@ export type AuditSnapshot = {
   id: string;
   label: string;
   auditDate: string;
+  mode: AuditMode;
   client: string;
   domain: string;
   globalScore: number;
@@ -34,6 +36,7 @@ export const baselineAudit: AuditSnapshot = {
   id: "baseline-2026-05",
   label: "Audit Baseline",
   auditDate: "Maggio 2026",
+  mode: "on-demand",
   client: "Solair Group S.r.l.",
   domain: "solairgroup.it",
   globalScore: 76,
@@ -61,7 +64,7 @@ export const baselineAudit: AuditSnapshot = {
       ],
       criticalIssues: [
         "Il dominio e' nuovo e il profilo backlink e' ancora in costruzione.",
-        "La visibilita' organica deve essere misurata e consolidata con audit successivi.",
+        "La visibilita' organica sara' rivalutata solo con audit richiesti on demand.",
       ],
       opportunities: [
         "Costruire traffico qualificato nei prossimi 6-12 mesi.",
@@ -81,12 +84,12 @@ export const baselineAudit: AuditSnapshot = {
         "Schema WebSite, LocalBusiness, AggregateRating e FAQPage risultano implementati.",
       ],
       criticalIssues: [
-        "robots.txt e sitemap.xml sono indicati come elementi da gestire nel monitoraggio continuativo.",
-        "Core Web Vitals disponibili tramite monitoraggio puntuale, non ancora integrati in dashboard.",
+        "robots.txt e sitemap.xml sono elementi da verificare quando viene richiesto un nuovo audit.",
+        "Core Web Vitals disponibili tramite misurazione puntuale, non ancora integrati in dashboard.",
       ],
       opportunities: [
-        "Mantenere crawl tecnico mensile su redirect, canonical, sitemap e performance.",
-        "Estendere lo schema LocalBusiness sulle future pagine territoriali.",
+        "Eseguire crawl tecnico on demand su redirect, canonical, sitemap e performance.",
+        "Estendere lo schema LocalBusiness sulle pagine territoriali quando saranno commissionate.",
       ],
       priority: "Media",
       auditDate: "Maggio 2026",
@@ -194,7 +197,7 @@ export const baselineAudit: AuditSnapshot = {
         "Contenuti informazionali non ancora usati per supportare configuratore e contatti.",
       ],
       opportunities: [
-        "Avviare piano editoriale con 2 articoli al mese.",
+        "Avviare il piano editoriale per lotti di contenuti commissionati.",
         "Collegare ogni articolo a configuratore o contatto.",
         "Aggiornare contenuti su incentivi e normative per mantenere autorevolezza.",
       ],
@@ -208,16 +211,16 @@ export const baselineAudit: AuditSnapshot = {
       status: "Prioritizzato",
       notes: [
         "Quick win entro 7 giorni: espandere FAQ e gestire robots.txt/sitemap.xml.",
-        "Breve termine 15-30 giorni: creare pagine territoriali, attivare monitoraggio SEO, rafforzare homepage e schema.",
+        "Breve termine 15-30 giorni: creare pagine territoriali, rafforzare homepage e schema.",
         "Medio termine 1-3 mesi: avviare blog e citazioni NAP su directory italiane di settore.",
       ],
       criticalIssues: [
-        "Senza monitoraggio SEO le decisioni restano basate su stime.",
-        "Search Console, Analytics e keyword tracking sono indicati come futuri, ma non attivati in questo step.",
+        "Senza audit on demand o dati reali aggiunti manualmente, le decisioni restano basate sulla baseline.",
+        "Search Console, Analytics e keyword tracking sono fuori scope in questo step.",
       ],
       opportunities: [
-        "Creare una dashboard storica con delta tra baseline e audit successivi.",
-        "Misurare traffico, keyword, conversioni e benchmark quando le integrazioni saranno autorizzate.",
+        "Creare una dashboard storica con delta tra baseline e audit commissionati.",
+        "Misurare traffico, keyword, conversioni e benchmark solo quando le integrazioni saranno richieste.",
       ],
       priority: "Alta",
       auditDate: "Maggio 2026",
@@ -229,14 +232,14 @@ export const baselineAudit: AuditSnapshot = {
       status: "Baseline iniziale registrata",
       notes: [
         "Maggio 2026 e' il primo snapshot disponibile.",
-        "La struttura dati e' pronta per aggiungere audit successivi e confrontare score, stato e priorita' nel tempo.",
+        "La struttura dati e' pronta per aggiungere audit on demand e confrontare score, stato e priorita' nel tempo.",
       ],
       criticalIssues: [
-        "Non esistono ancora audit successivi da confrontare.",
+        "Non esistono ancora altri audit commissionati da confrontare.",
       ],
       opportunities: [
-        "Calcolare delta tra date future per SEO globale, tecnico, on-page, off-page e struttura.",
-        "Associare ogni nuova raccomandazione allo storico degli audit.",
+        "Calcolare delta tra la baseline e ogni nuovo audit on demand.",
+        "Associare ogni nuova raccomandazione allo storico degli audit commissionati.",
       ],
       priority: "Da definire",
       auditDate: "Maggio 2026",
@@ -254,3 +257,5 @@ export const baselineAudit: AuditSnapshot = {
     auditDate: "Maggio 2026",
   },
 };
+
+export const audits: AuditSnapshot[] = [baselineAudit];

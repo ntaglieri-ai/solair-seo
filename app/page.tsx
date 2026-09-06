@@ -1,4 +1,4 @@
-import { baselineAudit } from "./data/audit-baseline";
+import { audits, baselineAudit } from "./data/audit-baseline";
 
 const scoreMetrics = [
   ["Technical SEO", baselineAudit.scores.technicalSeo],
@@ -15,6 +15,16 @@ function priorityClass(priority: string) {
   return priority === "Alta" ? "badge priority-high" : "badge";
 }
 
+function scoreDelta(score: number, baseline: number) {
+  const delta = score - baseline;
+
+  if (delta === 0) {
+    return "Baseline";
+  }
+
+  return delta > 0 ? `+${delta}` : `${delta}`;
+}
+
 export default function Home() {
   return (
     <main className="dashboard">
@@ -22,7 +32,7 @@ export default function Home() {
         <div className="topbar-inner">
           <div className="brand">
             <strong>Solair SEO</strong>
-            <span>Dashboard SEO/GEO per audit progressivi</span>
+            <span>Dashboard SEO/GEO per audit on demand</span>
           </div>
           <div className="audit-meta" aria-label="Dati audit baseline">
             <span>{baselineAudit.auditDate}</span>
@@ -39,8 +49,8 @@ export default function Home() {
             <h1 id="baseline-title">Audit Baseline</h1>
             <p className="hero-copy">
               Baseline iniziale del report SEO di maggio 2026 per confrontare
-              audit successivi, variazioni di score e priorita&apos; operative nel
-              tempo.
+              audit commissionati, variazioni di score e priorita&apos; operative
+              nel tempo.
             </p>
             <div className="positioning">
               {baselineAudit.positioning.map((item) => (
@@ -89,7 +99,7 @@ export default function Home() {
         <div className="section-inner">
           <div className="section-heading">
             <h2>Baseline Data</h2>
-            <span>Struttura pronta per confronti tra date audit</span>
+            <span>Confronti solo tra audit inseriti on demand</span>
           </div>
           <div className="table-scroll">
             <table className="comparison-table">
@@ -104,14 +114,42 @@ export default function Home() {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>{baselineAudit.auditDate}</td>
-                  <td>{baselineAudit.globalScore}/100</td>
-                  <td>{baselineAudit.scores.technicalSeo}/100</td>
-                  <td>{baselineAudit.scores.onPage}/100</td>
-                  <td>{baselineAudit.scores.offPage}/100</td>
-                  <td>{baselineAudit.scores.structure}/100</td>
-                </tr>
+                {audits.map((audit) => (
+                  <tr key={audit.id}>
+                    <td>{audit.auditDate}</td>
+                    <td>
+                      {audit.globalScore}/100{" "}
+                      <span>{scoreDelta(audit.globalScore, baselineAudit.globalScore)}</span>
+                    </td>
+                    <td>
+                      {audit.scores.technicalSeo}/100{" "}
+                      <span>
+                        {scoreDelta(
+                          audit.scores.technicalSeo,
+                          baselineAudit.scores.technicalSeo,
+                        )}
+                      </span>
+                    </td>
+                    <td>
+                      {audit.scores.onPage}/100{" "}
+                      <span>
+                        {scoreDelta(audit.scores.onPage, baselineAudit.scores.onPage)}
+                      </span>
+                    </td>
+                    <td>
+                      {audit.scores.offPage}/100{" "}
+                      <span>
+                        {scoreDelta(audit.scores.offPage, baselineAudit.scores.offPage)}
+                      </span>
+                    </td>
+                    <td>
+                      {audit.scores.structure}/100{" "}
+                      <span>
+                        {scoreDelta(audit.scores.structure, baselineAudit.scores.structure)}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -186,7 +224,7 @@ export default function Home() {
             <span>{baselineAudit.geoAiVisibility.status}</span>
           </div>
           <div className="empty-state">
-            Sezione predisposta per valutazioni future. Nessun dato GEO o AI
+            Sezione predisposta per valutazioni on demand. Nessun dato GEO o AI
             Visibility e&apos; stato inserito nella baseline di maggio 2026.
           </div>
         </div>
