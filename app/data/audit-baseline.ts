@@ -353,45 +353,45 @@ export const baselineAudit: AuditSnapshot = {
   performance: {
     updatedAt: "6 settembre 2026",
     summary:
-      "La performance organica e' ancora in fase iniziale: tracking attivo, pagine strategiche inviate a Google, dati reali da leggere al prossimo controllo on demand.",
+      "Snapshot operativo: misurazione attiva, copertura Google in consolidamento e baseline SEO registrata per i confronti futuri.",
     items: [
       {
         id: "traffic",
-        title: "Traffico",
+        title: "Acquisizione traffico",
         status: "OK",
-        value: "GA4 riceve dati",
+        value: "Misurazione attiva",
         meaning:
-          "Analytics e' collegato e ha ricevuto traffico nelle ultime 48 ore.",
-        action: "Non serve intervenire ora.",
+          "Analytics è collegato e registra traffico reale dal sito Solair Group.",
+        action: "Mantenere il presidio e leggere i dati al prossimo audit on demand.",
       },
       {
         id: "indexing",
-        title: "Indicizzazione",
+        title: "Copertura Google",
         status: "In attesa",
-        value: "3 URL richiesti",
+        value: "3 URL inviati",
         meaning:
           "Configuratore, FAQ e Lavora con noi sono stati inviati a Google per indicizzazione.",
-        action: "Aspettare la nuova scansione Google.",
+        action: "Attendere la nuova scansione e verificare l’esito nel prossimo controllo.",
       },
       {
         id: "conversions",
-        title: "Conversioni",
+        title: "Misurazione lead",
         status: "Da validare",
         value: "Eventi presenti",
         meaning:
-          "Gli eventi del configuratore sono rilevati, ma vanno testati come obiettivi commerciali.",
+          "Gli eventi del configuratore sono rilevati, ma vanno qualificati come obiettivi commerciali.",
         action:
-          "Validare solo gli eventi che useremo per misurare lead reali.",
+          "Concordare quali eventi diventano conversioni di riferimento.",
       },
       {
         id: "seo-baseline",
-        title: "SEO baseline",
+        title: "Baseline SEO",
         status: "OK",
         value: "76/100",
         meaning:
           "La base tecnica e contenutistica e' buona, con crescita organica da costruire.",
         action:
-          "Usare questo valore come confronto per i prossimi audit on demand.",
+          "Usare lo score come riferimento per audit e interventi futuri.",
       },
     ],
   },

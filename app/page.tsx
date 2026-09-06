@@ -3,26 +3,26 @@ import { baselineAudit } from "./data/audit-baseline";
 
 const systemItems = [
   {
-    label: "Google Analytics",
-    value: "Attivo",
-    note: "GA4 riceve dati dal sito.",
+    label: "Analytics 4",
+    value: "Tracciamento attivo",
+    note: "Analytics è collegato e registra traffico reale.",
   },
   {
     label: "Search Console",
-    value: "Attivo",
-    note: "Sitemap letta e proprieta' verificata.",
+    value: "Proprietà verificata",
+    note: "La sitemap è acquisita e la copertura Google è sotto osservazione.",
   },
   {
-    label: "Import automatico dati",
-    value: "Non attivo",
-    note: "Per ora il controllo resta on demand.",
+    label: "Dashboard",
+    value: "Aggiornamento on demand",
+    note: "I dati vengono consolidati quando viene richiesto un nuovo audit.",
   },
 ];
 
 const futureActions = [
-  "Attendere la nuova scansione Google per configuratore, FAQ e Lavora con noi.",
-  "Validare in GA4 gli eventi che contano davvero come lead.",
-  "Decidere il primo pacchetto operativo: contenuti, pagine territoriali o authority.",
+  "Verificare l’esito dell’indicizzazione richiesta per configuratore, FAQ e Lavora con noi.",
+  "Confermare quali eventi GA4 entrano nel servizio come lead commerciali.",
+  "Definire il primo livello operativo: contenuti strategici, pagine territoriali o authority.",
 ];
 
 export default function Home() {
@@ -32,7 +32,7 @@ export default function Home() {
         <div className="topbar-inner">
           <div className="brand">
             <strong>Solair SEO</strong>
-            <span>Cruscotto operativo</span>
+            <span>Audit Hub</span>
           </div>
           <div className="audit-meta" aria-label="Dati progetto">
             <span>{baselineAudit.client}</span>
@@ -44,11 +44,11 @@ export default function Home() {
       <section className="hero compact-hero" aria-labelledby="dashboard-title">
         <div className="section-inner">
           <div>
-            <span className="eyebrow">Dashboard</span>
-            <h1 id="dashboard-title">Stato e prossime azioni</h1>
+            <span className="eyebrow">Solair Group</span>
+            <h1 id="dashboard-title">Quadro operativo SEO</h1>
             <p className="hero-copy">
-              Una lettura semplice: cosa sappiamo oggi, come stanno andando i
-              segnali principali, cosa proporre come lavoro successivo.
+              Stato rilevato, segnali misurabili e proposte di lavoro per far
+              crescere la presenza organica nel tempo.
             </p>
           </div>
         </div>
@@ -57,13 +57,13 @@ export default function Home() {
       <section className="content-section">
         <div className="section-inner">
           <div className="decision-stack">
-            <details className="decision-block" open>
+            <details className="decision-block decision-block-system" open>
               <summary>
                 <span>
                   <strong>Stato sistema</strong>
-                  <small>Setup tecnico attuale</small>
+                  <small>Misurazione, Search Console e dashboard</small>
                 </span>
-                <span className="summary-status">Operativo</span>
+                <span className="summary-status">Presidiato</span>
               </summary>
               <div className="decision-content">
                 <div className="simple-grid">
@@ -78,13 +78,13 @@ export default function Home() {
               </div>
             </details>
 
-            <details className="decision-block">
+            <details className="decision-block decision-block-performance">
               <summary>
                 <span>
                   <strong>Performance a una data</strong>
-                  <small>Aggiornato: {baselineAudit.performance.updatedAt}</small>
+                  <small>Snapshot: {baselineAudit.performance.updatedAt}</small>
                 </span>
-                <span className="summary-status">4 segnali</span>
+                <span className="summary-status summary-status-neutral">Baseline</span>
               </summary>
               <div className="decision-content">
                 <div className="performance-list">
@@ -99,13 +99,13 @@ export default function Home() {
               </div>
             </details>
 
-            <details className="decision-block">
+            <details className="decision-block decision-block-actions">
               <summary>
                 <span>
                   <strong>Suggerimenti per il futuro</strong>
-                  <small>Prossime azioni proponibili</small>
+                  <small>Interventi da proporre nel prossimo step</small>
                 </span>
-                <span className="summary-status">Priorit&agrave;</span>
+                <span className="summary-status summary-status-warning">Da quotare</span>
               </summary>
               <div className="decision-content">
                 <ol className="action-list">
@@ -122,8 +122,8 @@ export default function Home() {
       <section className="content-section technical-menu" aria-label="Menu dettagli">
         <div className="section-inner">
           <div className="section-heading">
-            <h2>Dettagli</h2>
-            <span>Solo se vuoi approfondire</span>
+            <h2>Archivio</h2>
+            <span>Audit, tracking e storico</span>
           </div>
           <nav className="link-menu">
             <Link href="/sezioni/executive-summary">Audit baseline</Link>
