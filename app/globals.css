@@ -272,11 +272,68 @@ h1 {
   gap: 16px;
 }
 
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.overview-card {
+  display: flex;
+  min-height: 190px;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 20px;
+  transition:
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.overview-card:hover,
+.area-card-link:hover {
+  border-color: rgba(24, 183, 106, 0.45);
+  transform: translateY(-1px);
+}
+
+.overview-card h3 {
+  margin-top: 12px;
+  font-size: 23px;
+}
+
+.overview-card p,
+.area-body p {
+  color: #405064;
+  line-height: 1.5;
+}
+
+.overview-card strong {
+  color: var(--accent-dark);
+  font-size: 22px;
+}
+
 .area-card {
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--panel);
   padding: 20px;
+}
+
+.area-card-link {
+  display: block;
+  min-height: 230px;
+  transition:
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.open-badge {
+  margin-left: auto;
+  border-color: rgba(24, 183, 106, 0.35);
+  background: #eaf8f1;
+  color: var(--accent-dark);
 }
 
 .tracking-grid {
@@ -301,6 +358,7 @@ h1 {
   border-bottom: 1px solid var(--border);
 }
 
+.tracking-card h2,
 .tracking-card h3 {
   font-size: 19px;
 }
@@ -463,6 +521,61 @@ h1 {
   color: var(--muted);
 }
 
+.section-page {
+  padding-bottom: 40px;
+}
+
+.detail-hero {
+  border-bottom: 1px solid var(--border);
+  background: #ffffff;
+}
+
+.detail-hero .section-inner {
+  padding: 34px 0 32px;
+}
+
+.back-link {
+  display: inline-flex;
+  margin-bottom: 24px;
+  color: var(--accent-dark);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.detail-panel {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 20px;
+}
+
+.detail-panel h2 {
+  margin-bottom: 14px;
+  font-size: 20px;
+}
+
+.detail-panel ul {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding-left: 18px;
+  color: #405064;
+  line-height: 1.5;
+}
+
 @media (max-width: 860px) {
   .topbar-inner,
   .hero .section-inner {
@@ -483,8 +596,10 @@ h1 {
   }
 
   .score-grid,
+  .overview-grid,
   .areas-grid,
-  .tracking-grid {
+  .tracking-grid,
+  .detail-grid {
     grid-template-columns: 1fr;
   }
 
