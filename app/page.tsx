@@ -15,6 +15,10 @@ function priorityClass(priority: string) {
   return priority === "Alta" ? "badge priority-high" : "badge";
 }
 
+function trackingStatusClass(status: string) {
+  return `status-pill status-${status.toLowerCase().replaceAll(" ", "-")}`;
+}
+
 function scoreDelta(score: number, baseline: number) {
   const delta = score - baseline;
 
@@ -89,6 +93,7 @@ export default function Home() {
               {area.title}
             </a>
           ))}
+          <a href="#tracking-setup">Setup Tracking</a>
           <a href={`#${baselineAudit.geoAiVisibility.id}`}>
             {baselineAudit.geoAiVisibility.title}
           </a>
@@ -206,6 +211,52 @@ export default function Home() {
                     Priorita&apos;: {area.priority}
                   </span>
                   <span className="badge">Data audit: {area.auditDate}</span>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section
+        className="content-section"
+        id="tracking-setup"
+        aria-labelledby="tracking-title"
+      >
+        <div className="section-inner">
+          <div className="section-heading">
+            <h2 id="tracking-title">Setup Tracking</h2>
+            <span>Verifica tecnica: {baselineAudit.trackingSetup.verifiedAt}</span>
+          </div>
+          <div className="tracking-grid">
+            {baselineAudit.trackingSetup.items.map((item) => (
+              <article className="tracking-card" key={item.id}>
+                <div className="tracking-card-header">
+                  <div>
+                    <h3>{item.title}</h3>
+                    <p>{item.source}</p>
+                  </div>
+                  <span className={trackingStatusClass(item.status)}>
+                    {item.status}
+                  </span>
+                </div>
+                <div className="area-body">
+                  <div className="field">
+                    <h4>Dettagli</h4>
+                    <ul>
+                      {item.details.map((detail) => (
+                        <li key={detail}>{detail}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="field">
+                    <h4>Azioni richieste</h4>
+                    <ul>
+                      {item.nextActions.map((action) => (
+                        <li key={action}>{action}</li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               </article>
             ))}

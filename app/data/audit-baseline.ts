@@ -13,6 +13,15 @@ export type AuditArea = {
   auditDate: string;
 };
 
+export type TrackingSetupItem = {
+  id: string;
+  title: string;
+  status: "Attivo" | "Da validare" | "Da configurare";
+  source: string;
+  details: string[];
+  nextActions: string[];
+};
+
 export type AuditSnapshot = {
   id: string;
   label: string;
@@ -29,6 +38,10 @@ export type AuditSnapshot = {
     structure: number;
   };
   areas: AuditArea[];
+  trackingSetup: {
+    verifiedAt: string;
+    items: TrackingSetupItem[];
+  };
   geoAiVisibility: AuditArea;
 };
 
@@ -216,7 +229,7 @@ export const baselineAudit: AuditSnapshot = {
       ],
       criticalIssues: [
         "Senza audit on demand o dati reali aggiunti manualmente, le decisioni restano basate sulla baseline.",
-        "Search Console, Analytics e keyword tracking sono fuori scope in questo step.",
+        "L'import automatico via API di Search Console, Analytics e keyword tracking resta fuori scope in questo step.",
       ],
       opportunities: [
         "Creare una dashboard storica con delta tra baseline e audit commissionati.",
@@ -245,6 +258,60 @@ export const baselineAudit: AuditSnapshot = {
       auditDate: "Maggio 2026",
     },
   ],
+  trackingSetup: {
+    verifiedAt: "6 settembre 2026",
+    items: [
+      {
+        id: "ga4",
+        title: "Google Analytics 4",
+        status: "Attivo",
+        source: "Tag rilevato su solairgroup.it",
+        details: [
+          "Measurement ID: G-3TGS369NW5.",
+          "Il tag GA4 e' presente nell'HTML pubblico della homepage.",
+          "Il tag GA4 e' presente anche nel configuratore.",
+          "Eventi configuratore rilevati: lead_submit e complete_configurator.",
+        ],
+        nextActions: [
+          "Validare page_view in GA4 Realtime dal tuo account Google.",
+          "Validare click telefono, email, WhatsApp, CTA e avvio configuratore.",
+          "Marcare come conversioni solo gli eventi concordati commercialmente.",
+        ],
+      },
+      {
+        id: "gsc",
+        title: "Google Search Console",
+        status: "Da validare",
+        source: "Accesso richiesto dal tuo account Google",
+        details: [
+          "Proprieta' target: solairgroup.it.",
+          "Sitemap pubblica disponibile su https://solairgroup.it/sitemap.xml.",
+          "robots.txt pubblico disponibile su https://solairgroup.it/robots.txt.",
+          "Nessun meta tag google-site-verification rilevato nell'HTML pubblico.",
+        ],
+        nextActions: [
+          "Aprire Search Console con il tuo account Google.",
+          "Verificare se esiste gia' la proprieta' dominio o URL-prefix per solairgroup.it.",
+          "Inviare o confermare la sitemap https://solairgroup.it/sitemap.xml.",
+          "Concedere accesso a Mostag/Solair solo se serve lettura dei dati.",
+        ],
+      },
+      {
+        id: "measurement-api",
+        title: "Import dati in dashboard",
+        status: "Da configurare",
+        source: "Fuori scope finche' non decidiamo storage e credenziali",
+        details: [
+          "La dashboard non legge ancora dati GA4 o GSC via API.",
+          "Gli audit restano on demand: i dati possono essere inseriti manualmente o importati dopo autorizzazione.",
+        ],
+        nextActions: [
+          "Decidere se usare import manuale per i primi audit.",
+          "Introdurre database e API solo quando serve storicizzare dati reali.",
+        ],
+      },
+    ],
+  },
   geoAiVisibility: {
     id: "geo-ai-visibility",
     title: "GEO / AI Visibility",

@@ -279,6 +279,66 @@ h1 {
   padding: 20px;
 }
 
+.tracking-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.tracking-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 20px;
+}
+
+.tracking-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tracking-card h3 {
+  font-size: 19px;
+}
+
+.tracking-card p {
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.status-pill {
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 9px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-attivo {
+  border-color: rgba(24, 183, 106, 0.35);
+  background: #eaf8f1;
+  color: var(--accent-dark);
+}
+
+.status-da-validare {
+  border-color: rgba(184, 122, 13, 0.34);
+  background: #fff7e8;
+  color: var(--warning);
+}
+
+.status-da-configurare {
+  background: #eef2f6;
+  color: #405064;
+}
+
 .area-header {
   display: flex;
   align-items: flex-start;
@@ -423,7 +483,8 @@ h1 {
   }
 
   .score-grid,
-  .areas-grid {
+  .areas-grid,
+  .tracking-grid {
     grid-template-columns: 1fr;
   }
 
