@@ -288,10 +288,6 @@ h1 {
   border-left: 5px solid var(--blue);
 }
 
-.decision-block-actions {
-  border-left: 5px solid var(--warning);
-}
-
 .decision-block summary {
   display: flex;
   align-items: center;
@@ -380,12 +376,6 @@ h1 {
   color: var(--blue);
 }
 
-.summary-status-warning {
-  border-color: rgba(184, 122, 13, 0.24);
-  background: #fff7e8;
-  color: var(--warning);
-}
-
 .decision-content {
   border-top: 1px solid #e8eef2;
   padding: 22px 26px 26px 88px;
@@ -470,48 +460,6 @@ h1 {
   font-style: normal;
   font-weight: 700;
   text-align: center;
-}
-
-.action-list {
-  display: grid;
-  gap: 0;
-  margin: 0;
-  padding: 0;
-  color: #405064;
-  counter-reset: action;
-  list-style: none;
-}
-
-.action-list li {
-  display: grid;
-  grid-template-columns: 36px 1fr;
-  gap: 14px;
-  border-bottom: 1px solid var(--border);
-  padding: 16px 0;
-  line-height: 1.5;
-}
-
-.action-list li:first-child {
-  padding-top: 0;
-}
-
-.action-list li:last-child {
-  border-bottom: 0;
-  padding-bottom: 0;
-}
-
-.action-list li::before {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #fff7e8;
-  color: var(--warning);
-  content: counter(action);
-  counter-increment: action;
-  display: grid;
-  place-items: center;
-  font-size: 13px;
-  font-weight: 800;
 }
 
 .technical-menu {

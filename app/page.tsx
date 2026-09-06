@@ -19,12 +19,6 @@ const systemItems = [
   },
 ];
 
-const futureActions = [
-  "Verificare l’esito dell’indicizzazione richiesta per configuratore, FAQ e Lavora con noi.",
-  "Confermare quali eventi GA4 entrano nel servizio come lead commerciali.",
-  "Definire il primo livello operativo: contenuti strategici, pagine territoriali o authority.",
-];
-
 const currentReportUrl = "/report/2026-09-06";
 
 export default function Home() {
@@ -49,8 +43,8 @@ export default function Home() {
             <span className="eyebrow">Solair Group</span>
             <h1 id="dashboard-title">Quadro operativo SEO</h1>
             <p className="hero-copy">
-              Stato rilevato, segnali misurabili e proposte di lavoro per far
-              crescere la presenza organica nel tempo.
+              Stato rilevato, segnali misurabili e report operativi per guidare
+              le decisioni SEO nel tempo.
             </p>
           </div>
         </div>
@@ -104,22 +98,6 @@ export default function Home() {
               </div>
             </details>
 
-            <details className="decision-block decision-block-actions">
-              <summary>
-                <span>
-                  <strong>Suggerimenti per il futuro</strong>
-                  <small>Interventi da proporre nel prossimo step</small>
-                </span>
-                <span className="summary-status summary-status-warning">Da quotare</span>
-              </summary>
-              <div className="decision-content">
-                <ol className="action-list">
-                  {futureActions.map((action) => (
-                    <li key={action}>{action}</li>
-                  ))}
-                </ol>
-              </div>
-            </details>
           </div>
         </div>
       </section>

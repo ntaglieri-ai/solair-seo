@@ -134,7 +134,7 @@ export default async function ReportPage({
           </section>
 
           <section className="report-panel">
-            <span className="eyebrow">Suggerimenti per il futuro</span>
+            <span className="eyebrow">Prossime priorità operative</span>
             <div className="recommendation-list">
               {recommendations.map((item) => (
                 <article className="recommendation" key={item.title}>
