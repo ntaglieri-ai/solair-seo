@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { baselineAudit, type AuditArea } from "../../data/audit-baseline";
 
 const trackingSectionId = "tracking-setup";
+const performanceSectionId = "performance";
 
 function scoreLabel(score: number | null) {
   return score === null ? "N/D" : `${score}/100`;
@@ -14,6 +15,10 @@ function priorityClass(priority: string) {
 
 function trackingStatusClass(status: string) {
   return `status-pill status-${status.toLowerCase().replaceAll(" ", "-")}`;
+}
+
+function performanceStatusClass(status: string) {
+  return `performance-status performance-status-${status.toLowerCase().replaceAll(" ", "-")}`;
 }
 
 function findArea(id: string) {
@@ -135,6 +140,55 @@ function TrackingDetail() {
   );
 }
 
+function PerformanceDetail() {
+  return (
+    <>
+      <section className="detail-hero">
+        <div className="section-inner">
+          <Link className="back-link" href="/">
+            Torna alla panoramica
+          </Link>
+          <span className="eyebrow">Performance</span>
+          <h1>Stato Attuale</h1>
+          <div className="detail-meta">
+            <span className="badge">Aggiornato: {baselineAudit.performance.updatedAt}</span>
+            <span className="badge priority-high">Lettura operativa</span>
+          </div>
+          <p className="hero-copy">{baselineAudit.performance.summary}</p>
+        </div>
+      </section>
+
+      <section className="content-section">
+        <div className="section-inner">
+          <div className="performance-grid">
+            {baselineAudit.performance.items.map((item) => (
+              <article className="performance-card" key={item.id}>
+                <div className="performance-card-top">
+                  <div>
+                    <span className="eyebrow">{item.title}</span>
+                    <h2>{item.value}</h2>
+                  </div>
+                  <span className={performanceStatusClass(item.status)}>
+                    {item.status}
+                  </span>
+                </div>
+                <div className="performance-copy">
+                  <h3>Cosa significa</h3>
+                  <p>{item.meaning}</p>
+                </div>
+                <div className="performance-copy">
+                  <h3>Azione</h3>
+                  <p>{item.action}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}
+
 function GeoDetail() {
   const area = baselineAudit.geoAiVisibility;
 
@@ -171,6 +225,7 @@ function GeoDetail() {
 export function generateStaticParams() {
   return [
     ...baselineAudit.areas.map((area) => ({ id: area.id })),
+    { id: performanceSectionId },
     { id: trackingSectionId },
     { id: baselineAudit.geoAiVisibility.id },
   ];
@@ -183,9 +238,17 @@ export async function generateMetadata({
 }) {
   const { id } = await params;
   const area = findArea(id);
+  const title =
+    id === performanceSectionId
+      ? "Performance | Solair SEO"
+      : id === trackingSectionId
+        ? "Setup Tracking | Solair SEO"
+        : area
+          ? `${area.title} | Solair SEO`
+          : "Solair SEO";
 
   return {
-    title: area ? `${area.title} | Solair SEO` : "Solair SEO",
+    title,
     description: "Dettaglio sezione audit SEO Solair Group",
   };
 }
@@ -202,6 +265,14 @@ export default async function SectionPage({
     return (
       <main className="dashboard section-page">
         <AreaDetail area={area} />
+      </main>
+    );
+  }
+
+  if (id === performanceSectionId) {
+    return (
+      <main className="dashboard section-page">
+        <PerformanceDetail />
       </main>
     );
   }

@@ -22,6 +22,17 @@ export type TrackingSetupItem = {
   nextActions: string[];
 };
 
+export type PerformanceStatus = "OK" | "In attesa" | "Da validare";
+
+export type PerformanceItem = {
+  id: string;
+  title: string;
+  status: PerformanceStatus;
+  value: string;
+  meaning: string;
+  action: string;
+};
+
 export type AuditSnapshot = {
   id: string;
   label: string;
@@ -41,6 +52,11 @@ export type AuditSnapshot = {
   trackingSetup: {
     verifiedAt: string;
     items: TrackingSetupItem[];
+  };
+  performance: {
+    updatedAt: string;
+    summary: string;
+    items: PerformanceItem[];
   };
   geoAiVisibility: AuditArea;
 };
@@ -331,6 +347,51 @@ export const baselineAudit: AuditSnapshot = {
           "Decidere se usare import manuale per i primi audit.",
           "Introdurre database e API solo quando serve storicizzare dati reali.",
         ],
+      },
+    ],
+  },
+  performance: {
+    updatedAt: "6 settembre 2026",
+    summary:
+      "La performance organica e' ancora in fase iniziale: tracking attivo, pagine strategiche inviate a Google, dati reali da leggere al prossimo controllo on demand.",
+    items: [
+      {
+        id: "traffic",
+        title: "Traffico",
+        status: "OK",
+        value: "GA4 riceve dati",
+        meaning:
+          "Analytics e' collegato e ha ricevuto traffico nelle ultime 48 ore.",
+        action: "Non serve intervenire ora.",
+      },
+      {
+        id: "indexing",
+        title: "Indicizzazione",
+        status: "In attesa",
+        value: "3 URL richiesti",
+        meaning:
+          "Configuratore, FAQ e Lavora con noi sono stati inviati a Google per indicizzazione.",
+        action: "Aspettare la nuova scansione Google.",
+      },
+      {
+        id: "conversions",
+        title: "Conversioni",
+        status: "Da validare",
+        value: "Eventi presenti",
+        meaning:
+          "Gli eventi del configuratore sono rilevati, ma vanno testati come obiettivi commerciali.",
+        action:
+          "Validare solo gli eventi che useremo per misurare lead reali.",
+      },
+      {
+        id: "seo-baseline",
+        title: "SEO baseline",
+        status: "OK",
+        value: "76/100",
+        meaning:
+          "La base tecnica e contenutistica e' buona, con crescita organica da costruire.",
+        action:
+          "Usare questo valore come confronto per i prossimi audit on demand.",
       },
     ],
   },

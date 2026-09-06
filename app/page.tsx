@@ -101,6 +101,13 @@ export default function Home() {
               <strong>{baselineAudit.globalScore}/100</strong>
             </Link>
 
+            <Link className="overview-card" href="/sezioni/performance">
+              <span className="eyebrow">Performance</span>
+              <h3>Stato Attuale</h3>
+              <p>Semaforo semplice su traffico, indicizzazione e conversioni.</p>
+              <strong>4 indicatori</strong>
+            </Link>
+
             <Link className="overview-card" href="/sezioni/tracking-setup">
               <span className="eyebrow">Operativo</span>
               <h3>Setup Tracking</h3>
@@ -151,6 +158,26 @@ export default function Home() {
                 </div>
               </Link>
             ))}
+            <Link className="area-card area-card-link" href="/sezioni/performance">
+              <div className="area-header">
+                <div className="area-title">
+                  <h3>Performance</h3>
+                  <span className="status">Lettura semplice dello stato attuale</span>
+                </div>
+                <div className="area-score">
+                  <strong>4</strong>
+                  <span>Indicatori</span>
+                </div>
+              </div>
+              <div className="area-body">
+                <p>{baselineAudit.performance.summary}</p>
+              </div>
+              <div className="priority-row">
+                <span className="badge priority-high">Priorita&apos;: Alta</span>
+                <span className="badge">Aggiornato: {baselineAudit.performance.updatedAt}</span>
+                <span className="badge open-badge">Apri sezione</span>
+              </div>
+            </Link>
             <Link className="area-card area-card-link" href="/sezioni/tracking-setup">
               <div className="area-header">
                 <div className="area-title">
