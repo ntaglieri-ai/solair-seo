@@ -389,7 +389,7 @@ export const baselineAudit: AuditSnapshot = {
         status: "OK",
         value: "76/100",
         meaning:
-          "La base tecnica e contenutistica e' buona, con crescita organica da costruire.",
+          "La base tecnica e contenutistica è buona, con crescita organica da costruire.",
         action:
           "Usare lo score come riferimento per audit e interventi futuri.",
       },

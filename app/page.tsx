@@ -25,6 +25,8 @@ const futureActions = [
   "Definire il primo livello operativo: contenuti strategici, pagine territoriali o authority.",
 ];
 
+const currentReportUrl = "/report/2026-09-06";
+
 export default function Home() {
   return (
     <main className="dashboard">
@@ -81,7 +83,7 @@ export default function Home() {
             <details className="decision-block decision-block-performance">
               <summary>
                 <span>
-                  <strong>Performance a una data</strong>
+                  <strong>Rilevazione SEO</strong>
                   <small>Snapshot: {baselineAudit.performance.updatedAt}</small>
                 </span>
                 <span className="summary-status summary-status-neutral">Baseline</span>
@@ -96,6 +98,9 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
+                <Link className="primary-link" href={currentReportUrl}>
+                  Apri report
+                </Link>
               </div>
             </details>
 
@@ -128,6 +133,7 @@ export default function Home() {
           <nav className="link-menu">
             <Link href="/sezioni/executive-summary">Audit baseline</Link>
             <Link href="/sezioni/performance">Performance</Link>
+            <Link href={currentReportUrl}>Report</Link>
             <Link href="/sezioni/tracking-setup">Tracking</Link>
             <Link href="/sezioni/action-plan">Action plan</Link>
             <Link href="/sezioni/historical-comparison">Storico</Link>
