@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { baselineAudit } from "../../data/audit-baseline";
+import { clientConfig } from "../../../lib/client-config";
 import { ExportButton } from "./export-button";
 
 const reportId = "2026-09-06";
@@ -52,9 +53,9 @@ export async function generateMetadata({
   return {
     title:
       id === reportId
-        ? "Report Rilevazione SEO | Solair SEO"
-        : "Report non trovato | Solair SEO",
-    description: "Report operativo SEO Solair Group",
+        ? `Report Rilevazione SEO | ${clientConfig.productName}`
+        : `Report non trovato | ${clientConfig.productName}`,
+    description: `Report operativo SEO ${clientConfig.brandEyebrow}`,
   };
 }
 
@@ -78,7 +79,7 @@ export default async function ReportPage({
               Torna alla dashboard
             </Link>
             <span className="eyebrow">Rilevazione SEO</span>
-            <h1>Report Solair Group</h1>
+            <h1>Report {clientConfig.brandEyebrow}</h1>
             <p className="hero-copy">
               Stato del sito al {baselineAudit.performance.updatedAt}, con dati
               raccolti da Analytics, Search Console e baseline SEO.

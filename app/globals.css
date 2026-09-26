@@ -1188,3 +1188,25 @@ h1 {
     padding: 18px 0;
   }
 }
+
+.audit-form {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.audit-form-input {
+  flex: 1 1 320px;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 11px 14px;
+  font-size: 14px;
+  color: var(--foreground);
+}
+
+.audit-form-input:focus {
+  outline: 2px solid var(--blue);
+  outline-offset: 1px;
+}

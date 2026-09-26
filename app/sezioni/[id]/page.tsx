@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { baselineAudit, type AuditArea } from "../../data/audit-baseline";
+import { clientConfig } from "../../../lib/client-config";
 
 const trackingSectionId = "tracking-setup";
 const performanceSectionId = "performance";
@@ -240,16 +241,16 @@ export async function generateMetadata({
   const area = findArea(id);
   const title =
     id === performanceSectionId
-      ? "Performance | Solair SEO"
+      ? `Performance | ${clientConfig.productName}`
       : id === trackingSectionId
-        ? "Setup Tracking | Solair SEO"
+        ? `Setup Tracking | ${clientConfig.productName}`
         : area
-          ? `${area.title} | Solair SEO`
-          : "Solair SEO";
+          ? `${area.title} | ${clientConfig.productName}`
+          : clientConfig.productName;
 
   return {
     title,
-    description: "Dettaglio sezione audit SEO Solair Group",
+    description: `Dettaglio sezione audit SEO ${clientConfig.brandEyebrow}`,
   };
 }
 
