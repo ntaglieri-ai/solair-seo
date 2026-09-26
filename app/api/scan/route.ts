@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { scanOnPage } from "../../../lib/onpage-scan";
 import { getGscData } from "../../../lib/gsc";
 import { computeSeoScore } from "../../../lib/seo-score";
+import { recordAudit } from "../../../lib/engine/collect";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
@@ -50,18 +51,30 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
-    const { score, deductions } = computeSeoScore(onpage, gsc);
+    const { score, deductions } = computeSeoScore(onpage, gsc.keywords.length > 0);
+    const domain = targetUrl.hostname.replace(/^www\./, "");
 
-    return NextResponse.json({
+    const result = {
       url: targetUrl.toString(),
-      domain: targetUrl.hostname.replace(/^www\./, ""),
+      domain,
       gscProperty: siteProperty,
       scannedAt: new Date().toISOString(),
       score,
       deductions,
       onpage,
       gsc,
-    });
+    };
+
+    // Archivia l'audit se il dominio è monitorato. Un errore del database
+    // non deve impedire di mostrare il risultato.
+    let runId: string | null = null;
+    try {
+      runId = await recordAudit(domain, { onpage, score, deductions, raw: result });
+    } catch (err) {
+      console.error("[scan] Audit non archiviato:", err);
+    }
+
+    return NextResponse.json({ ...result, runId });
   } catch (err) {
     console.error("[scan] Errore durante la scansione:", err);
     return NextResponse.json(

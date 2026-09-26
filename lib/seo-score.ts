@@ -1,5 +1,4 @@
 import type { OnPageData } from "./onpage-scan";
-import type { GscData } from "./gsc";
 
 export type ScoreResult = {
   score: number;
@@ -11,7 +10,7 @@ export type ScoreResult = {
  * Stessa logica, stessi pesi: mantenere allineate le due versioni
  * se in futuro si modificano le penalità in uno dei due posti.
  */
-export function computeSeoScore(onpage: OnPageData, gsc: GscData): ScoreResult {
+export function computeSeoScore(onpage: OnPageData, hasGscData: boolean): ScoreResult {
   let score = 100;
   const deductions: string[] = [];
 
@@ -55,7 +54,7 @@ export function computeSeoScore(onpage: OnPageData, gsc: GscData): ScoreResult {
     deductions.push("Schema.org assente (-5)");
   }
 
-  if (gsc.keywords.length === 0) {
+  if (!hasGscData) {
     score -= 10;
     deductions.push("Nessun dato GSC (-10)");
   }

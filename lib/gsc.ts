@@ -126,3 +126,46 @@ export async function getGscData(siteUrl: string): Promise<GscData> {
     period: `${startDate} → ${endDate}`,
   };
 }
+
+export type GscRow = {
+  key: string;
+  clicks: number;
+  impressions: number;
+  ctr: number;
+  position: number;
+};
+
+/**
+ * Lettura grezza per il motore dati: a differenza di getGscData gli errori
+ * non vengono assorbiti, così la rilevazione viene registrata come fallita.
+ * Date in formato YYYY-MM-DD, come le intende Search Console (fuso PT).
+ */
+export async function queryGsc(
+  siteUrl: string,
+  options: {
+    startDate: string;
+    endDate: string;
+    dimension: "date" | "query" | "page";
+    rowLimit: number;
+  }
+): Promise<GscRow[]> {
+  const searchconsole = google.searchconsole({ version: "v1", auth: getOAuthClient() });
+  const res = await searchconsole.searchanalytics.query({
+    siteUrl,
+    requestBody: {
+      startDate: options.startDate,
+      endDate: options.endDate,
+      dimensions: [options.dimension],
+      rowLimit: options.rowLimit,
+      dataState: "all",
+    },
+  });
+
+  return (res.data.rows ?? []).map((row) => ({
+    key: row.keys?.[0] ?? "",
+    clicks: row.clicks ?? 0,
+    impressions: row.impressions ?? 0,
+    ctr: row.ctr ?? 0,
+    position: row.position ?? 0,
+  }));
+}
