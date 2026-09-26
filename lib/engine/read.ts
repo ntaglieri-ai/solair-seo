@@ -335,3 +335,17 @@ export async function getGa4EventTotals(
     previousComplete: Boolean(complete),
   };
 }
+
+/** Clic Search Console tra due date incluse (YYYY-MM-DD), con i giorni archiviati. */
+export async function getGscClicksBetween(
+  siteId: string,
+  from: string,
+  to: string
+): Promise<{ clicks: number; days: number }> {
+  const [row] = await getSql()<{ clicks: number; days: number }[]>`
+    select coalesce(sum(clicks), 0)::int as clicks, count(*)::int as days
+    from seo.gsc_daily
+    where site_id = ${siteId} and date between ${from} and ${to}
+  `;
+  return row;
+}
