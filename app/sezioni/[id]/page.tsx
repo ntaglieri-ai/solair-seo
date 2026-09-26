@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { baselineAudit, type AuditArea } from "../../data/audit-baseline";
 import { clientConfig } from "../../../lib/client-config";
-import { CollectionStatus, HistoryLive, PerformanceLive } from "./live-data";
+import { AnalyticsLive, CollectionStatus, HistoryLive, PerformanceLive } from "./live-data";
 
 // Performance, Storico e Tracking leggono il database a ogni richiesta.
 export const dynamic = "force-dynamic";
@@ -165,11 +165,11 @@ function PerformanceDetail() {
           <span className="eyebrow">Performance</span>
           <h1>Stato Attuale</h1>
           <div className="detail-meta">
-            <span className="badge">Fonte: Google Search Console</span>
+            <span className="badge">Fonti: Search Console e Analytics 4</span>
             <span className="badge priority-high">Aggiornamento giornaliero</span>
           </div>
           <p className="hero-copy">
-            Clic, impressioni e posizioni su Google, raccolti ogni giorno e confrontati con il
+            Visibilità su Google e traffico sul sito, raccolti ogni giorno e confrontati con il
             periodo precedente.
           </p>
         </div>
@@ -178,6 +178,12 @@ function PerformanceDetail() {
       <section className="content-section">
         <div className="section-inner">
           <PerformanceLive siteId={siteId} />
+        </div>
+      </section>
+
+      <section className="content-section">
+        <div className="section-inner">
+          <AnalyticsLive siteId={siteId} />
         </div>
       </section>
 

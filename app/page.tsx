@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { IBM_Plex_Sans, Sora } from "next/font/google";
 import { baselineAudit } from "./data/audit-baseline";
-import { getGscTotals, getLatestRuns } from "../lib/engine/read";
+import { getGa4Totals, getGscTotals, getLatestRuns } from "../lib/engine/read";
 import { safeRead } from "../lib/engine/safe";
 import { formatDate } from "../lib/format";
 import styles from "./home.module.css";
@@ -33,36 +33,43 @@ type StatusItem = {
 const RUN_LABEL = {
   baseline: "Baseline",
   gsc: "Search Console",
+  ga4: "Analytics 4",
   onpage: "Analisi on-page",
   audit: "Audit live",
 } as const;
 
-/** Search Console è "aggiornata" se l'ultimo giorno archiviato ha al massimo 4 giorni. */
-const GSC_FRESH_DAYS = 4;
+/** Una fonte è "aggiornata" se l'ultimo giorno archiviato ha al massimo 4 giorni. */
+const FRESH_DAYS = 4;
+
+function isFresh(date: string | null): boolean {
+  return date !== null && Date.now() - new Date(`${date}T12:00:00Z`).getTime() <= FRESH_DAYS * 86_400_000;
+}
 
 async function getStatusItems(): Promise<StatusItem[]> {
   const siteId = baselineAudit.domain;
-  const [totals, latest] = await Promise.all([
+  const [gsc, ga4, latest] = await Promise.all([
     safeRead("home gsc", () => getGscTotals(siteId, 28)),
+    safeRead("home ga4", () => getGa4Totals(siteId, 28)),
     safeRead("home rilevazioni", () => getLatestRuns(siteId)),
   ]);
 
-  const lastGscDate = totals?.lastDate ?? null;
-  const gscFresh =
-    lastGscDate !== null &&
-    Date.now() - new Date(`${lastGscDate}T12:00:00Z`).getTime() <= GSC_FRESH_DAYS * 86_400_000;
+  const lastGscDate = gsc?.lastDate ?? null;
+  const lastGa4Date = ga4?.lastDate ?? null;
 
   const lastRun = latest
     ? Object.values(latest).sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime())[0]
     : undefined;
 
   return [
-    // GA4 non è ancora letto dal motore: stato dalla verifica di configurazione.
-    { label: "Analytics 4", value: "Tracciamento attivo", tone: "ok" },
+    {
+      label: "Analytics 4",
+      value: lastGa4Date ? `Dati al ${formatDate(lastGa4Date)}` : "Dati non disponibili",
+      tone: isFresh(lastGa4Date) ? "ok" : "pending",
+    },
     {
       label: "Search Console",
       value: lastGscDate ? `Dati al ${formatDate(lastGscDate)}` : "Dati non disponibili",
-      tone: gscFresh ? "ok" : "pending",
+      tone: isFresh(lastGscDate) ? "ok" : "pending",
     },
     lastRun
       ? {

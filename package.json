@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "db:migrate": "node scripts/db-migrate.mjs"
+    "db:migrate": "node scripts/db-migrate.mjs",
+    "google:auth": "node scripts/google-auth.mjs"
   },
   "dependencies": {
     "cheerio": "^1.2.0",

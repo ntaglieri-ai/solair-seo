@@ -2,6 +2,7 @@ import "server-only";
 import type postgres from "postgres";
 import { getSql } from "../db";
 import { queryGsc } from "../gsc";
+import { queryGa4Daily } from "../ga4";
 import { scanOnPage, type OnPageData } from "../onpage-scan";
 import { computeSeoScore } from "../seo-score";
 
@@ -9,6 +10,7 @@ export type Site = {
   id: string;
   home_url: string;
   gsc_property: string;
+  ga4_property: string | null;
 };
 
 export type Trigger = "cron" | "manual";
@@ -31,12 +33,12 @@ function daysAgo(days: number): Date {
 }
 
 export async function getSites(): Promise<Site[]> {
-  return getSql()<Site[]>`select id, home_url, gsc_property from seo.sites order by id`;
+  return getSql()<Site[]>`select id, home_url, gsc_property, ga4_property from seo.sites order by id`;
 }
 
 export async function getSite(id: string): Promise<Site | null> {
   const [site] = await getSql()<Site[]>`
-    select id, home_url, gsc_property from seo.sites where id = ${id}
+    select id, home_url, gsc_property, ga4_property from seo.sites where id = ${id}
   `;
   return site ?? null;
 }
@@ -47,7 +49,7 @@ export async function getSite(id: string): Promise<Site | null> {
  */
 async function withRun<T>(
   siteId: string,
-  kind: "gsc" | "onpage" | "audit",
+  kind: "gsc" | "ga4" | "onpage" | "audit",
   trigger: Trigger,
   work: (runId: string, sql: postgres.Sql) => Promise<{ result: T; raw: unknown }>
 ): Promise<{ runId: string; result: T }> {
@@ -136,6 +138,40 @@ export async function collectGsc(
 
     const summary = { days: daily.length, queries: queries.length, pages: pages.length };
     return { result: summary, raw: { period: { start: topStart, end: endDate }, daily, queries, pages } };
+  });
+}
+
+/**
+ * GA4: aggiorna la serie giornaliera (totale e per canale) degli ultimi
+ * `days` giorni. Restituisce null se il sito non ha una proprietà GA4.
+ */
+export async function collectGa4(site: Site, trigger: Trigger, days: number = GSC_REFRESH_DAYS) {
+  const propertyId = site.ga4_property;
+  if (!propertyId) return null;
+
+  return withRun(site.id, "ga4", trigger, async (_runId, sql) => {
+    const rows = await queryGa4Daily(propertyId, isoDate(daysAgo(days)), isoDate(daysAgo(1)));
+
+    await sql.begin(async (tx) => {
+      for (const row of rows) {
+        await tx`
+          insert into seo.ga4_daily
+            (site_id, date, channel, sessions, users, new_users, engaged_sessions, key_events)
+          values (${site.id}, ${row.date}, ${row.channel}, ${row.sessions}, ${row.users},
+                  ${row.newUsers}, ${row.engagedSessions}, ${row.keyEvents})
+          on conflict (site_id, date, channel) do update set
+            sessions = excluded.sessions,
+            users = excluded.users,
+            new_users = excluded.new_users,
+            engaged_sessions = excluded.engaged_sessions,
+            key_events = excluded.key_events,
+            updated_at = now()
+        `;
+      }
+    });
+
+    const dates = new Set(rows.map((row) => row.date));
+    return { result: { days: dates.size, rows: rows.length }, raw: { property: propertyId, rows } };
   });
 }
 

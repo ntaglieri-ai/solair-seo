@@ -1,5 +1,6 @@
 import { WeeklyBars } from "../../components/weekly-bars";
 import {
+  getGa4Totals,
   getGscMonthly,
   getGscTop,
   getGscTotals,
@@ -28,6 +29,7 @@ import styles from "./live.module.css";
 const KIND_LABEL: Record<RunKind, string> = {
   baseline: "Baseline",
   gsc: "Search Console",
+  ga4: "Analytics 4",
   onpage: "Analisi on-page",
   audit: "Audit live",
 };
@@ -57,23 +59,29 @@ function Tile({
   value,
   previous,
   delta,
+  partial = false,
 }: {
   label: string;
   value: string;
   previous: string;
   delta: ReturnType<typeof formatDelta>;
+  /** Periodo precedente coperto solo in parte: la variazione sarebbe fuorviante. */
+  partial?: boolean;
 }) {
   return (
     <div className={styles.tile}>
       <span className={styles.tileLabel}>{label}</span>
       <span className={styles.tileValue}>{value}</span>
       <span className={styles.tileCompare}>
-        {delta && (
+        {delta && !partial && (
           <span className={styles.delta} data-trend={delta.trend}>
             {delta.text}
           </span>
         )}
-        <span>prima: {previous}</span>
+        <span>
+          prima: {previous}
+          {partial && " (dati parziali)"}
+        </span>
       </span>
     </div>
   );
@@ -156,24 +164,28 @@ export async function PerformanceLive({ siteId }: { siteId: string }) {
             value={formatInt(current.clicks)}
             previous={formatInt(previous.clicks)}
             delta={formatDelta(current.clicks, previous.clicks)}
+            partial={!totals.previousComplete}
           />
           <Tile
             label="Impressioni"
             value={formatInt(current.impressions)}
             previous={formatInt(previous.impressions)}
             delta={formatDelta(current.impressions, previous.impressions)}
+            partial={!totals.previousComplete}
           />
           <Tile
             label="CTR medio"
             value={formatPercent(current.ctr)}
             previous={formatPercent(previous.ctr)}
             delta={formatDelta(current.ctr, previous.ctr)}
+            partial={!totals.previousComplete}
           />
           <Tile
             label="Posizione media"
             value={formatDecimal(current.position)}
             previous={formatDecimal(previous.position)}
             delta={formatDelta(current.position, previous.position, { lowerIsBetter: true })}
+            partial={!totals.previousComplete}
           />
         </div>
         <p className={styles.note}>
@@ -215,6 +227,68 @@ export async function PerformanceLive({ siteId }: { siteId: string }) {
         </div>
       </section>
     </>
+  );
+}
+
+/** Performance: sessioni e conversioni da Analytics 4. */
+export async function AnalyticsLive({ siteId }: { siteId: string }) {
+  const totals = await safeRead("ga4", () => getGa4Totals(siteId, 28));
+  if (!totals) return <Unavailable />;
+  if (!totals.lastDate) {
+    return (
+      <section className={styles.block} aria-labelledby="ga4-kpi">
+        <div className={styles.heading}>
+          <h2 id="ga4-kpi">Analytics 4</h2>
+        </div>
+        <div className={styles.empty}>
+          Nessun dato GA4 archiviato: la raccolta partirà appena la proprietà sarà collegata.
+        </div>
+      </section>
+    );
+  }
+
+  const { current, previous } = totals;
+  return (
+    <section className={styles.block} aria-labelledby="ga4-kpi">
+      <div className={styles.heading}>
+        <h2 id="ga4-kpi">Analytics 4 · ultimi 28 giorni</h2>
+        <span>Dati fino al {formatDate(totals.lastDate)}, confronto con i 28 giorni precedenti</span>
+      </div>
+      <div className={styles.tiles}>
+        <Tile
+          label="Sessioni"
+          value={formatInt(current.sessions)}
+          previous={formatInt(previous.sessions)}
+          delta={formatDelta(current.sessions, previous.sessions)}
+          partial={!totals.previousComplete}
+        />
+        <Tile
+          label="Sessioni da Google organico"
+          value={formatInt(current.organicSessions)}
+          previous={formatInt(previous.organicSessions)}
+          delta={formatDelta(current.organicSessions, previous.organicSessions)}
+          partial={!totals.previousComplete}
+        />
+        <Tile
+          label="Tasso di coinvolgimento"
+          value={formatPercent(current.engagementRate)}
+          previous={formatPercent(previous.engagementRate)}
+          delta={formatDelta(current.engagementRate, previous.engagementRate)}
+          partial={!totals.previousComplete}
+        />
+        <Tile
+          label="Eventi chiave"
+          value={formatInt(Math.round(current.keyEvents))}
+          previous={formatInt(Math.round(previous.keyEvents))}
+          delta={formatDelta(current.keyEvents, previous.keyEvents)}
+          partial={!totals.previousComplete}
+        />
+      </div>
+      <p className={styles.note}>
+        Gli eventi chiave sono quelli segnati come conversione in GA4: finché non si decide quali
+        rappresentano un contatto commerciale, il numero va letto con cautela.
+      </p>
+    </section>
   );
 }
 
@@ -377,7 +451,7 @@ export async function CollectionStatus({ siteId }: { siteId: string }) {
   const runs = await safeRead("stato raccolta", () => getRecentRuns(siteId, 50));
   if (!runs) return <Unavailable />;
 
-  const latestByKind = (["gsc", "onpage", "audit"] as const)
+  const latestByKind = (["gsc", "ga4", "onpage", "audit"] as const)
     .map((kind) => runs.find((run) => run.kind === kind))
     .filter((run): run is RunSummary => Boolean(run));
 

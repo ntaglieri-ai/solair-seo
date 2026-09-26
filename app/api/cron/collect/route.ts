@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { collectGsc, collectOnPage, getSites, isOnPageDue } from "../../../../lib/engine/collect";
+import { collectGa4, collectGsc, collectOnPage, getSites, isOnPageDue } from "../../../../lib/engine/collect";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -9,7 +9,7 @@ const MAX_BACKFILL_DAYS = 486;
 
 /**
  * Raccolta automatica, chiamata ogni giorno dal cron di Vercel.
- * Per ogni sito: aggiorna Search Console e, se è passata una settimana,
+ * Per ogni sito: aggiorna Search Console e GA4 e, se è passata una settimana,
  * rifà l'analisi on-page della home.
  *
  * Protetta da CRON_SECRET (Vercel lo invia come header Authorization).
@@ -36,6 +36,13 @@ export async function GET(request: NextRequest) {
     }
 
     try {
+      const ga4 = await collectGa4(site, trigger, days);
+      entry.ga4 = ga4 ? ga4.result : "proprietà non configurata";
+    } catch (err) {
+      entry.ga4 = { error: err instanceof Error ? err.message : String(err) };
+    }
+
+    try {
       if (await isOnPageDue(site.id)) {
         entry.onpage = (await collectOnPage(site, trigger)).result;
       } else {
@@ -49,7 +56,7 @@ export async function GET(request: NextRequest) {
   }
 
   const failed = report.some((entry) =>
-    [entry.gsc, entry.onpage].some((value) => typeof value === "object" && value !== null && "error" in value)
+    [entry.gsc, entry.ga4, entry.onpage].some((value) => typeof value === "object" && value !== null && "error" in value)
   );
   return NextResponse.json({ ok: !failed, report }, { status: failed ? 500 : 200 });
 }

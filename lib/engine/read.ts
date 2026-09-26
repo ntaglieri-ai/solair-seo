@@ -3,7 +3,7 @@ import { getSql } from "../db";
 
 /** Punto unico di lettura dei dati archiviati, usato dalle pagine. */
 
-export type RunKind = "baseline" | "gsc" | "onpage" | "audit";
+export type RunKind = "baseline" | "gsc" | "ga4" | "onpage" | "audit";
 
 export type RunSummary = {
   id: string;
@@ -87,13 +87,21 @@ export async function getGscSeries(siteId: string, from: string, to: string): Pr
 export async function getGscTotals(
   siteId: string,
   days = 28
-): Promise<{ current: GscTotals; previous: GscTotals; lastDate: string | null }> {
+): Promise<{
+  current: GscTotals;
+  previous: GscTotals;
+  lastDate: string | null;
+  /** False se l'archivio non copre tutto il periodo precedente. */
+  previousComplete: boolean;
+}> {
   const sql = getSql();
-  const [{ last }] = await sql<{ last: string | null }[]>`
-    select to_char(max(date), 'YYYY-MM-DD') as last from seo.gsc_daily where site_id = ${siteId}
+  const [{ last, complete }] = await sql<{ last: string | null; complete: boolean | null }[]>`
+    select to_char(max(date), 'YYYY-MM-DD') as last,
+           min(date) <= max(date) - ${days * 2 - 1}::int as complete
+    from seo.gsc_daily where site_id = ${siteId}
   `;
   const empty: GscTotals = { clicks: 0, impressions: 0, ctr: 0, position: 0, days: 0 };
-  if (!last) return { current: empty, previous: empty, lastDate: null };
+  if (!last) return { current: empty, previous: empty, lastDate: null, previousComplete: false };
 
   const rows = await sql<(GscTotals & { period: "current" | "previous" })[]>`
     select
@@ -111,7 +119,7 @@ export async function getGscTotals(
     const row = rows.find((r) => r.period === period);
     return row ? { clicks: row.clicks, impressions: row.impressions, ctr: row.ctr, position: row.position, days: row.days } : empty;
   };
-  return { current: pick("current"), previous: pick("previous"), lastDate: last };
+  return { current: pick("current"), previous: pick("previous"), lastDate: last, previousComplete: Boolean(complete) };
 }
 
 /** Query o pagine principali dall'ultima raccolta GSC riuscita. */
@@ -211,4 +219,71 @@ export async function getGscMonthly(siteId: string): Promise<GscPeriod[]> {
     group by m.start
     order by m.start
   `;
+}
+
+export type Ga4Totals = {
+  sessions: number;
+  engagedSessions: number;
+  /** Sessioni con coinvolgimento / sessioni. */
+  engagementRate: number;
+  keyEvents: number;
+  /** Sessioni dal canale "Organic Search". */
+  organicSessions: number;
+  days: number;
+};
+
+/**
+ * Totali GA4 sugli ultimi `days` giorni disponibili e sul periodo precedente.
+ * Gli utenti non si sommano tra giorni (contano doppio), quindi non sono qui.
+ */
+export async function getGa4Totals(
+  siteId: string,
+  days = 28
+): Promise<{
+  current: Ga4Totals;
+  previous: Ga4Totals;
+  lastDate: string | null;
+  /** False se l'archivio non copre tutto il periodo precedente. */
+  previousComplete: boolean;
+}> {
+  const sql = getSql();
+  const [{ last, complete }] = await sql<{ last: string | null; complete: boolean | null }[]>`
+    select to_char(max(date), 'YYYY-MM-DD') as last,
+           min(date) <= max(date) - ${days * 2 - 1}::int as complete
+    from seo.ga4_daily where site_id = ${siteId} and channel = 'all'
+  `;
+  const empty: Ga4Totals = {
+    sessions: 0,
+    engagedSessions: 0,
+    engagementRate: 0,
+    keyEvents: 0,
+    organicSessions: 0,
+    days: 0,
+  };
+  if (!last) return { current: empty, previous: empty, lastDate: null, previousComplete: false };
+
+  const rows = await sql<(Ga4Totals & { period: "current" | "previous" })[]>`
+    select
+      case when date > ${last}::date - ${days}::int then 'current' else 'previous' end as period,
+      coalesce(sum(sessions) filter (where channel = 'all'), 0)::int as sessions,
+      coalesce(sum(engaged_sessions) filter (where channel = 'all'), 0)::int as "engagedSessions",
+      coalesce(
+        sum(engaged_sessions) filter (where channel = 'all')::float
+          / nullif(sum(sessions) filter (where channel = 'all'), 0),
+        0
+      ) as "engagementRate",
+      coalesce(sum(key_events) filter (where channel = 'all'), 0)::float as "keyEvents",
+      coalesce(sum(sessions) filter (where channel = 'Organic Search'), 0)::int as "organicSessions",
+      count(distinct date) filter (where channel = 'all')::int as days
+    from seo.ga4_daily
+    where site_id = ${siteId} and date > ${last}::date - ${days * 2}::int
+    group by 1
+  `;
+  const pick = (period: string) => {
+    const row = rows.find((r) => r.period === period);
+    if (!row) return empty;
+    const { sessions, engagedSessions, engagementRate, keyEvents, organicSessions, days: count } = row;
+    return { sessions, engagedSessions, engagementRate, keyEvents, organicSessions, days: count };
+  };
+  return { current: pick("current"), previous: pick("previous"), lastDate: last, previousComplete: Boolean(complete) };
 }

@@ -24,7 +24,7 @@ export type GscData = {
   period: string;
 };
 
-function getOAuthClient() {
+export function getOAuthClient() {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
   const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
