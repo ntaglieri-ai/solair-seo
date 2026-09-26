@@ -1,7 +1,13 @@
 import Link from "next/link";
 import { IBM_Plex_Sans, Sora } from "next/font/google";
 import { baselineAudit } from "./data/audit-baseline";
+import { getGscTotals, getLatestRuns } from "../lib/engine/read";
+import { safeRead } from "../lib/engine/safe";
+import { formatDate } from "../lib/format";
 import styles from "./home.module.css";
+
+// Gli indicatori leggono lo stato della raccolta dati a ogni richiesta.
+export const dynamic = "force-dynamic";
 
 const sora = Sora({
   subsets: ["latin"],
@@ -17,16 +23,57 @@ const plexSans = IBM_Plex_Sans({
 
 const currentReportUrl = "/report/2026-09-06";
 
-const statusItems = [
-  { label: "Analytics 4", value: "Tracciamento attivo", tone: "ok" },
-  { label: "Search Console", value: "Proprietà verificata", tone: "ok" },
-  {
-    label: "Ultima rilevazione",
-    prefix: "Baseline · ",
-    value: baselineAudit.performance.updatedAt,
-    tone: "pending",
-  },
-] as const;
+type StatusItem = {
+  label: string;
+  prefix?: string;
+  value: string;
+  tone: "ok" | "pending";
+};
+
+const RUN_LABEL = {
+  baseline: "Baseline",
+  gsc: "Search Console",
+  onpage: "Analisi on-page",
+  audit: "Audit live",
+} as const;
+
+/** Search Console è "aggiornata" se l'ultimo giorno archiviato ha al massimo 4 giorni. */
+const GSC_FRESH_DAYS = 4;
+
+async function getStatusItems(): Promise<StatusItem[]> {
+  const siteId = baselineAudit.domain;
+  const [totals, latest] = await Promise.all([
+    safeRead("home gsc", () => getGscTotals(siteId, 28)),
+    safeRead("home rilevazioni", () => getLatestRuns(siteId)),
+  ]);
+
+  const lastGscDate = totals?.lastDate ?? null;
+  const gscFresh =
+    lastGscDate !== null &&
+    Date.now() - new Date(`${lastGscDate}T12:00:00Z`).getTime() <= GSC_FRESH_DAYS * 86_400_000;
+
+  const lastRun = latest
+    ? Object.values(latest).sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime())[0]
+    : undefined;
+
+  return [
+    // GA4 non è ancora letto dal motore: stato dalla verifica di configurazione.
+    { label: "Analytics 4", value: "Tracciamento attivo", tone: "ok" },
+    {
+      label: "Search Console",
+      value: lastGscDate ? `Dati al ${formatDate(lastGscDate)}` : "Dati non disponibili",
+      tone: gscFresh ? "ok" : "pending",
+    },
+    lastRun
+      ? {
+          label: "Ultima rilevazione",
+          prefix: `${RUN_LABEL[lastRun.kind]} · `,
+          value: formatDate(lastRun.startedAt),
+          tone: lastRun.kind === "baseline" ? "pending" : "ok",
+        }
+      : { label: "Ultima rilevazione", value: "Non disponibile", tone: "pending" },
+  ];
+}
 
 const tools = [
   {
@@ -46,7 +93,7 @@ const tools = [
   },
   {
     title: "Tracking",
-    description: "Query e pagine monitorate nel tempo.",
+    description: "Setup GA4 e Search Console, stato raccolta.",
     href: "/sezioni/tracking-setup",
   },
   {
@@ -56,12 +103,14 @@ const tools = [
   },
   {
     title: "Storico",
-    description: "Baseline e audit precedenti a confronto.",
+    description: "Andamento mese per mese, score e rilevazioni.",
     href: "/sezioni/historical-comparison",
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const statusItems = await getStatusItems();
+
   return (
     <main className={`${styles.home} ${sora.variable} ${plexSans.variable}`}>
       <section className={styles.hero} aria-labelledby="home-title">
@@ -125,7 +174,7 @@ export default function Home() {
                 <div>
                   <span>{item.label}</span>
                   <strong>
-                    {"prefix" in item && (
+                    {item.prefix && (
                       <span className={styles.statusPrefix}>{item.prefix}</span>
                     )}
                     {item.value}

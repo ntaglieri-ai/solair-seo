@@ -2,9 +2,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { baselineAudit, type AuditArea } from "../../data/audit-baseline";
 import { clientConfig } from "../../../lib/client-config";
+import { CollectionStatus, HistoryLive, PerformanceLive } from "./live-data";
+
+// Performance, Storico e Tracking leggono il database a ogni richiesta.
+export const dynamic = "force-dynamic";
+
+const siteId = baselineAudit.domain;
 
 const trackingSectionId = "tracking-setup";
 const performanceSectionId = "performance";
+const historySectionId = "historical-comparison";
 
 function scoreLabel(score: number | null) {
   return score === null ? "N/D" : `${score}/100`;
@@ -137,6 +144,12 @@ function TrackingDetail() {
           </div>
         </div>
       </section>
+
+      <section className="content-section">
+        <div className="section-inner">
+          <CollectionStatus siteId={siteId} />
+        </div>
+      </section>
     </>
   );
 }
@@ -152,15 +165,28 @@ function PerformanceDetail() {
           <span className="eyebrow">Performance</span>
           <h1>Stato Attuale</h1>
           <div className="detail-meta">
-            <span className="badge">Aggiornato: {baselineAudit.performance.updatedAt}</span>
-            <span className="badge priority-high">Lettura operativa</span>
+            <span className="badge">Fonte: Google Search Console</span>
+            <span className="badge priority-high">Aggiornamento giornaliero</span>
           </div>
-          <p className="hero-copy">{baselineAudit.performance.summary}</p>
+          <p className="hero-copy">
+            Clic, impressioni e posizioni su Google, raccolti ogni giorno e confrontati con il
+            periodo precedente.
+          </p>
         </div>
       </section>
 
       <section className="content-section">
         <div className="section-inner">
+          <PerformanceLive siteId={siteId} />
+        </div>
+      </section>
+
+      <section className="content-section">
+        <div className="section-inner">
+          <div className="section-heading">
+            <h2>Lettura operativa</h2>
+            <span>Aggiornata al {baselineAudit.performance.updatedAt}</span>
+          </div>
           <div className="performance-grid">
             {baselineAudit.performance.items.map((item) => (
               <article className="performance-card" key={item.id}>
@@ -184,6 +210,43 @@ function PerformanceDetail() {
               </article>
             ))}
           </div>
+        </div>
+      </section>
+    </>
+  );
+}
+
+function HistoryDetail() {
+  return (
+    <>
+      <section className="detail-hero">
+        <div className="section-inner">
+          <Link className="back-link" href="/">
+            Torna alla panoramica
+          </Link>
+          <span className="eyebrow">Storico</span>
+          <h1>Confronto nel tempo</h1>
+          <div className="detail-meta">
+            <span className="badge">Baseline: {baselineAudit.auditDate}</span>
+            <span className="badge priority-high">Aggiornamento giornaliero</span>
+          </div>
+          <p className="hero-copy">
+            Andamento di Search Console mese per mese, score delle analisi e registro di tutte le
+            rilevazioni archiviate.
+          </p>
+        </div>
+      </section>
+
+      <section className="content-section">
+        <div className="section-inner">
+          <HistoryLive
+            siteId={siteId}
+            baseline={{
+              label: `${baselineAudit.label} (manuale)`,
+              date: baselineAudit.auditDate,
+              score: baselineAudit.globalScore,
+            }}
+          />
         </div>
       </section>
     </>
@@ -261,6 +324,14 @@ export default async function SectionPage({
 }) {
   const { id } = await params;
   const area = findArea(id);
+
+  if (id === historySectionId) {
+    return (
+      <main className="dashboard section-page">
+        <HistoryDetail />
+      </main>
+    );
+  }
 
   if (area) {
     return (

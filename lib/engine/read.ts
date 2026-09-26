@@ -152,3 +152,63 @@ export async function getOnPageHistory(siteId: string, limit = 20): Promise<OnPa
     limit ${limit}
   `;
 }
+
+export type GscPeriod = {
+  /** Primo giorno del periodo (YYYY-MM-DD). */
+  start: string;
+  clicks: number;
+  impressions: number;
+  /** Posizione media ponderata; null se nessuna impressione. */
+  position: number | null;
+};
+
+/**
+ * Clic e impressioni per settimana (lunedì-domenica) nelle ultime `weeks`
+ * settimane fino all'ultimo giorno disponibile. Le settimane senza dati
+ * valgono zero: Search Console non restituisce i giorni vuoti.
+ */
+export async function getGscWeekly(siteId: string, weeks = 26): Promise<GscPeriod[]> {
+  return getSql()<GscPeriod[]>`
+    with bounds as (
+      select date_trunc('week', max(date))::date as last_week
+      from seo.gsc_daily where site_id = ${siteId}
+    ),
+    weeks as (
+      select generate_series(last_week - (${weeks - 1}::int * 7), last_week, interval '7 days')::date as start
+      from bounds where last_week is not null
+    )
+    select to_char(w.start, 'YYYY-MM-DD') as start,
+           coalesce(sum(d.clicks), 0)::int as clicks,
+           coalesce(sum(d.impressions), 0)::int as impressions,
+           sum(d.position * d.impressions) / nullif(sum(d.impressions), 0) as position
+    from weeks w
+    left join seo.gsc_daily d
+      on d.site_id = ${siteId} and d.date >= w.start and d.date < w.start + 7
+    group by w.start
+    order by w.start
+  `;
+}
+
+/** Totali Search Console per mese, dal primo all'ultimo mese con dati. */
+export async function getGscMonthly(siteId: string): Promise<GscPeriod[]> {
+  return getSql()<GscPeriod[]>`
+    with bounds as (
+      select date_trunc('month', min(date))::date as first_month,
+             date_trunc('month', max(date))::date as last_month
+      from seo.gsc_daily where site_id = ${siteId}
+    ),
+    months as (
+      select generate_series(first_month, last_month, interval '1 month')::date as start
+      from bounds where first_month is not null
+    )
+    select to_char(m.start, 'YYYY-MM-DD') as start,
+           coalesce(sum(d.clicks), 0)::int as clicks,
+           coalesce(sum(d.impressions), 0)::int as impressions,
+           sum(d.position * d.impressions) / nullif(sum(d.impressions), 0) as position
+    from months m
+    left join seo.gsc_daily d
+      on d.site_id = ${siteId} and date_trunc('month', d.date) = m.start
+    group by m.start
+    order by m.start
+  `;
+}
