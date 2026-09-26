@@ -287,3 +287,51 @@ export async function getGa4Totals(
   };
   return { current: pick("current"), previous: pick("previous"), lastDate: last, previousComplete: Boolean(complete) };
 }
+
+export type EventTotals = {
+  name: string;
+  current: number;
+  previous: number;
+};
+
+/**
+ * Conteggi di eventi GA4 scelti sugli ultimi `days` giorni disponibili e sul
+ * periodo precedente, con l'indicazione se il periodo precedente è completo.
+ */
+export async function getGa4EventTotals(
+  siteId: string,
+  eventNames: string[],
+  days = 28
+): Promise<{ events: EventTotals[]; lastDate: string | null; previousComplete: boolean }> {
+  const sql = getSql();
+  const [{ last, complete }] = await sql<{ last: string | null; complete: boolean | null }[]>`
+    select to_char(max(date), 'YYYY-MM-DD') as last,
+           min(date) <= max(date) - ${days * 2 - 1}::int as complete
+    from seo.ga4_events where site_id = ${siteId}
+  `;
+  if (!last) {
+    return {
+      events: eventNames.map((name) => ({ name, current: 0, previous: 0 })),
+      lastDate: null,
+      previousComplete: false,
+    };
+  }
+
+  const rows = await sql<{ name: string; current: number; previous: number }[]>`
+    select event_name as name,
+           coalesce(sum(event_count) filter (where date > ${last}::date - ${days}::int), 0)::int as current,
+           coalesce(sum(event_count) filter (where date <= ${last}::date - ${days}::int), 0)::int as previous
+    from seo.ga4_events
+    where site_id = ${siteId}
+      and event_name in ${sql(eventNames)}
+      and date > ${last}::date - ${days * 2}::int
+    group by event_name
+  `;
+  return {
+    events: eventNames.map(
+      (name) => rows.find((row) => row.name === name) ?? { name, current: 0, previous: 0 }
+    ),
+    lastDate: last,
+    previousComplete: Boolean(complete),
+  };
+}

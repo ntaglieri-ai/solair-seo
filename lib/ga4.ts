@@ -67,3 +67,34 @@ export async function queryGa4Daily(
     )
   );
 }
+
+export type Ga4EventRow = {
+  date: string;
+  eventName: string;
+  eventCount: number;
+  users: number;
+};
+
+/** Conteggio giornaliero di ogni evento GA4, per nome. */
+export async function queryGa4Events(
+  propertyId: string,
+  startDate: string,
+  endDate: string
+): Promise<Ga4EventRow[]> {
+  const analyticsdata = google.analyticsdata({ version: "v1beta", auth: getOAuthClient() });
+  const { data } = await analyticsdata.properties.runReport({
+    property: `properties/${propertyId}`,
+    requestBody: {
+      dateRanges: [{ startDate, endDate }],
+      dimensions: [{ name: "date" }, { name: "eventName" }],
+      metrics: [{ name: "eventCount" }, { name: "totalUsers" }],
+      limit: "100000",
+    },
+  });
+
+  return (data.rows ?? []).map((row) => {
+    const [date, eventName] = (row.dimensionValues ?? []).map((v) => v.value ?? "");
+    const [eventCount, users] = (row.metricValues ?? []).map((v) => Number(v.value ?? 0));
+    return { date: toIsoDate(date), eventName, eventCount, users };
+  });
+}

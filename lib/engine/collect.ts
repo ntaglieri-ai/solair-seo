@@ -2,7 +2,7 @@ import "server-only";
 import type postgres from "postgres";
 import { getSql } from "../db";
 import { queryGsc } from "../gsc";
-import { queryGa4Daily } from "../ga4";
+import { queryGa4Daily, queryGa4Events } from "../ga4";
 import { scanOnPage, type OnPageData } from "../onpage-scan";
 import { computeSeoScore } from "../seo-score";
 
@@ -150,7 +150,12 @@ export async function collectGa4(site: Site, trigger: Trigger, days: number = GS
   if (!propertyId) return null;
 
   return withRun(site.id, "ga4", trigger, async (_runId, sql) => {
-    const rows = await queryGa4Daily(propertyId, isoDate(daysAgo(days)), isoDate(daysAgo(1)));
+    const startDate = isoDate(daysAgo(days));
+    const endDate = isoDate(daysAgo(1));
+    const [rows, events] = await Promise.all([
+      queryGa4Daily(propertyId, startDate, endDate),
+      queryGa4Events(propertyId, startDate, endDate),
+    ]);
 
     await sql.begin(async (tx) => {
       for (const row of rows) {
@@ -168,10 +173,23 @@ export async function collectGa4(site: Site, trigger: Trigger, days: number = GS
             updated_at = now()
         `;
       }
+      for (const event of events) {
+        await tx`
+          insert into seo.ga4_events (site_id, date, event_name, event_count, users)
+          values (${site.id}, ${event.date}, ${event.eventName}, ${event.eventCount}, ${event.users})
+          on conflict (site_id, date, event_name) do update set
+            event_count = excluded.event_count,
+            users = excluded.users,
+            updated_at = now()
+        `;
+      }
     });
 
     const dates = new Set(rows.map((row) => row.date));
-    return { result: { days: dates.size, rows: rows.length }, raw: { property: propertyId, rows } };
+    return {
+      result: { days: dates.size, rows: rows.length, events: events.length },
+      raw: { property: propertyId, rows, events },
+    };
   });
 }
 

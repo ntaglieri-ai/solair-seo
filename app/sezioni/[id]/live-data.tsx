@@ -1,5 +1,7 @@
 import { WeeklyBars } from "../../components/weekly-bars";
+import { CONTACT_EVENTS, INTEREST_EVENTS, TRACKED_EVENTS } from "../../../lib/engine/contacts";
 import {
+  getGa4EventTotals,
   getGa4Totals,
   getGscMonthly,
   getGscTop,
@@ -232,8 +234,15 @@ export async function PerformanceLive({ siteId }: { siteId: string }) {
 
 /** Performance: sessioni e conversioni da Analytics 4. */
 export async function AnalyticsLive({ siteId }: { siteId: string }) {
-  const totals = await safeRead("ga4", () => getGa4Totals(siteId, 28));
-  if (!totals) return <Unavailable />;
+  const data = await safeRead("ga4", async () => {
+    const [totals, events] = await Promise.all([
+      getGa4Totals(siteId, 28),
+      getGa4EventTotals(siteId, TRACKED_EVENTS, 28),
+    ]);
+    return { totals, events };
+  });
+  if (!data) return <Unavailable />;
+  const { totals, events } = data;
   if (!totals.lastDate) {
     return (
       <section className={styles.block} aria-labelledby="ga4-kpi">
@@ -248,6 +257,20 @@ export async function AnalyticsLive({ siteId }: { siteId: string }) {
   }
 
   const { current, previous } = totals;
+  const byName = new Map(events.events.map((event) => [event.name, event]));
+  const contacts = CONTACT_EVENTS.map((event) => ({
+    ...event,
+    current: byName.get(event.name)?.current ?? 0,
+    previous: byName.get(event.name)?.previous ?? 0,
+  }));
+  const interest = INTEREST_EVENTS.map((event) => ({
+    ...event,
+    current: byName.get(event.name)?.current ?? 0,
+    previous: byName.get(event.name)?.previous ?? 0,
+  }));
+  const contactsCurrent = contacts.reduce((sum, event) => sum + event.current, 0);
+  const contactsPrevious = contacts.reduce((sum, event) => sum + event.previous, 0);
+
   return (
     <section className={styles.block} aria-labelledby="ga4-kpi">
       <div className={styles.heading}>
@@ -277,16 +300,46 @@ export async function AnalyticsLive({ siteId }: { siteId: string }) {
           partial={!totals.previousComplete}
         />
         <Tile
-          label="Eventi chiave"
-          value={formatInt(Math.round(current.keyEvents))}
-          previous={formatInt(Math.round(previous.keyEvents))}
-          delta={formatDelta(current.keyEvents, previous.keyEvents)}
-          partial={!totals.previousComplete}
+          label="Contatti"
+          value={formatInt(contactsCurrent)}
+          previous={formatInt(contactsPrevious)}
+          delta={formatDelta(contactsCurrent, contactsPrevious)}
+          partial={!events.previousComplete}
         />
       </div>
+
+      <div className={`${styles.panel} ${styles.tableWrap}`}>
+        <table className={styles.table}>
+          <caption>Contatti e interesse</caption>
+          <thead>
+            <tr>
+              <th scope="col">Azione</th>
+              <th scope="col">Ultimi 28 giorni</th>
+              <th scope="col">28 giorni prima</th>
+            </tr>
+          </thead>
+          <tbody>
+            {contacts.map((event) => (
+              <tr key={event.name}>
+                <td>{event.label}</td>
+                <td>{formatInt(event.current)}</td>
+                <td>{formatInt(event.previous)}</td>
+              </tr>
+            ))}
+            {interest.map((event) => (
+              <tr key={event.name}>
+                <td>{event.label} (interesse, non contatto)</td>
+                <td>{formatInt(event.current)}</td>
+                <td>{formatInt(event.previous)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <p className={styles.note}>
-        Gli eventi chiave sono quelli segnati come conversione in GA4: finché non si decide quali
-        rappresentano un contatto commerciale, il numero va letto con cautela.
+        Contatti = richieste inviate dal configuratore + clic su WhatsApp, telefono ed email. Il
+        conteggio usa i singoli eventi del sito, non il totale &quot;eventi chiave&quot; di GA4.
+        {!events.previousComplete && " Il periodo precedente è coperto solo in parte."}
       </p>
     </section>
   );
