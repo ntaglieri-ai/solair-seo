@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { baselineAudit } from "./data/audit-baseline";
 import { baselineDate, currentReportUrl, workPriorities } from "./data/home";
@@ -9,6 +8,7 @@ import { formatDate, formatDayMonth, formatDelta, formatInt } from "../lib/forma
 import { SiteHeader } from "./components/site-header";
 import { fontVariables } from "./fonts";
 import styles from "./home.module.css";
+import { HeroPhoto } from "./components/hero-photo";
 
 // I numeri di "A che punto siamo" leggono l'archivio a ogni richiesta.
 export const dynamic = "force-dynamic";
@@ -136,15 +136,7 @@ export default async function Home() {
   return (
     <main className={`${styles.home} ${fontVariables}`}>
       <section className={styles.hero} aria-labelledby="home-title">
-        {/* Energy Hill, Taipei — foto di Anders J su Unsplash (hxUcl0nUsIY) */}
-        <Image
-          className={styles.heroPhoto}
-          src="https://images.unsplash.com/photo-1594818379496-da1e345b0ded?ixlib=rb-4.1.0&q=80&fm=jpg&cs=srgb"
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-        />
+        <HeroPhoto className={styles.heroPhoto} />
         <SiteHeader />
 
         <div className={styles.heroBody}>

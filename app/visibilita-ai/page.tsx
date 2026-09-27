@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { SiteHeader } from "../components/site-header";
 import { fontVariables } from "../fonts";
 import sampleData from "../data/ai-visibility.sample.json";
@@ -7,6 +6,7 @@ import { summarizeAiVisibility, type AiVisibilityData, type CellState } from "..
 import { clientConfig } from "../../lib/client-config";
 import { formatDate, formatDecimal } from "../../lib/format";
 import styles from "./visibilita.module.css";
+import { HeroPhoto } from "../components/hero-photo";
 
 export const metadata: Metadata = {
   title: `Visibilità AI · ${clientConfig.productName}`,
@@ -35,15 +35,7 @@ export default function VisibilitaAi() {
   return (
     <main className={`${styles.page} ${fontVariables}`}>
       <section className={styles.hero} aria-labelledby="page-title">
-        {/* Energy Hill, Taipei — foto di Anders J su Unsplash (hxUcl0nUsIY) */}
-        <Image
-          className={styles.heroPhoto}
-          src="https://images.unsplash.com/photo-1594818379496-da1e345b0ded?ixlib=rb-4.1.0&q=80&fm=jpg&cs=srgb"
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-        />
+        <HeroPhoto className={styles.heroPhoto} />
         <SiteHeader current="/visibilita-ai" />
         <div className={styles.heroBody}>
           <div className={styles.heroText}>
