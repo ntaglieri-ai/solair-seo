@@ -5,7 +5,7 @@ import { baselineDate, currentReportUrl, workPriorities } from "./data/home";
 import { getGscClicksBetween, getGscTotals } from "../lib/engine/read";
 import { getIndexedPages } from "../lib/engine/indexed-pages";
 import { safeRead } from "../lib/engine/safe";
-import { formatDate, formatDelta, formatInt } from "../lib/format";
+import { formatDate, formatDayMonth, formatDelta, formatInt } from "../lib/format";
 import { SiteHeader } from "./components/site-header";
 import { fontVariables } from "./fonts";
 import styles from "./home.module.css";
@@ -43,7 +43,7 @@ const steps = [
   },
 ];
 
-/** "2026-09-06" meno `days` giorni, sempre in YYYY-MM-DD. */
+/** `date` meno `days` giorni (con `days` negativo, più giorni), sempre in YYYY-MM-DD. */
 function shiftDate(date: string, days: number): string {
   const d = new Date(`${date}T12:00:00Z`);
   d.setUTCDate(d.getUTCDate() - days);
@@ -57,26 +57,40 @@ type Metric = {
   note?: string;
 };
 
+/**
+ * Il confronto con la baseline (i 28 giorni fino a `baselineDate`) vale solo
+ * su un periodo attuale che non si sovrappone: 28 giorni interi dopo la
+ * baseline. Fino ad allora i numeri si mostrano senza variazione.
+ */
 async function getProgress(): Promise<Metric[]> {
   const siteId = baselineAudit.domain;
   const baselineFrom = shiftDate(baselineDate, WINDOW_DAYS - 1);
+  // Primo periodo confrontabile: dal giorno dopo la baseline, per 28 giorni.
+  const firstComparableEnd = shiftDate(baselineDate, -WINDOW_DAYS);
+  const pendingDelta = {
+    text: `confronto disponibile dal ${formatDayMonth(shiftDate(firstComparableEnd, -1))}`,
+    trend: "flat" as const,
+  };
 
   const gsc = await safeRead("home gsc", () => getGscTotals(siteId, WINDOW_DAYS));
   const lastDate = gsc?.lastDate ?? null;
   const currentFrom = lastDate ? shiftDate(lastDate, WINDOW_DAYS - 1) : null;
+  const comparable = lastDate !== null && lastDate >= firstComparableEnd;
 
   const [baselineClicks, pagesNow, pagesBaseline] = await Promise.all([
-    safeRead("home clic baseline", () => getGscClicksBetween(siteId, baselineFrom, baselineDate)),
+    comparable ? safeRead("home clic baseline", () => getGscClicksBetween(siteId, baselineFrom, baselineDate)) : null,
     lastDate && currentFrom
       ? safeRead("home pagine", () => getIndexedPages(siteId, currentFrom, lastDate))
       : null,
-    safeRead("home pagine baseline", () => getIndexedPages(siteId, baselineFrom, baselineDate)),
+    comparable ? safeRead("home pagine baseline", () => getIndexedPages(siteId, baselineFrom, baselineDate)) : null,
   ]);
 
   const pages: Metric = { label: "Pagine visibili su Google", value: "—" };
   if (pagesNow !== null) {
     pages.value = formatInt(pagesNow);
-    if (pagesBaseline !== null) {
+    if (!comparable) {
+      pages.delta = pendingDelta;
+    } else if (pagesBaseline !== null) {
       const diff = pagesNow - pagesBaseline;
       pages.delta = {
         text: diff === 0 ? "invariate" : `${diff > 0 ? "+" : "−"}${formatInt(Math.abs(diff))} vs baseline`,
@@ -89,8 +103,12 @@ async function getProgress(): Promise<Metric[]> {
   if (gsc && lastDate) {
     clicks.value = formatInt(gsc.current.clicks);
     clicks.note = `al ${formatDate(lastDate)}`;
-    const delta = baselineClicks && formatDelta(gsc.current.clicks, baselineClicks.clicks);
-    if (delta) clicks.delta = { ...delta, text: `${delta.text} vs baseline` };
+    if (!comparable) {
+      clicks.delta = pendingDelta;
+    } else {
+      const delta = baselineClicks && formatDelta(gsc.current.clicks, baselineClicks.clicks);
+      if (delta) clicks.delta = { ...delta, text: `${delta.text} vs baseline` };
+    }
   }
 
   return [pages, clicks, { label: "Presenza nelle risposte AI", value: "In arrivo" }];

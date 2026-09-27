@@ -17,6 +17,12 @@ export function formatDate(value: string | Date): string {
   return date.toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric", timeZone: TIME_ZONE });
 }
 
+/** "2026-10-05" o Date → "5 ottobre". */
+export function formatDayMonth(value: string | Date): string {
+  const date = typeof value === "string" ? new Date(`${value}T12:00:00Z`) : value;
+  return date.toLocaleDateString("it-IT", { day: "numeric", month: "long", timeZone: TIME_ZONE });
+}
+
 /** "2026-09-25" o Date → "25 set". */
 export function formatShortDate(value: string | Date): string {
   const date = typeof value === "string" ? new Date(`${value}T12:00:00Z`) : value;
