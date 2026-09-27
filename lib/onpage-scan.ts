@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import { collectJsonLdTypes } from "./geo-scan";
 
 export type OnPageData = {
   url: string;
@@ -22,7 +23,7 @@ export type OnPageData = {
  * a girare in una funzione serverless Vercel senza dipendenze pesanti).
  * Nota: legge l'HTML servito dal server, non esegue JavaScript client-side.
  */
-export async function scanOnPage(url: string): Promise<OnPageData> {
+export async function fetchPageHtml(url: string): Promise<string> {
   const res = await fetch(url, {
     headers: {
       "User-Agent": "Mozilla/5.0 (compatible; MosTagAuditBot/1.0)",
@@ -34,7 +35,12 @@ export async function scanOnPage(url: string): Promise<OnPageData> {
     throw new Error(`Impossibile scaricare ${url}: HTTP ${res.status}`);
   }
 
-  const html = await res.text();
+  return res.text();
+}
+
+/** `html` evita un secondo download quando la pagina è già stata scaricata. */
+export async function scanOnPage(url: string, html?: string): Promise<OnPageData> {
+  html ??= await fetchPageHtml(url);
   const $ = cheerio.load(html);
   const domain = new URL(url).hostname;
 
@@ -70,20 +76,8 @@ export async function scanOnPage(url: string): Promise<OnPageData> {
     }
   });
 
-  const schemaTypes: string[] = [];
-  $('script[type="application/ld+json"]').each((_, el) => {
-    try {
-      const data = JSON.parse($(el).contents().text());
-      const type = data["@type"];
-      if (Array.isArray(type)) {
-        schemaTypes.push(...type.map(String));
-      } else if (type) {
-        schemaTypes.push(String(type));
-      }
-    } catch {
-      // JSON-LD malformato: ignorato, coerente con il comportamento dello script Python
-    }
-  });
+  // Tutti i tipi JSON-LD, anche dentro @graph e annidati: stessa lettura del controllo GEO.
+  const schemaTypes = collectJsonLdTypes(html);
 
   const ogTags: Record<string, string> = {};
   $('meta[property^="og:"]').each((_, el) => {

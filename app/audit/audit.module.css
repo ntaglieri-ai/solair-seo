@@ -1,0 +1,96 @@
+/* Aggiunte dell'audit live allo stile dei report (globals.css). */
+
+/* I pannelli non si allargano oltre lo schermo: la tabella query scorre al suo interno */
+.results > * {
+  min-width: 0;
+}
+
+.scores {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 14px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.scores > div {
+  padding: 18px 20px;
+}
+
+.scores > div + div {
+  border-left: 1px solid var(--border);
+}
+
+.scores span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.scores strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--ink-soft);
+  font-size: 40px;
+  line-height: 1.1;
+}
+
+.scores small {
+  margin-left: 2px;
+  color: var(--muted);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.scores p {
+  margin-top: 4px;
+  font-size: 14px;
+}
+
+/* Dentro .report-row le regole globali per span e strong vanno riportate allo stile del controllo */
+:global(.report-row) .checkLabel {
+  margin-top: 0;
+  font-size: 16px;
+}
+
+:global(.report-row) .points {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+:global(.report-row) .pill {
+  justify-self: start;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: none;
+}
+
+:global(.report-row) .statusOk {
+  color: var(--accent-dark);
+}
+
+:global(.report-row) .statusWarn {
+  color: var(--warning);
+}
+
+:global(.report-row) .statusFail {
+  border-color: rgba(163, 54, 31, 0.3);
+  background: #fbecea;
+  color: #a3361f;
+}
+
+@media (max-width: 640px) {
+  .scores {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .scores > div + div {
+    border-top: 1px solid var(--border);
+    border-left: 0;
+  }
+}

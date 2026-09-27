@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { scanOnPage } from "../../../lib/onpage-scan";
+import { fetchPageHtml, scanOnPage } from "../../../lib/onpage-scan";
+import { scanGeo } from "../../../lib/geo-scan";
 import { getGscData } from "../../../lib/gsc";
 import { computeSeoScore } from "../../../lib/seo-score";
 import { recordAudit } from "../../../lib/engine/collect";
@@ -9,8 +10,8 @@ export const maxDuration = 30;
 
 /**
  * Endpoint di scansione live: riceve un URL qualsiasi, esegue scraping
- * on-page + query GSC (se la proprietà è verificata sull'account Google
- * collegato) + calcolo score. Pensato per uso multi-sito: la proprietà
+ * on-page + controlli GEO + query GSC (se la proprietà è verificata
+ * sull'account Google collegato) + calcolo dei punteggi SEO e GEO. Pensato per uso multi-sito: la proprietà
  * GSC si deriva dal dominio richiesto, non è fissa su un solo cliente.
  *
  * Uso: GET /api/scan?url=https://esempio.it
@@ -37,8 +38,10 @@ export async function GET(request: NextRequest) {
   const siteProperty = propertyOverride || `sc-domain:${targetUrl.hostname.replace(/^www\./, "")}`;
 
   try {
-    const [onpage, gsc] = await Promise.all([
-      scanOnPage(targetUrl.toString()),
+    const html = await fetchPageHtml(targetUrl.toString());
+    const [onpage, geo, gsc] = await Promise.all([
+      scanOnPage(targetUrl.toString(), html),
+      scanGeo(targetUrl.toString(), html),
       getGscData(siteProperty).catch((err) => {
         console.error("[scan] GSC non disponibile per questa proprieta':", err);
         return {
@@ -61,7 +64,9 @@ export async function GET(request: NextRequest) {
       scannedAt: new Date().toISOString(),
       score,
       deductions,
+      geoScore: geo.score,
       onpage,
+      geo,
       gsc,
     };
 

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import type { GeoData, GeoStatus } from "../../lib/geo-scan";
+import styles from "./audit.module.css";
 
 type ScanResult = {
   url: string;
@@ -10,6 +12,8 @@ type ScanResult = {
   scannedAt: string;
   score: number;
   deductions: string[];
+  geoScore: number;
+  geo: GeoData;
   onpage: {
     title: string;
     titleLength: number;
@@ -30,6 +34,12 @@ type ScanResult = {
     totalsPrevious: { clicks: number; impressions: number; ctr: number };
     period: string;
   };
+};
+
+const GEO_STATUS: Record<GeoStatus, { label: string; className: string }> = {
+  ok: { label: "OK", className: `status-pill status-attivo ${styles.pill} ${styles.statusOk}` },
+  warn: { label: "Da migliorare", className: `status-pill status-da-validare ${styles.pill} ${styles.statusWarn}` },
+  fail: { label: "Da fare", className: `status-pill ${styles.pill} ${styles.statusFail}` },
 };
 
 export default function AuditPage() {
@@ -66,13 +76,16 @@ export default function AuditPage() {
     <main className="dashboard section-page">
       <section className="detail-hero">
         <div className="section-inner">
-          <Link className="back-link" href="/">
-            Torna alla panoramica
-          </Link>
+          <div>
+            <Link className="back-link" href="/">
+              Torna alla panoramica
+            </Link>
+          </div>
           <span className="eyebrow">Audit live</span>
-          <h1>Nuova scansione SEO</h1>
+          <h1>Nuova scansione SEO e GEO</h1>
           <p className="hero-copy">
-            Inserisci un URL per una rilevazione on-page e Search Console in tempo reale.
+            Inserisci un URL per una rilevazione on-page, Search Console e leggibilità per i
+            motori AI in tempo reale.
           </p>
         </div>
       </section>
@@ -96,16 +109,53 @@ export default function AuditPage() {
           {error && <div className="empty-state" style={{ marginTop: 20, borderColor: "#e08a8a", color: "#a33" }}>{error}</div>}
 
           {result && (
-            <div className="report-grid" style={{ marginTop: 28 }}>
+            <div className={`report-grid ${styles.results}`} style={{ marginTop: 28 }}>
               <section className="report-panel report-summary">
                 <span className="eyebrow">{result.domain}</span>
-                <h2>Score: {result.score}/100</h2>
+                <div className={styles.scores}>
+                  <div>
+                    <span>Punteggio SEO</span>
+                    <strong>
+                      {result.score}
+                      <small>/100</small>
+                    </strong>
+                    <p>Google: on-page e Search Console</p>
+                  </div>
+                  <div>
+                    <span>Punteggio GEO</span>
+                    <strong>
+                      {result.geoScore}
+                      <small>/100</small>
+                    </strong>
+                    <p>Motori AI: accesso, dati strutturati, leggibilità</p>
+                  </div>
+                </div>
                 <p>Scansionato il {new Date(result.scannedAt).toLocaleString("it-IT")}</p>
+              </section>
+
+              <section className="report-panel">
+                <span className="eyebrow">GEO · Leggibilità per i motori AI</span>
+                <div className="report-table">
+                  {result.geo.checks.map((check) => (
+                    <div className="report-row" key={check.id}>
+                      <strong className={styles.checkLabel}>{check.label}</strong>
+                      <p>
+                        {check.detail}{" "}
+                        <span className={styles.points}>
+                          {check.points}/{check.maxPoints} punti
+                        </span>
+                      </p>
+                      <span className={GEO_STATUS[check.status].className}>
+                        {GEO_STATUS[check.status].label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </section>
 
               {result.deductions.length > 0 && (
                 <section className="report-panel">
-                  <span className="eyebrow">Rilievi tecnici</span>
+                  <span className="eyebrow">Rilievi SEO</span>
                   <div className="field" style={{ marginTop: 14 }}>
                     <ul>
                       {result.deductions.map((d) => (
