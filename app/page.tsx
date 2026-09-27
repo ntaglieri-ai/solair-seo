@@ -1,40 +1,19 @@
 import Image from "next/image";
 import Link from "next/link";
-import { IBM_Plex_Sans, Sora } from "next/font/google";
 import { baselineAudit } from "./data/audit-baseline";
 import { baselineDate, currentReportUrl, workPriorities } from "./data/home";
 import { getGscClicksBetween, getGscTotals } from "../lib/engine/read";
 import { getIndexedPages } from "../lib/engine/indexed-pages";
 import { safeRead } from "../lib/engine/safe";
 import { formatDate, formatDelta, formatInt } from "../lib/format";
-import { HomeMenu } from "./components/home-menu";
+import { SiteHeader } from "./components/site-header";
+import { fontVariables } from "./fonts";
 import styles from "./home.module.css";
 
 // I numeri di "A che punto siamo" leggono l'archivio a ogni richiesta.
 export const dynamic = "force-dynamic";
 
-const sora = Sora({
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-  variable: "--font-sora",
-});
-
-const plexSans = IBM_Plex_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-plex",
-});
-
 const WINDOW_DAYS = 28;
-
-const menu = [
-  { label: "Report", href: currentReportUrl },
-  { label: "Performance", href: "/sezioni/performance" },
-  { label: "Visibilità AI", href: "/visibilita-ai" },
-  { label: "Action plan", href: "/sezioni/action-plan" },
-  { label: "Tracking", href: "/sezioni/tracking-setup" },
-  { label: "Storico", href: "/sezioni/historical-comparison" },
-];
 
 const steps = [
   {
@@ -137,7 +116,7 @@ export default async function Home() {
   const progress = await getProgress();
 
   return (
-    <main className={`${styles.home} ${sora.variable} ${plexSans.variable}`}>
+    <main className={`${styles.home} ${fontVariables}`}>
       <section className={styles.hero} aria-labelledby="home-title">
         {/* Energy Hill, Taipei — foto di Anders J su Unsplash (hxUcl0nUsIY) */}
         <Image
@@ -148,18 +127,7 @@ export default async function Home() {
           priority
           sizes="100vw"
         />
-        <header className={styles.topbar}>
-          <div className={styles.topbarInner}>
-            <Link className={styles.brand} href="/">
-              <span className={styles.brandMark} aria-hidden="true" />
-              <span className={styles.brandText}>
-                <strong>SolairSEO</strong>
-                <span>by Solair Group</span>
-              </span>
-            </Link>
-            <HomeMenu items={menu} domain={baselineAudit.domain} />
-          </div>
-        </header>
+        <SiteHeader />
 
         <div className={styles.heroBody}>
           <span className={styles.eyebrow}>

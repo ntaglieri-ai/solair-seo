@@ -1,0 +1,1183 @@
+{
+  "_nota": "Dati di esempio: nessun motore AI è stato interrogato. Verranno sostituiti dalla rilevazione reale.",
+  "sample": true,
+  "brand": "Solair Group",
+  "engines": [
+    {
+      "id": "chatgpt",
+      "name": "ChatGPT"
+    },
+    {
+      "id": "gemini",
+      "name": "Gemini"
+    },
+    {
+      "id": "perplexity",
+      "name": "Perplexity"
+    },
+    {
+      "id": "claude",
+      "name": "Claude"
+    }
+  ],
+  "runs": [
+    {
+      "collectedAt": "2026-08-25",
+      "questions": [
+        {
+          "question": "Miglior installatore fotovoltaico in Italia",
+          "answers": {
+            "chatgpt": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo",
+                "Soly"
+              ],
+              "sources": [
+                {
+                  "domain": "gse.it"
+                },
+                {
+                  "domain": "reddit.com"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            },
+            "gemini": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo",
+                "Soly"
+              ],
+              "sources": [
+                {
+                  "domain": "gse.it"
+                },
+                {
+                  "domain": "reddit.com"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            },
+            "perplexity": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo",
+                "Soly",
+                "Altri installatori"
+              ],
+              "sources": [
+                {
+                  "domain": "wikipedia.org"
+                },
+                {
+                  "domain": "gse.it"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            },
+            "claude": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Soly",
+                "Altri installatori"
+              ],
+              "sources": [
+                {
+                  "domain": "reddit.com"
+                },
+                {
+                  "domain": "gse.it"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "question": "Conviene il fotovoltaico con accumulo nel 2026?",
+          "answers": {
+            "chatgpt": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [],
+              "sources": [
+                {
+                  "domain": "reddit.com"
+                },
+                {
+                  "domain": "wikipedia.org"
+                }
+              ]
+            },
+            "gemini": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [],
+              "sources": [
+                {
+                  "domain": "gse.it"
+                },
+                {
+                  "domain": "altroconsumo.it"
+                }
+              ]
+            },
+            "perplexity": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [],
+              "sources": [
+                {
+                  "domain": "gse.it"
+                },
+                {
+                  "domain": "altroconsumo.it"
+                }
+              ]
+            },
+            "claude": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [],
+              "sources": [
+                {
+                  "domain": "qualenergia.it"
+                },
+                {
+                  "domain": "wikipedia.org"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "question": "Come entrare in una comunità energetica (CER)",
+          "answers": {
+            "chatgpt": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [],
+              "sources": [
+                {
+                  "domain": "altroconsumo.it"
+                },
+                {
+                  "domain": "gse.it"
+                }
+              ]
+            },
+            "gemini": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [],
+              "sources": [
+                {
+                  "domain": "reddit.com"
+                },
+                {
+                  "domain": "qualenergia.it"
+                }
+              ]
+            },
+            "perplexity": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo",
+                "Altri installatori"
+              ],
+              "sources": [
+                {
+                  "domain": "reddit.com"
+                },
+                {
+                  "domain": "altroconsumo.it"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            },
+            "claude": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [],
+              "sources": [
+                {
+                  "domain": "qualenergia.it"
+                },
+                {
+                  "domain": "gse.it"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "question": "Incentivi per il fotovoltaico in casa",
+          "answers": {
+            "chatgpt": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo",
+                "Soly",
+                "Altri installatori"
+              ],
+              "sources": [
+                {
+                  "domain": "altroconsumo.it"
+                },
+                {
+                  "domain": "wikipedia.org"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            },
+            "gemini": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [],
+              "sources": [
+                {
+                  "domain": "reddit.com"
+                },
+                {
+                  "domain": "wikipedia.org"
+                }
+              ]
+            },
+            "perplexity": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo",
+                "Soly"
+              ],
+              "sources": [
+                {
+                  "domain": "qualenergia.it"
+                },
+                {
+                  "domain": "reddit.com"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            },
+            "claude": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo",
+                "Soly"
+              ],
+              "sources": [
+                {
+                  "domain": "gse.it"
+                },
+                {
+                  "domain": "qualenergia.it"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "question": "Quanto costa un impianto da 6 kW",
+          "answers": {
+            "chatgpt": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo"
+              ],
+              "sources": [
+                {
+                  "domain": "qualenergia.it"
+                },
+                {
+                  "domain": "gse.it"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            },
+            "gemini": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo",
+                "Soly"
+              ],
+              "sources": [
+                {
+                  "domain": "altroconsumo.it"
+                },
+                {
+                  "domain": "wikipedia.org"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            },
+            "perplexity": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [],
+              "sources": [
+                {
+                  "domain": "wikipedia.org"
+                },
+                {
+                  "domain": "gse.it"
+                }
+              ]
+            },
+            "claude": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Soly"
+              ],
+              "sources": [
+                {
+                  "domain": "qualenergia.it"
+                },
+                {
+                  "domain": "reddit.com"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "question": "Installatore fotovoltaico affidabile vicino a me",
+          "answers": {
+            "chatgpt": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo",
+                "Soly"
+              ],
+              "sources": [
+                {
+                  "domain": "wikipedia.org"
+                },
+                {
+                  "domain": "gse.it"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            },
+            "gemini": {
+              "solairCited": true,
+              "solairPosition": 2,
+              "competitors": [
+                "Otovo"
+              ],
+              "sources": [
+                {
+                  "domain": "gse.it"
+                },
+                {
+                  "domain": "reddit.com"
+                },
+                {
+                  "domain": "solairgroup.it"
+                }
+              ]
+            },
+            "perplexity": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo"
+              ],
+              "sources": [
+                {
+                  "domain": "qualenergia.it"
+                },
+                {
+                  "domain": "wikipedia.org"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            },
+            "claude": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Soly"
+              ],
+              "sources": [
+                {
+                  "domain": "qualenergia.it"
+                },
+                {
+                  "domain": "altroconsumo.it"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "question": "Fotovoltaico chiavi in mano con finanziamento",
+          "answers": {
+            "chatgpt": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo",
+                "Soly",
+                "Altri installatori"
+              ],
+              "sources": [
+                {
+                  "domain": "qualenergia.it"
+                },
+                {
+                  "domain": "altroconsumo.it"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            },
+            "gemini": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo",
+                "Soly"
+              ],
+              "sources": [
+                {
+                  "domain": "wikipedia.org"
+                },
+                {
+                  "domain": "gse.it"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            },
+            "perplexity": {
+              "solairCited": true,
+              "solairPosition": 2,
+              "competitors": [
+                "Otovo",
+                "Soly",
+                "Altri installatori"
+              ],
+              "sources": [
+                {
+                  "domain": "altroconsumo.it"
+                },
+                {
+                  "domain": "wikipedia.org"
+                },
+                {
+                  "domain": "solairgroup.it"
+                }
+              ]
+            },
+            "claude": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo"
+              ],
+              "sources": [
+                {
+                  "domain": "wikipedia.org"
+                },
+                {
+                  "domain": "altroconsumo.it"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "question": "Marketplace nazionale o installatore locale?",
+          "answers": {
+            "chatgpt": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo",
+                "Soly",
+                "Altri installatori"
+              ],
+              "sources": [
+                {
+                  "domain": "altroconsumo.it"
+                },
+                {
+                  "domain": "gse.it"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            },
+            "gemini": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo",
+                "Soly",
+                "Altri installatori"
+              ],
+              "sources": [
+                {
+                  "domain": "gse.it"
+                },
+                {
+                  "domain": "altroconsumo.it"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            },
+            "perplexity": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [],
+              "sources": [
+                {
+                  "domain": "wikipedia.org"
+                },
+                {
+                  "domain": "qualenergia.it"
+                }
+              ]
+            },
+            "claude": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [],
+              "sources": [
+                {
+                  "domain": "reddit.com"
+                },
+                {
+                  "domain": "qualenergia.it"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "collectedAt": "2026-09-22",
+      "questions": [
+        {
+          "question": "Miglior installatore fotovoltaico in Italia",
+          "answers": {
+            "chatgpt": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo"
+              ],
+              "sources": [
+                {
+                  "domain": "reddit.com"
+                },
+                {
+                  "domain": "gse.it"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            },
+            "gemini": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo"
+              ],
+              "sources": [
+                {
+                  "domain": "reddit.com"
+                },
+                {
+                  "domain": "wikipedia.org"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            },
+            "perplexity": {
+              "solairCited": true,
+              "solairPosition": 2,
+              "competitors": [
+                "Otovo",
+                "Soly"
+              ],
+              "sources": [
+                {
+                  "domain": "wikipedia.org"
+                },
+                {
+                  "domain": "gse.it"
+                },
+                {
+                  "domain": "solairgroup.it"
+                }
+              ]
+            },
+            "claude": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo",
+                "Soly",
+                "Altri installatori"
+              ],
+              "sources": [
+                {
+                  "domain": "qualenergia.it"
+                },
+                {
+                  "domain": "gse.it"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "question": "Conviene il fotovoltaico con accumulo nel 2026?",
+          "answers": {
+            "chatgpt": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [],
+              "sources": [
+                {
+                  "domain": "gse.it"
+                },
+                {
+                  "domain": "reddit.com"
+                }
+              ]
+            },
+            "gemini": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [],
+              "sources": [
+                {
+                  "domain": "reddit.com"
+                },
+                {
+                  "domain": "altroconsumo.it"
+                }
+              ]
+            },
+            "perplexity": {
+              "solairCited": true,
+              "solairPosition": 2,
+              "competitors": [
+                "Otovo"
+              ],
+              "sources": [
+                {
+                  "domain": "gse.it"
+                },
+                {
+                  "domain": "altroconsumo.it"
+                },
+                {
+                  "domain": "solairgroup.it"
+                }
+              ]
+            },
+            "claude": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [],
+              "sources": [
+                {
+                  "domain": "altroconsumo.it"
+                },
+                {
+                  "domain": "qualenergia.it"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "question": "Come entrare in una comunità energetica (CER)",
+          "answers": {
+            "chatgpt": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [],
+              "sources": [
+                {
+                  "domain": "qualenergia.it"
+                },
+                {
+                  "domain": "reddit.com"
+                }
+              ]
+            },
+            "gemini": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [],
+              "sources": [
+                {
+                  "domain": "wikipedia.org"
+                },
+                {
+                  "domain": "gse.it"
+                }
+              ]
+            },
+            "perplexity": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo",
+                "Soly"
+              ],
+              "sources": [
+                {
+                  "domain": "wikipedia.org"
+                },
+                {
+                  "domain": "reddit.com"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            },
+            "claude": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [],
+              "sources": [
+                {
+                  "domain": "qualenergia.it"
+                },
+                {
+                  "domain": "gse.it"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "question": "Incentivi per il fotovoltaico in casa",
+          "answers": {
+            "chatgpt": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo"
+              ],
+              "sources": [
+                {
+                  "domain": "wikipedia.org"
+                },
+                {
+                  "domain": "altroconsumo.it"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            },
+            "gemini": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [],
+              "sources": [
+                {
+                  "domain": "reddit.com"
+                },
+                {
+                  "domain": "gse.it"
+                }
+              ]
+            },
+            "perplexity": {
+              "solairCited": true,
+              "solairPosition": 2,
+              "competitors": [
+                "Otovo",
+                "Altri installatori"
+              ],
+              "sources": [
+                {
+                  "domain": "reddit.com"
+                },
+                {
+                  "domain": "gse.it"
+                },
+                {
+                  "domain": "solairgroup.it"
+                }
+              ]
+            },
+            "claude": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo"
+              ],
+              "sources": [
+                {
+                  "domain": "qualenergia.it"
+                },
+                {
+                  "domain": "reddit.com"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "question": "Quanto costa un impianto da 6 kW",
+          "answers": {
+            "chatgpt": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Soly",
+                "Altri installatori"
+              ],
+              "sources": [
+                {
+                  "domain": "reddit.com"
+                },
+                {
+                  "domain": "qualenergia.it"
+                }
+              ]
+            },
+            "gemini": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo"
+              ],
+              "sources": [
+                {
+                  "domain": "altroconsumo.it"
+                },
+                {
+                  "domain": "reddit.com"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            },
+            "perplexity": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [],
+              "sources": [
+                {
+                  "domain": "wikipedia.org"
+                },
+                {
+                  "domain": "altroconsumo.it"
+                }
+              ]
+            },
+            "claude": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo",
+                "Soly"
+              ],
+              "sources": [
+                {
+                  "domain": "gse.it"
+                },
+                {
+                  "domain": "qualenergia.it"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "question": "Installatore fotovoltaico affidabile vicino a me",
+          "answers": {
+            "chatgpt": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo",
+                "Soly"
+              ],
+              "sources": [
+                {
+                  "domain": "qualenergia.it"
+                },
+                {
+                  "domain": "wikipedia.org"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            },
+            "gemini": {
+              "solairCited": true,
+              "solairPosition": 2,
+              "competitors": [
+                "Altri installatori"
+              ],
+              "sources": [
+                {
+                  "domain": "qualenergia.it"
+                },
+                {
+                  "domain": "gse.it"
+                },
+                {
+                  "domain": "solairgroup.it"
+                }
+              ]
+            },
+            "perplexity": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo",
+                "Soly",
+                "Altri installatori"
+              ],
+              "sources": [
+                {
+                  "domain": "wikipedia.org"
+                },
+                {
+                  "domain": "gse.it"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            },
+            "claude": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo"
+              ],
+              "sources": [
+                {
+                  "domain": "gse.it"
+                },
+                {
+                  "domain": "reddit.com"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "question": "Fotovoltaico chiavi in mano con finanziamento",
+          "answers": {
+            "chatgpt": {
+              "solairCited": true,
+              "solairPosition": 2,
+              "competitors": [
+                "Otovo"
+              ],
+              "sources": [
+                {
+                  "domain": "wikipedia.org"
+                },
+                {
+                  "domain": "altroconsumo.it"
+                },
+                {
+                  "domain": "solairgroup.it"
+                }
+              ]
+            },
+            "gemini": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo",
+                "Soly"
+              ],
+              "sources": [
+                {
+                  "domain": "wikipedia.org"
+                },
+                {
+                  "domain": "reddit.com"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            },
+            "perplexity": {
+              "solairCited": true,
+              "solairPosition": 1,
+              "competitors": [
+                "Otovo"
+              ],
+              "sources": [
+                {
+                  "domain": "altroconsumo.it"
+                },
+                {
+                  "domain": "reddit.com"
+                },
+                {
+                  "domain": "solairgroup.it"
+                }
+              ]
+            },
+            "claude": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo"
+              ],
+              "sources": [
+                {
+                  "domain": "altroconsumo.it"
+                },
+                {
+                  "domain": "wikipedia.org"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "question": "Marketplace nazionale o installatore locale?",
+          "answers": {
+            "chatgpt": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo",
+                "Soly"
+              ],
+              "sources": [
+                {
+                  "domain": "altroconsumo.it"
+                },
+                {
+                  "domain": "gse.it"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            },
+            "gemini": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [
+                "Otovo"
+              ],
+              "sources": [
+                {
+                  "domain": "reddit.com"
+                },
+                {
+                  "domain": "altroconsumo.it"
+                },
+                {
+                  "domain": "otovo.it"
+                }
+              ]
+            },
+            "perplexity": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [],
+              "sources": [
+                {
+                  "domain": "wikipedia.org"
+                },
+                {
+                  "domain": "altroconsumo.it"
+                }
+              ]
+            },
+            "claude": {
+              "solairCited": false,
+              "solairPosition": null,
+              "competitors": [],
+              "sources": [
+                {
+                  "domain": "altroconsumo.it"
+                },
+                {
+                  "domain": "gse.it"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

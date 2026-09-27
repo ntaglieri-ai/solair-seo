@@ -1,0 +1,185 @@
+/*
+ * Header scuro condiviso da home e Visibilità AI: si appoggia sopra la hero
+ * della pagina. Sotto i 900px il menu diventa un pannello a comparsa.
+ */
+
+.topbar {
+  --content: min(max(1248px, 72vw), calc(100% - 32px));
+
+  position: relative;
+  z-index: 3;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.topbarInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  width: var(--content);
+  margin: 0 auto;
+  padding: 28px 0;
+}
+
+.brand {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 14px;
+  color: inherit;
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.brand strong {
+  font-family: var(--font-sora), system-ui, sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.brandText span {
+  color: #a9b6c8;
+  font-size: 13px;
+}
+
+.brandMark {
+  width: 10px;
+  height: 36px;
+  border-radius: 6px;
+  background: #5cc27a;
+}
+
+.menu {
+  display: flex;
+}
+
+.menuToggle {
+  display: none;
+}
+
+.topnav {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  font-size: 15px;
+}
+
+.topnav a {
+  color: #e6ecf3;
+  white-space: nowrap;
+}
+
+.topnav a:hover {
+  color: #ffffff;
+  text-decoration: underline;
+  text-underline-offset: 6px;
+}
+
+.topnav a[aria-current="page"] {
+  padding-bottom: 4px;
+  border-bottom: 2px solid #5cc27a;
+  color: #ffffff;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.topnav .domainBadge {
+  padding: 9px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  font-size: 14px;
+}
+
+.topnav .domainBadge:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  text-decoration: none;
+}
+
+/* Il menu non sta più accanto al marchio: va su una riga sua */
+@media (max-width: 1180px) {
+  .topbarInner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px 0 16px;
+  }
+
+  .topnav {
+    gap: 24px;
+  }
+}
+
+/* Sotto i 900px: marchio a sinistra, hamburger a destra, voci in un pannello */
+@media (max-width: 899px) {
+  .topbarInner {
+    flex-direction: row;
+    align-items: center;
+    padding: 18px 0;
+  }
+
+  .menuToggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 10px;
+    background: rgba(11, 19, 32, 0.5);
+    color: #ffffff;
+    cursor: pointer;
+  }
+
+  .menuToggle svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+
+  .topnav {
+    position: absolute;
+    top: calc(100% + 1px);
+    right: 0;
+    left: 0;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 8px max(16px, calc((100% - var(--content)) / 2)) 20px;
+    background: #0b1320;
+    box-shadow: 0 24px 40px rgba(0, 0, 0, 0.35);
+  }
+
+  .topnavOpen {
+    display: flex;
+  }
+
+  .topnav a {
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 17px;
+  }
+
+  .topnav a[aria-current="page"] {
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    color: #8fdba5;
+  }
+
+  .topnav .domainBadge {
+    align-self: flex-start;
+    margin-top: 16px;
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+  }
+}

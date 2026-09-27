@@ -2,15 +2,24 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import styles from "../home.module.css";
+import styles from "./site-header.module.css";
 
 type MenuItem = { label: string; href: string };
 
 /**
- * Menu della home. Sopra i 900px le voci sono sempre visibili; sotto diventa
+ * Menu principale. Sopra i 900px le voci sono sempre visibili; sotto diventa
  * un pulsante hamburger che apre il pannello delle voci.
  */
-export function HomeMenu({ items, domain }: { items: MenuItem[]; domain: string }) {
+export function SiteMenu({
+  items,
+  current,
+  domain,
+}: {
+  items: MenuItem[];
+  /** href della pagina aperta, evidenziata nel menu. */
+  current?: string;
+  domain: string;
+}) {
   const [open, setOpen] = useState(false);
 
   // Esc chiude il pannello aperto.
@@ -29,7 +38,7 @@ export function HomeMenu({ items, domain }: { items: MenuItem[]; domain: string 
         type="button"
         className={styles.menuToggle}
         aria-expanded={open}
-        aria-controls="home-menu"
+        aria-controls="site-menu"
         aria-label={open ? "Chiudi il menu" : "Apri il menu"}
         onClick={() => setOpen((value) => !value)}
       >
@@ -38,12 +47,17 @@ export function HomeMenu({ items, domain }: { items: MenuItem[]; domain: string 
         </svg>
       </button>
       <nav
-        id="home-menu"
+        id="site-menu"
         className={`${styles.topnav} ${open ? styles.topnavOpen : ""}`}
         aria-label="Navigazione principale"
       >
         {items.map((item) => (
-          <Link key={item.href} href={item.href} onClick={() => setOpen(false)}>
+          <Link
+            key={item.href}
+            href={item.href}
+            aria-current={item.href === current ? "page" : undefined}
+            onClick={() => setOpen(false)}
+          >
             {item.label}
           </Link>
         ))}
