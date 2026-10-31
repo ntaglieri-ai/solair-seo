@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { baselineAudit } from "./data/audit-baseline";
 import { hasComparableCoverage, splitInterventions } from "./data/home-overview";
@@ -9,6 +8,7 @@ import { safeRead } from "../lib/engine/safe";
 import { formatDate, formatDateTime, formatDayMonth, formatDelta, formatInt, formatPercent } from "../lib/format";
 import { SiteHeader } from "./components/site-header";
 import { CollectionNotice } from "./components/collection-notice";
+import { HeroPhoto } from "./components/hero-photo";
 import { fontVariables } from "./fonts";
 import styles from "./home.module.css";
 
@@ -108,15 +108,16 @@ export default async function Home() {
 
   return (
     <main className={`${styles.home} ${fontVariables}`}>
-      <SiteHeader compact current="/" />
+      <section className={styles.hero} aria-labelledby="home-title">
+        <HeroPhoto className={styles.heroPhoto} />
+        <SiteHeader compact current="/" />
+        <div className={styles.heroBody}>
+          <p className={styles.eyebrow}>{siteId}</p>
+          <h1 id="home-title">Solair Group</h1>
+          <p className={styles.lead}>Risultati del sito e interventi proposti per la visibilità su Google.</p>
+        </div>
+      </section>
       <div className={styles.content}>
-        <header className={styles.heading}>
-          <div>
-            <p className={styles.eyebrow}>{siteId}</p>
-            <h1>Panoramica</h1>
-          </div>
-          <Image src="/solair-group.png" alt="Solair Group" width={180} height={72} className={styles.clientLogo} priority />
-        </header>
         <CollectionNotice siteId={siteId} />
         <section className={styles.performance} aria-labelledby="performance-title">
           <div className={styles.sectionHeading}>
