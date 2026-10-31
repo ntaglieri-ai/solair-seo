@@ -1,15 +1,17 @@
-import { IBM_Plex_Sans, Sora } from "next/font/google";
+import localFont from "next/font/local";
 
 /** Font delle pagine con il nuovo design (home, Visibilità AI). */
-export const sora = Sora({
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
+export const sora = localFont({
+  src: "./font-assets/sora-latin.woff2",
+  weight: "100 800",
+  display: "swap",
   variable: "--font-sora",
 });
 
-export const plexSans = IBM_Plex_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+export const plexSans = localFont({
+  src: "./font-assets/ibm-plex-sans-latin.woff2",
+  weight: "100 700",
+  display: "swap",
   variable: "--font-plex",
 });
 
