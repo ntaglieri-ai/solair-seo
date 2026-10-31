@@ -48,7 +48,7 @@ function Intervention({ item, index }: { item: Opportunity; index: number }) {
           <strong>{item.title}</strong>
           <span>{item.page === "/" ? "Homepage" : item.page}</span>
         </span>
-        <span className={styles.priority}>{item.priority === "high" ? "Priorità alta" : "Priorità media"}</span>
+        <span className={`${styles.priority} ${item.priority === "high" ? styles.priorityHigh : ""}`}>{item.priority === "high" ? "Priorità alta" : "Priorità media"}</span>
       </summary>
       <div className={styles.interventionBody}>
         <p className={styles.priorityDetail}>{item.priority === "high" ? "Priorità alta" : "Priorità media"}</p>
@@ -110,16 +110,20 @@ export default async function Home() {
     <main className={`${styles.home} ${fontVariables}`}>
       <section className={styles.hero} aria-labelledby="home-title">
         <HeroPhoto className={styles.heroPhoto} />
-        <SiteHeader compact current="/" />
+        <SiteHeader current="/" />
         <div className={styles.heroBody}>
-          <p className={styles.eyebrow}>{siteId}</p>
-          <h1 id="home-title">Solair Group</h1>
-          <p className={styles.lead}>Risultati del sito e interventi proposti per la visibilità su Google.</p>
+          <p className={styles.eyebrow}>Solair Group · {siteId}</p>
+          <h1 id="home-title">Visibilità su Google e AI</h1>
+          <p className={styles.lead}>Performance del sito e interventi proposti per migliorare la visibilità di Solair Group.</p>
+          <div className={styles.heroActions}>
+            <Link className={styles.primary} href="/sezioni/performance">Performance del sito <span aria-hidden="true">&rarr;</span></Link>
+            <Link className={styles.secondary} href="#interventi">Interventi proposti <span aria-hidden="true">&darr;</span></Link>
+          </div>
         </div>
       </section>
       <div className={styles.content}>
-        <CollectionNotice siteId={siteId} />
         <section className={styles.performance} aria-labelledby="performance-title">
+          <CollectionNotice siteId={siteId} />
           <div className={styles.sectionHeading}>
             <div>
               <h2 id="performance-title">Performance del sito</h2>
@@ -153,9 +157,11 @@ export default async function Home() {
             {actions.length > 0 && <span className={styles.count}>{actions.length} da valutare</span>}
           </div>
           {validAnalysis && snapshot.status === "partial" && <p className={styles.caveat}>Analisi parziale: alcune fonti o verifiche non sono disponibili. Gli interventi proposti conservano le proprie evidenze.</p>}
-          {actions.length ? primary.map((item, index) => <Intervention key={item.id} item={item} index={index} />)
-            : <p className={styles.empty}>{validAnalysis ? "Nessun intervento proposto dall'ultima analisi." : "Non è disponibile un'analisi aggiornata utilizzabile per proporre interventi."}</p>}
-          {additional.length > 0 && <details className={styles.more}><summary>Altri {additional.length} interventi</summary>{additional.map((item, index) => <Intervention key={item.id} item={item} index={index + primary.length} />)}</details>}
+          <div className={styles.interventionList}>
+            {actions.length ? primary.map((item, index) => <Intervention key={item.id} item={item} index={index} />)
+              : <p className={styles.empty}>{validAnalysis ? "Nessun intervento proposto dall'ultima analisi." : "Non è disponibile un'analisi aggiornata utilizzabile per proporre interventi."}</p>}
+            {additional.length > 0 && <details className={styles.more}><summary>Altri {additional.length} interventi</summary>{additional.map((item, index) => <Intervention key={item.id} item={item} index={index + primary.length} />)}</details>}
+          </div>
         </section>
         <details className={styles.system}>
           <summary><span>Stato sistema</span><span className={styles.systemHint}>Fonti e aggiornamenti</span></summary>
