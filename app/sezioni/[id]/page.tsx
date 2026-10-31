@@ -155,10 +155,11 @@ function PerformanceDetail() {
       <section className="detail-hero">
         <div className="section-inner">
           <Link className="back-link" href="/">
-            Torna alla panoramica
+            <span aria-hidden="true">&larr;</span>
+            Home
           </Link>
           <span className="eyebrow">Performance</span>
-          <h1>Performance organiche</h1>
+          <h1>Performance del sito</h1>
           <div className="detail-meta">
             <span className="badge">Fonti: Search Console e Analytics 4</span>
             <span className="badge">Dati archiviati con data di riferimento</span>
