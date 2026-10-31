@@ -151,3 +151,76 @@
   .systemBody { padding: 0 22px 24px; }
   .systemBody dl > div { grid-template-columns: 1fr; gap: 5px; }
 }
+
+/* Lettura dei risultati e invito al piano: superfici distinte dalla hero. */
+.reading { display: flex; align-items: flex-start; gap: 17px; padding: 23px 32px; background: #edf7f1; border-bottom: 1px solid #dcece2; }
+.readingIcon { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 46px; height: 46px; border-radius: 8px; background: #fff; color: #287247; }
+.reading h3 { margin: 0; color: #204b35; font-size: 21px; line-height: 1.45; font-weight: 600; }
+.reading p { margin: 6px 0 0; color: #4d6b59; font-size: 15px; line-height: 1.6; }
+.reading_mixed { background: #edf5fc; border-bottom-color: #dce7f0; }
+.reading_mixed .readingIcon { color: #346ea5; }
+.reading_mixed h3 { color: #234c6c; }
+.reading_mixed p { color: #4e6b81; }
+.reading_attention { background: #fff3ed; border-bottom-color: #f1e0d8; }
+.reading_attention h3 { color: #8d4635; }
+.reading_neutral { background: #f2f6f8; }
+.metricLabel { display: flex; align-items: center; gap: 9px; min-height: 30px; color: #365849; font-weight: 500; }
+.metricLabel svg { flex-shrink: 0; color: #3b9060; }
+.metrics li:first-child { background: #f1faf4; border-bottom-left-radius: 16px; }
+.metrics li:nth-child(2) { background: #f1f6fd; }
+.metrics li:nth-child(2) .metricLabel, .metrics li:nth-child(2) .metricLabel svg { color: #3b6794; }
+.metrics li:nth-child(3) { background: #eff8f8; }
+.metrics li:nth-child(3) .metricLabel, .metrics li:nth-child(3) .metricLabel svg { color: #377777; }
+.metrics li:nth-child(4) { background: #fff4ee; border-bottom-right-radius: 16px; }
+.metrics li:nth-child(4) .metricLabel, .metrics li:nth-child(4) .metricLabel svg { color: #a05e42; }
+.metricValue { margin-top: 9px; }
+.serviceBand { background: #e8f5ed; border-top: 1px solid #d5e9dc; border-bottom: 1px solid #d5e9dc; scroll-margin-top: 20px; }
+.serviceInner { display: grid; grid-template-columns: 1.15fr 1fr; align-items: center; gap: 72px; width: var(--content); margin: 0 auto; padding: 64px 0; }
+.serviceEyebrow { color: #39794e; font-size: 14px; font-weight: 600; }
+.serviceCopy h2 { max-width: 650px; margin: 18px 0 22px; color: #173d2b; font-size: 42px; font-weight: 700; line-height: 1.25; }
+.serviceCopy h2 em { color: #368654; font-style: normal; }
+.serviceCopy > p { max-width: 590px; margin: 0; color: #466b54; font-size: 18px; line-height: 1.8; }
+.home .serviceButton { display: inline-flex; align-items: center; justify-content: center; gap: 14px; min-height: 60px; margin-top: 28px; padding: 17px 24px; border-radius: 12px; background: #287548; color: #fff; box-shadow: 0 12px 28px #26744822; font-size: 16px; font-weight: 600; line-height: 1.5; transition: background-color 150ms, transform 150ms; }
+.home .serviceButton:hover { background: #1e6239; transform: translateY(-1px); }
+.serviceButton svg { flex-shrink: 0; }
+.serviceDate { display: block; margin-top: 18px; color: #557861; font-size: 13px; }
+.planPreview { min-width: 0; padding: 32px; border: 1px solid #d3e6d9; border-radius: 8px; background: #fff; box-shadow: 0 20px 42px #28583b12; }
+.planPreviewHeading { display: flex; align-items: center; gap: 22px; padding-bottom: 26px; border-bottom: 1px solid #e0ebe4; }
+.planNumber { flex-shrink: 0; color: #2c7c4c; font-family: var(--font-sora), sans-serif; font-size: 60px; font-weight: 600; line-height: 1; }
+.planPreviewHeading > div { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.planPreviewHeading strong { color: #214b33; font-size: 19px; font-weight: 600; }
+.planPreviewHeading > div > span { color: #697d6f; font-size: 13px; line-height: 1.6; }
+.planAreas { display: flex; flex-direction: column; padding: 8px 0; }
+.planAreas > div { display: flex; align-items: center; gap: 16px; padding: 19px 0; }
+.searchIcon, .qualityIcon { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 49px; height: 49px; border-radius: 8px; background: #edf3ff; color: #3a6fa7; }
+.qualityIcon { background: #e9f7ee; color: #338251; }
+.planAreas strong { color: #234634; font-size: 17px; font-weight: 600; }
+.planAreas p { margin: 5px 0 0; color: #657c6d; font-size: 14px; }
+.planFootnote { margin: 0; padding-top: 18px; border-top: 1px solid #e0ebe4; color: #718477; font-size: 13px; line-height: 1.7; }
+.content > .system { margin-top: 40px; }
+
+@media (max-width: 960px) {
+  .serviceInner { grid-template-columns: 1fr; gap: 36px; }
+  .serviceCopy h2 { max-width: 800px; }
+  .serviceCopy > p { max-width: 750px; }
+  .metrics li:first-child { border-bottom-left-radius: 0; }
+  .metrics li:nth-child(3) { border-bottom-left-radius: 16px; }
+}
+@media (max-width: 640px) {
+  .reading { gap: 12px; padding: 20px; }
+  .readingIcon { width: 36px; height: 36px; }
+  .readingIcon svg { width: 21px; height: 21px; }
+  .reading h3 { font-size: 18px; }
+  .reading p { font-size: 14px; }
+  .metricLabel { align-items: flex-start; gap: 7px; min-height: 40px; }
+  .metricLabel svg { width: 17px; height: 17px; margin-top: 2px; }
+  .serviceInner { padding: 44px 0; gap: 28px; }
+  .serviceCopy h2 { margin-top: 14px; font-size: 32px; }
+  .serviceCopy > p { font-size: 16px; }
+  .home .serviceButton { width: 100%; min-width: 0; padding: 16px 20px; font-size: 15px; }
+  .planPreview { padding: 24px 20px; }
+  .planNumber { font-size: 50px; }
+  .planPreviewHeading { gap: 16px; }
+  .planPreviewHeading strong { font-size: 17px; }
+  .planAreas strong { font-size: 16px; }
+}

@@ -1,9 +1,9 @@
 import Link from "next/link";
+import { ArrowUpRight, Compass, Eye, MousePointer2, MousePointerClick, Search, ShieldCheck, UsersRound } from "lucide-react";
 import { baselineAudit } from "./data/audit-baseline";
-import { hasComparableCoverage, splitInterventions } from "./data/home-overview";
+import { hasComparableCoverage, performanceReading } from "./data/home-overview";
+import { readActionPlan } from "./data/read-action-plan";
 import { getGa4Totals, getGscTotals, getLatestAttempts } from "../lib/engine/read";
-import { getLastSnapshot } from "../lib/engine/store";
-import { ANALYSIS_VERSION, type Opportunity } from "../lib/engine/analyze";
 import { safeRead } from "../lib/engine/safe";
 import { formatDate, formatDateTime, formatDayMonth, formatDelta, formatInt, formatPercent } from "../lib/format";
 import { SiteHeader } from "./components/site-header";
@@ -21,13 +21,6 @@ function periodLabel(end: string) {
   return `${formatDayMonth(from)} – ${formatDate(end)}`;
 }
 
-function isIntervention(value: unknown): value is Opportunity {
-  if (!value || typeof value !== "object") return false;
-  const item = value as Record<string, unknown>;
-  return ["id", "title", "page", "action", "expectedOutcome", "interpretation"].every((key) => typeof item[key] === "string") &&
-    !!item.evidence && typeof item.evidence === "object";
-}
-
 type Metric = {
   label: string;
   value: string;
@@ -38,55 +31,25 @@ type Metric = {
   coverage?: string;
 };
 
-function Intervention({ item, index }: { item: Opportunity; index: number }) {
-  const queryEvidence = typeof item.evidence.impressions === "number" && typeof item.evidence.clicks === "number" && typeof item.evidence.ctr === "number";
-  return (
-    <details className={styles.intervention}>
-      <summary>
-        <span className={styles.ordinal}>{String(index + 1).padStart(2, "0")}</span>
-        <span className={styles.interventionTitle}>
-          <strong>{item.title}</strong>
-          <span>{item.page === "/" ? "Homepage" : item.page}</span>
-        </span>
-        <span className={`${styles.priority} ${item.priority === "high" ? styles.priorityHigh : ""}`}>{item.priority === "high" ? "Priorità alta" : "Priorità media"}</span>
-      </summary>
-      <div className={styles.interventionBody}>
-        <p className={styles.priorityDetail}>{item.priority === "high" ? "Priorità alta" : "Priorità media"}</p>
-        {item.query && <p className={styles.query}>Ricerca: <strong>{item.query}</strong></p>}
-        {queryEvidence && <p className={styles.facts}>{formatInt(item.evidence.impressions as number)} impressioni · {formatInt(item.evidence.clicks as number)} clic · CTR {formatPercent(item.evidence.ctr as number)}</p>}
-        {Array.isArray(item.evidence.issues) && <p className={styles.facts}>{item.evidence.issues.map((issue) => String(issue).replace(/\s+\(-\d+\)$/, "")).join("; ")}</p>}
-        <h3>Intervento proposto</h3>
-        <p>{item.action}</p>
-        <h3>Obiettivo</h3>
-        <p>{item.expectedOutcome}</p>
-      </div>
-    </details>
-  );
-}
-
 async function readOverview() {
   const siteId = baselineAudit.domain;
-  const [gsc, ga4, snapshot, attempts] = await Promise.all([
+  const [gsc, ga4, plan, attempts] = await Promise.all([
     safeRead("home gsc", () => getGscTotals(siteId, WINDOW_DAYS)),
     safeRead("home ga4", () => getGa4Totals(siteId, WINDOW_DAYS)),
-    safeRead("home interventi", () => getLastSnapshot(siteId)),
+    readActionPlan(siteId),
     safeRead("home fonti", () => getLatestAttempts(siteId)),
   ]);
-  return { gsc, ga4, snapshot, attempts, now: Date.now() };
+  return { gsc, ga4, plan, attempts };
 }
 
 export default async function Home() {
   const siteId = baselineAudit.domain;
-  const { gsc, ga4, snapshot, attempts, now } = await readOverview();
+  const { gsc, ga4, plan, attempts } = await readOverview();
   const periodEnd = gsc?.lastDate ?? ga4?.lastDate;
-  const analysisDate = snapshot?.validatedAt ? new Date(snapshot.validatedAt) : null;
-  const analysisDays = Number(snapshot?.data?.settings?.analysisDays) || 7;
-  const recentAnalysis = analysisDate !== null && Number.isFinite(analysisDate.getTime()) && now - analysisDate.getTime() <= (analysisDays + 1) * 86400000;
-  const validAnalysis = snapshot?.data?.version === ANALYSIS_VERSION && snapshot.status !== "blocked" && recentAnalysis;
-  const actions: Opportunity[] = validAnalysis && Array.isArray(snapshot.data.opportunities)
-    ? snapshot.data.opportunities.filter(isIntervention) : [];
-  const { primary, additional } = splitInterventions(actions);
-  const windows = validAnalysis ? snapshot.data.windows : null;
+  const { actions, period, validatedAt: analysisDate } = plan;
+  const reading = performanceReading(gsc, ga4);
+  const searchPages = new Set(actions.filter((item) => item.kind !== "technical").map((item) => item.page)).size;
+  const technicalCount = actions.filter((item) => item.kind === "technical").length;
   const gscComparable = hasComparableCoverage(gsc, WINDOW_DAYS);
   const ga4Comparable = hasComparableCoverage(ga4, WINDOW_DAYS);
   const gscCoverage = gsc?.lastDate && gsc.current.days < WINDOW_DAYS ? `${gsc.current.days} giorni con dati su ${WINDOW_DAYS}` : undefined;
@@ -126,15 +89,21 @@ export default async function Home() {
           <CollectionNotice siteId={siteId} />
           <div className={styles.sectionHeading}>
             <div>
-              <h2 id="performance-title">Performance del sito</h2>
+              <h2 id="performance-title">I risultati di Solair, in sintesi</h2>
               <p>{periodEnd ? periodLabel(periodEnd) : "Periodo non disponibile"} · confronto con i 28 giorni precedenti</p>
             </div>
-            <Link className={styles.detailLink} href="/sezioni/performance">Dettaglio performance <span aria-hidden="true">&rarr;</span></Link>
+            <Link className={styles.detailLink} href="/sezioni/performance">Approfondisci i risultati <ArrowUpRight size={18} aria-hidden="true" /></Link>
+          </div>
+          <div className={`${styles.reading} ${styles[`reading_${reading.tone}`]}`}>
+            <span className={styles.readingIcon}><Compass size={25} aria-hidden="true" /></span>
+            <div><h3>{reading.title}</h3><p>{reading.detail}</p></div>
           </div>
           <ul className={styles.metrics}>
-            {metrics.map((metric) => (
+            {metrics.map((metric, index) => {
+              const MetricIcon = [MousePointer2, Eye, MousePointerClick, UsersRound][index];
+              return (
               <li key={metric.label}>
-                <span className={styles.metricLabel}>{metric.label}</span>
+                <span className={styles.metricLabel}><MetricIcon size={20} aria-hidden="true" />{metric.label}</span>
                 <strong className={styles.metricValue}>{metric.value}</strong>
                 <span className={styles.comparison}>
                   {metric.delta && <strong className={styles[`trend_${metric.delta.trend}`]}>{metric.delta.text}</strong>}
@@ -144,25 +113,31 @@ export default async function Home() {
                 {metric.date && <span className={styles.metricDate}>Dati al {formatDayMonth(metric.date)}</span>}
                 {metric.coverage && <span className={styles.metricDate}>{metric.coverage}</span>}
               </li>
-            ))}
+            ); })}
           </ul>
           {gsc?.lastDate && ga4?.lastDate && gsc.lastDate !== ga4.lastDate && <p className={styles.caveat}>Analytics: {periodLabel(ga4.lastDate)}. Le due fonti hanno date di aggiornamento diverse.</p>}
         </section>
-        <section id="interventi" className={styles.interventions} aria-labelledby="interventions-title">
-          <div className={styles.sectionHeading}>
-            <div>
-              <h2 id="interventions-title">Interventi proposti</h2>
-              <p>{windows ? `Analisi: ${formatDayMonth(windows.current.from)} – ${formatDate(windows.current.to)}` : "Nessuna analisi utilizzabile"}</p>
+      </div>
+      <section id="interventi" className={styles.serviceBand} aria-labelledby="interventions-title">
+        <div className={styles.serviceInner}>
+          <div className={styles.serviceCopy}>
+            <span className={styles.serviceEyebrow}>Il prossimo passo</span>
+            <h2 id="interventions-title">Le prossime opportunità <em>per Solair.</em></h2>
+            <p>{actions.length ? `Le analisi indicano ${actions.length} interventi da valutare per rendere più efficaci le pagine del sito. Proposte concrete, da definire insieme prima di iniziare.` : plan.status === "unavailable" ? "Il prossimo piano di intervento partirà dalle evidenze disponibili, senza anticipare conclusioni non verificate." : "L'ultima analisi non ha generato proposte di intervento. I risultati restano il riferimento per le prossime valutazioni."}</p>
+            <Link className={styles.serviceButton} href="/interventi">{actions.length ? "Scopri gli interventi per Solair" : plan.status === "unavailable" ? "Stato del piano di intervento" : "Consulta l'esito dell'analisi"}<ArrowUpRight size={21} aria-hidden="true" /></Link>
+            {period && <span className={styles.serviceDate}>Analisi: {formatDayMonth(period.from)} – {formatDate(period.to)}</span>}
+          </div>
+          <div className={styles.planPreview}>
+            <div className={styles.planPreviewHeading}><span className={styles.planNumber}>{actions.length ? String(actions.length).padStart(2, "0") : "—"}</span><div><strong>{actions.length ? "opportunità da valutare" : plan.status === "unavailable" ? "Piano non disponibile" : "Nessun intervento proposto"}</strong><span>Una proposta di lavoro per Solair Group</span></div></div>
+            <div className={styles.planAreas}>
+              {searchPages > 0 && <div><span className={styles.searchIcon}><Search size={25} aria-hidden="true" /></span><div><strong>Risultati di ricerca</strong><p>{searchPages} {searchPages === 1 ? "pagina da valorizzare" : "pagine da valorizzare"}</p></div></div>}
+              {technicalCount > 0 && <div><span className={styles.qualityIcon}><ShieldCheck size={25} aria-hidden="true" /></span><div><strong>Qualità delle pagine</strong><p>{technicalCount} {technicalCount === 1 ? "intervento proposto" : "interventi proposti"}</p></div></div>}
             </div>
-            {actions.length > 0 && <span className={styles.count}>{actions.length} da valutare</span>}
+            <p className={styles.planFootnote}>{plan.status === "partial" ? "Analisi parziale: alcune verifiche restano aperte." : actions.length ? "Proposte motivate da dati rilevati. Non ancora approvate o applicate." : plan.status === "unavailable" ? "Al momento non è disponibile un piano aggiornato." : "L'ultima analisi non ha generato proposte d'intervento."}</p>
           </div>
-          {validAnalysis && snapshot.status === "partial" && <p className={styles.caveat}>Analisi parziale: alcune fonti o verifiche non sono disponibili. Gli interventi proposti conservano le proprie evidenze.</p>}
-          <div className={styles.interventionList}>
-            {actions.length ? primary.map((item, index) => <Intervention key={item.id} item={item} index={index} />)
-              : <p className={styles.empty}>{validAnalysis ? "Nessun intervento proposto dall'ultima analisi." : "Non è disponibile un'analisi aggiornata utilizzabile per proporre interventi."}</p>}
-            {additional.length > 0 && <details className={styles.more}><summary>Altri {additional.length} interventi</summary>{additional.map((item, index) => <Intervention key={item.id} item={item} index={index + primary.length} />)}</details>}
-          </div>
-        </section>
+        </div>
+      </section>
+      <div className={styles.content}>
         <details className={styles.system}>
           <summary><span>Stato sistema</span><span className={styles.systemHint}>Fonti e aggiornamenti</span></summary>
           <div className={styles.systemBody}>
