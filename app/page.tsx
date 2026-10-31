@@ -9,6 +9,7 @@ import { SiteHeader } from "./components/site-header";
 import { fontVariables } from "./fonts";
 import styles from "./home.module.css";
 import { HeroPhoto } from "./components/hero-photo";
+import { CollectionNotice } from "./components/collection-notice";
 
 // I numeri di "A che punto siamo" leggono l'archivio a ogni richiesta.
 export const dynamic = "force-dynamic";
@@ -19,7 +20,7 @@ const steps = [
   {
     title: "Misura",
     description:
-      "Dati reali da Google e dalle risposte AI, raccolti in automatico sulle ricerche che portano clienti.",
+      "Dati da Search Console e Analytics. La misurazione delle citazioni nelle risposte AI è da attivare.",
     links: [
       { label: "Tracking", href: "/sezioni/tracking-setup" },
       { label: "Nuovo audit", href: "/audit" },
@@ -27,14 +28,14 @@ const steps = [
   },
   {
     title: "Analizza",
-    description: "Dove Solair perde posizioni e contro chi: marketplace nazionali e installatori locali.",
+    description: "Clic, ricerche e pagine che portano visite al sito, con confronti tra periodi.",
     links: [{ label: "Performance", href: "/sezioni/performance" }],
   },
   {
     title: "Intervieni",
     description: "Interventi in ordine di impatto. Li decidete voi, li realizziamo noi.",
     links: [{ label: "Action plan", href: "/sezioni/action-plan" }],
-    current: true,
+    current: false,
   },
   {
     title: "Verifica",
@@ -85,7 +86,7 @@ async function getProgress(): Promise<Metric[]> {
     comparable ? safeRead("home pagine baseline", () => getIndexedPages(siteId, baselineFrom, baselineDate)) : null,
   ]);
 
-  const pages: Metric = { label: "Pagine visibili su Google", value: "—" };
+  const pages: Metric = { label: "Pagine visibili su Google", value: "Non disponibile", note: "Conteggio delle pagine con impressioni, non dell’intero indice Google." };
   if (pagesNow !== null) {
     pages.value = formatInt(pagesNow);
     if (!comparable) {
@@ -111,7 +112,7 @@ async function getProgress(): Promise<Metric[]> {
     }
   }
 
-  return [pages, clicks, { label: "Presenza nelle risposte AI", value: "In arrivo" }];
+  return [pages, clicks, { label: "Presenza nelle risposte AI", value: "Da attivare" }];
 }
 
 const icons = {
@@ -146,15 +147,15 @@ export default async function Home() {
           </span>
           <h1 id="home-title">Visibilità su Google e AI</h1>
           <p className={styles.lead}>
-            Sappiamo dove Solair Group viene trovata, dove perde clienti a favore
-            dei concorrenti e cosa fare per recuperarli.
+            Analizziamo come Solair Group viene trovata su Google e definiamo
+            le priorità per migliorare la visibilità organica.
           </p>
           <div className={styles.actions}>
             <Link className={styles.primary} href={currentReportUrl}>
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 {icons.report}
               </svg>
-              Apri l&apos;ultimo report
+              Report del 6 settembre
             </Link>
             <Link className={styles.secondary} href="/sezioni/performance">
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -167,6 +168,7 @@ export default async function Home() {
       </section>
 
       <section className={styles.progress} aria-labelledby="progress-title">
+        <CollectionNotice siteId={baselineAudit.domain} />
         <div className={styles.progressHeading}>
           <h2 id="progress-title">A che punto siamo</h2>
           <span>Confronto con la baseline del {formatDate(baselineDate)}</span>
@@ -176,7 +178,7 @@ export default async function Home() {
             <li key={metric.label}>
               <span className={styles.metricLabel}>{metric.label}</span>
               <div className={styles.metricValue}>
-                <strong className={metric.value === "In arrivo" ? styles.metricPending : undefined}>
+                <strong className={["Da attivare", "Non disponibile"].includes(metric.value) ? styles.metricPending : undefined}>
                   {metric.value}
                 </strong>
                 {metric.delta && (
@@ -198,8 +200,8 @@ export default async function Home() {
         <div className={styles.sectionIntro}>
           <h2 id="cycle-title">Un ciclo, non un report</h2>
           <p>
-            Ogni mese misuriamo, capiamo cosa è cambiato, interveniamo sul sito e
-            verifichiamo il risultato.
+            Gli audit vengono richiesti on demand. La raccolta tecnica dei dati
+            è automatica; analisi e interventi si concordano per ogni incarico.
           </p>
         </div>
         <ol className={styles.steps}>
@@ -225,8 +227,8 @@ export default async function Home() {
       <section className={styles.work} aria-labelledby="work-title">
         <div className={styles.workHeading}>
           <div className={styles.sectionIntro}>
-            <h2 id="work-title">Su cosa stiamo lavorando</h2>
-            <p>Le pagine con il maggiore potenziale di traffico, in ordine di priorità.</p>
+            <h2 id="work-title">Proposte da valutare</h2>
+            <p>Ipotesi di contenuto da verificare nel prossimo audit e approvare prima dell’avvio.</p>
           </div>
           <Link className={styles.workLink} href="/sezioni/action-plan">
             Action plan completo →

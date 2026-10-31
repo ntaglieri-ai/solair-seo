@@ -73,6 +73,17 @@ export async function getLatestRuns(siteId: string): Promise<Partial<Record<RunK
   return Object.fromEntries(rows.map((row) => [row.kind, row]));
 }
 
+/** Ultimo tentativo per fonte, inclusi gli errori: non nasconde raccolte interrotte. */
+export async function getLatestAttempts(siteId: string): Promise<(RunSummary & { stale: boolean })[]> {
+  return getSql()<(RunSummary & { stale: boolean })[]>`
+    select distinct on (kind) id, kind, trigger, status,
+           started_at as "startedAt", finished_at as "finishedAt", error,
+           started_at < now() - interval '4 days' as stale
+    from seo.runs where site_id = ${siteId}
+    order by kind, started_at desc
+  `;
+}
+
 /** Serie giornaliera Search Console tra due date incluse (YYYY-MM-DD). */
 export async function getGscSeries(siteId: string, from: string, to: string): Promise<GscDay[]> {
   return getSql()<GscDay[]>`

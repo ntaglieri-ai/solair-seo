@@ -9,6 +9,7 @@ import {
   getGscWeekly,
   getOnPageHistory,
   getRecentRuns,
+  getLatestAttempts,
   type GscTopRow,
   type RunKind,
   type RunSummary,
@@ -501,12 +502,12 @@ function RunLog({
 
 /** Tracking: stato della raccolta automatica, ultimo tentativo per tipo. */
 export async function CollectionStatus({ siteId }: { siteId: string }) {
-  const runs = await safeRead("stato raccolta", () => getRecentRuns(siteId, 50));
+  const runs = await safeRead("stato raccolta", () => getLatestAttempts(siteId));
   if (!runs) return <Unavailable />;
 
   const latestByKind = (["gsc", "ga4", "onpage", "audit"] as const)
     .map((kind) => runs.find((run) => run.kind === kind))
-    .filter((run): run is RunSummary => Boolean(run));
+    .filter((run) => run !== undefined);
 
   return (
     <RunLog

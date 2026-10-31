@@ -5,7 +5,7 @@ import { SiteMenu } from "./site-menu";
 import styles from "./site-header.module.css";
 
 const menu = [
-  { label: "Report", href: currentReportUrl },
+  { label: "Report storico", href: currentReportUrl },
   { label: "Performance", href: "/sezioni/performance" },
   { label: "Visibilità AI", href: "/visibilita-ai" },
   { label: "Action plan", href: "/sezioni/action-plan" },

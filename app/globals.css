@@ -16,6 +16,22 @@
   box-sizing: border-box;
 }
 
+.source-notice {
+  margin: 16px 0 24px;
+  padding: 16px 18px;
+  border-left: 3px solid #b87a0d;
+  background: #fff7e8;
+  color: #68460e;
+  line-height: 1.5;
+}
+
+.source-notice strong { font-size: 16px; }
+.source-notice p { margin: 6px 0; font-size: 14px; }
+.source-notice a { text-decoration: underline; text-underline-offset: 3px; font-size: 14px; }
+.tracking-archive { margin-top: 28px; }
+.tracking-archive summary { cursor: pointer; padding: 16px 0; font-weight: 600; }
+.tracking-archive > p { margin-bottom: 20px; color: var(--muted); }
+
 html {
   scroll-behavior: smooth;
 }

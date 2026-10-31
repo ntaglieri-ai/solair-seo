@@ -78,6 +78,11 @@ export default async function ReportPage({
             <Link className="back-link" href="/">
               Torna alla dashboard
             </Link>
+            <aside className="source-notice">
+              <strong>Documento storico · 6 settembre 2026</strong>
+              <p>Contenuto in revisione. Questo documento non descrive le performance attuali del sito.</p>
+              <Link href="/sezioni/performance">Consulta i dati delle performance</Link>
+            </aside>
             <span className="eyebrow">Rilevazione SEO</span>
             <h1>Report {clientConfig.brandEyebrow}</h1>
             <p className="hero-copy">

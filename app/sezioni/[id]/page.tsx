@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { baselineAudit, type AuditArea } from "../../data/audit-baseline";
 import { clientConfig } from "../../../lib/client-config";
 import { AnalyticsLive, CollectionStatus, HistoryLive, PerformanceLive } from "./live-data";
+import { CollectionNotice } from "../../components/collection-notice";
 
 // Performance, Storico e Tracking leggono il database a ogni richiesta.
 export const dynamic = "force-dynamic";
@@ -97,20 +98,23 @@ function TrackingDetail() {
           <span className="eyebrow">Operativo</span>
           <h1>Setup Tracking</h1>
           <div className="detail-meta">
-            <span className="badge">Verifica: {baselineAudit.trackingSetup.verifiedAt}</span>
-            <span className="badge priority-high">GSC e GA4 validati</span>
+            <span className="badge">Search Console e Analytics 4</span>
           </div>
           <p className="hero-copy">
-            Stato operativo di Google Analytics, Search Console e prime azioni
-            di indicizzazione.
+            Stato della raccolta e archivio delle verifiche iniziali.
           </p>
         </div>
       </section>
 
       <section className="content-section">
         <div className="section-inner">
+          <CollectionNotice siteId={siteId} />
+          <CollectionStatus siteId={siteId} />
+          <details className="tracking-archive">
+            <summary>Configurazione iniziale · {baselineAudit.trackingSetup.verifiedAt}</summary>
+            <p>Note storiche: gli stati riportati sotto si riferiscono alla verifica iniziale.</p>
           <div className="tracking-grid">
-            {baselineAudit.trackingSetup.items.map((item) => (
+            {baselineAudit.trackingSetup.items.filter((item) => item.id !== "measurement-api").map((item) => (
               <article className="tracking-card" key={item.id}>
                 <div className="tracking-card-header">
                   <div>
@@ -142,12 +146,7 @@ function TrackingDetail() {
               </article>
             ))}
           </div>
-        </div>
-      </section>
-
-      <section className="content-section">
-        <div className="section-inner">
-          <CollectionStatus siteId={siteId} />
+          </details>
         </div>
       </section>
     </>
@@ -163,20 +162,20 @@ function PerformanceDetail() {
             Torna alla panoramica
           </Link>
           <span className="eyebrow">Performance</span>
-          <h1>Stato Attuale</h1>
+          <h1>Performance organiche</h1>
           <div className="detail-meta">
             <span className="badge">Fonti: Search Console e Analytics 4</span>
-            <span className="badge priority-high">Aggiornamento giornaliero</span>
+            <span className="badge">Dati archiviati con data di riferimento</span>
           </div>
           <p className="hero-copy">
-            Visibilità su Google e traffico sul sito, raccolti ogni giorno e confrontati con il
-            periodo precedente.
+            Visibilità su Google e traffico sul sito, confrontati con il periodo precedente.
           </p>
         </div>
       </section>
 
       <section className="content-section">
         <div className="section-inner">
+          <CollectionNotice siteId={siteId} />
           <PerformanceLive siteId={siteId} />
         </div>
       </section>
@@ -190,7 +189,7 @@ function PerformanceDetail() {
       <section className="content-section">
         <div className="section-inner">
           <div className="section-heading">
-            <h2>Lettura operativa</h2>
+            <h2>Note della rilevazione iniziale</h2>
             <span>Aggiornata al {baselineAudit.performance.updatedAt}</span>
           </div>
           <div className="performance-grid">
