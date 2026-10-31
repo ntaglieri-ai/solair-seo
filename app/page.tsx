@@ -1,261 +1,177 @@
+import Image from "next/image";
 import Link from "next/link";
 import { baselineAudit } from "./data/audit-baseline";
-import { baselineDate, currentReportUrl, workPriorities } from "./data/home";
-import { getGscClicksBetween, getGscTotals } from "../lib/engine/read";
-import { getIndexedPages } from "../lib/engine/indexed-pages";
+import { hasComparableCoverage, splitInterventions } from "./data/home-overview";
+import { getGa4Totals, getGscTotals, getLatestAttempts } from "../lib/engine/read";
+import { getLastSnapshot } from "../lib/engine/store";
+import { ANALYSIS_VERSION, type Opportunity } from "../lib/engine/analyze";
 import { safeRead } from "../lib/engine/safe";
-import { formatDate, formatDayMonth, formatDelta, formatInt } from "../lib/format";
+import { formatDate, formatDateTime, formatDayMonth, formatDelta, formatInt, formatPercent } from "../lib/format";
 import { SiteHeader } from "./components/site-header";
+import { CollectionNotice } from "./components/collection-notice";
 import { fontVariables } from "./fonts";
 import styles from "./home.module.css";
-import { HeroPhoto } from "./components/hero-photo";
-import { CollectionNotice } from "./components/collection-notice";
 
-// I numeri di "A che punto siamo" leggono l'archivio a ogni richiesta.
 export const dynamic = "force-dynamic";
-
 const WINDOW_DAYS = 28;
 
-const steps = [
-  {
-    title: "Misura",
-    description:
-      "Dati da Search Console e Analytics. La misurazione delle citazioni nelle risposte AI è da attivare.",
-    links: [
-      { label: "Tracking", href: "/sezioni/tracking-setup" },
-      { label: "Nuovo audit", href: "/audit" },
-    ],
-  },
-  {
-    title: "Analizza",
-    description: "Clic, ricerche e pagine che portano visite al sito, con confronti tra periodi.",
-    links: [{ label: "Performance", href: "/sezioni/performance" }],
-  },
-  {
-    title: "Intervieni",
-    description: "Interventi in ordine di impatto. Li decidete voi, li realizziamo noi.",
-    links: [{ label: "Action plan", href: "/sezioni/action-plan" }],
-    current: false,
-  },
-  {
-    title: "Verifica",
-    description: "Il prima e dopo di ogni intervento, misurato sulla baseline di partenza.",
-    links: [{ label: "Storico", href: "/sezioni/historical-comparison" }],
-  },
-];
+function periodLabel(end: string) {
+  const from = new Date(`${end}T12:00:00Z`);
+  from.setUTCDate(from.getUTCDate() - WINDOW_DAYS + 1);
+  return `${formatDayMonth(from)} – ${formatDate(end)}`;
+}
 
-/** `date` meno `days` giorni (con `days` negativo, più giorni), sempre in YYYY-MM-DD. */
-function shiftDate(date: string, days: number): string {
-  const d = new Date(`${date}T12:00:00Z`);
-  d.setUTCDate(d.getUTCDate() - days);
-  return d.toISOString().slice(0, 10);
+function isIntervention(value: unknown): value is Opportunity {
+  if (!value || typeof value !== "object") return false;
+  const item = value as Record<string, unknown>;
+  return ["id", "title", "page", "action", "expectedOutcome", "interpretation"].every((key) => typeof item[key] === "string") &&
+    !!item.evidence && typeof item.evidence === "object";
 }
 
 type Metric = {
   label: string;
   value: string;
-  delta?: { text: string; trend: "up" | "down" | "flat" };
-  note?: string;
+  source: string;
+  date: string | null;
+  delta: ReturnType<typeof formatDelta>;
+  previous: string | null;
+  coverage?: string;
 };
 
-/**
- * Il confronto con la baseline (i 28 giorni fino a `baselineDate`) vale solo
- * su un periodo attuale che non si sovrappone: 28 giorni interi dopo la
- * baseline. Fino ad allora i numeri si mostrano senza variazione.
- */
-async function getProgress(): Promise<Metric[]> {
-  const siteId = baselineAudit.domain;
-  const baselineFrom = shiftDate(baselineDate, WINDOW_DAYS - 1);
-  // Primo periodo confrontabile: dal giorno dopo la baseline, per 28 giorni.
-  const firstComparableEnd = shiftDate(baselineDate, -WINDOW_DAYS);
-  const pendingDelta = {
-    text: `confronto disponibile dal ${formatDayMonth(shiftDate(firstComparableEnd, -1))}`,
-    trend: "flat" as const,
-  };
-
-  const gsc = await safeRead("home gsc", () => getGscTotals(siteId, WINDOW_DAYS));
-  const lastDate = gsc?.lastDate ?? null;
-  const currentFrom = lastDate ? shiftDate(lastDate, WINDOW_DAYS - 1) : null;
-  const comparable = lastDate !== null && lastDate >= firstComparableEnd;
-
-  const [baselineClicks, pagesNow, pagesBaseline] = await Promise.all([
-    comparable ? safeRead("home clic baseline", () => getGscClicksBetween(siteId, baselineFrom, baselineDate)) : null,
-    lastDate && currentFrom
-      ? safeRead("home pagine", () => getIndexedPages(siteId, currentFrom, lastDate))
-      : null,
-    comparable ? safeRead("home pagine baseline", () => getIndexedPages(siteId, baselineFrom, baselineDate)) : null,
-  ]);
-
-  const pages: Metric = { label: "Pagine visibili su Google", value: "Non disponibile", note: "Conteggio delle pagine con impressioni, non dell’intero indice Google." };
-  if (pagesNow !== null) {
-    pages.value = formatInt(pagesNow);
-    if (!comparable) {
-      pages.delta = pendingDelta;
-    } else if (pagesBaseline !== null) {
-      const diff = pagesNow - pagesBaseline;
-      pages.delta = {
-        text: diff === 0 ? "invariate" : `${diff > 0 ? "+" : "−"}${formatInt(Math.abs(diff))} vs baseline`,
-        trend: diff > 0 ? "up" : diff < 0 ? "down" : "flat",
-      };
-    }
-  }
-
-  const clicks: Metric = { label: `Clic organici · ultimi ${WINDOW_DAYS} giorni`, value: "—" };
-  if (gsc && lastDate) {
-    clicks.value = formatInt(gsc.current.clicks);
-    clicks.note = `al ${formatDate(lastDate)}`;
-    if (!comparable) {
-      clicks.delta = pendingDelta;
-    } else {
-      const delta = baselineClicks && formatDelta(gsc.current.clicks, baselineClicks.clicks);
-      if (delta) clicks.delta = { ...delta, text: `${delta.text} vs baseline` };
-    }
-  }
-
-  return [pages, clicks, { label: "Presenza nelle risposte AI", value: "Da attivare" }];
+function Intervention({ item, index }: { item: Opportunity; index: number }) {
+  const queryEvidence = typeof item.evidence.impressions === "number" && typeof item.evidence.clicks === "number" && typeof item.evidence.ctr === "number";
+  return (
+    <details className={styles.intervention}>
+      <summary>
+        <span className={styles.ordinal}>{String(index + 1).padStart(2, "0")}</span>
+        <span className={styles.interventionTitle}>
+          <strong>{item.title}</strong>
+          <span>{item.page === "/" ? "Homepage" : item.page}</span>
+        </span>
+        <span className={styles.priority}>{item.priority === "high" ? "Priorità alta" : "Priorità media"}</span>
+      </summary>
+      <div className={styles.interventionBody}>
+        <p className={styles.priorityDetail}>{item.priority === "high" ? "Priorità alta" : "Priorità media"}</p>
+        {item.query && <p className={styles.query}>Ricerca: <strong>{item.query}</strong></p>}
+        {queryEvidence && <p className={styles.facts}>{formatInt(item.evidence.impressions as number)} impressioni · {formatInt(item.evidence.clicks as number)} clic · CTR {formatPercent(item.evidence.ctr as number)}</p>}
+        {Array.isArray(item.evidence.issues) && <p className={styles.facts}>{item.evidence.issues.map((issue) => String(issue).replace(/\s+\(-\d+\)$/, "")).join("; ")}</p>}
+        <h3>Intervento proposto</h3>
+        <p>{item.action}</p>
+        <h3>Obiettivo</h3>
+        <p>{item.expectedOutcome}</p>
+      </div>
+    </details>
+  );
 }
 
-const icons = {
-  report: (
-    <>
-      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
-      <path d="M14 3v5h5" />
-      <path d="M9 13h6M9 17h4" />
-    </>
-  ),
-  trend: (
-    <>
-      <path d="M3 17l6-6 4 4 8-8" />
-      <path d="M15 7h6v6" />
-    </>
-  ),
-};
+async function readOverview() {
+  const siteId = baselineAudit.domain;
+  const [gsc, ga4, snapshot, attempts] = await Promise.all([
+    safeRead("home gsc", () => getGscTotals(siteId, WINDOW_DAYS)),
+    safeRead("home ga4", () => getGa4Totals(siteId, WINDOW_DAYS)),
+    safeRead("home interventi", () => getLastSnapshot(siteId)),
+    safeRead("home fonti", () => getLatestAttempts(siteId)),
+  ]);
+  return { gsc, ga4, snapshot, attempts, now: Date.now() };
+}
 
 export default async function Home() {
-  const progress = await getProgress();
+  const siteId = baselineAudit.domain;
+  const { gsc, ga4, snapshot, attempts, now } = await readOverview();
+  const periodEnd = gsc?.lastDate ?? ga4?.lastDate;
+  const analysisDate = snapshot?.validatedAt ? new Date(snapshot.validatedAt) : null;
+  const analysisDays = Number(snapshot?.data?.settings?.analysisDays) || 7;
+  const recentAnalysis = analysisDate !== null && Number.isFinite(analysisDate.getTime()) && now - analysisDate.getTime() <= (analysisDays + 1) * 86400000;
+  const validAnalysis = snapshot?.data?.version === ANALYSIS_VERSION && snapshot.status !== "blocked" && recentAnalysis;
+  const actions: Opportunity[] = validAnalysis && Array.isArray(snapshot.data.opportunities)
+    ? snapshot.data.opportunities.filter(isIntervention) : [];
+  const { primary, additional } = splitInterventions(actions);
+  const windows = validAnalysis ? snapshot.data.windows : null;
+  const gscComparable = hasComparableCoverage(gsc, WINDOW_DAYS);
+  const ga4Comparable = hasComparableCoverage(ga4, WINDOW_DAYS);
+  const gscCoverage = gsc?.lastDate && gsc.current.days < WINDOW_DAYS ? `${gsc.current.days} giorni con dati su ${WINDOW_DAYS}` : undefined;
+  const ga4Coverage = ga4?.lastDate && ga4.current.days < WINDOW_DAYS ? `${ga4.current.days} giorni con dati su ${WINDOW_DAYS}` : undefined;
+  const metrics: Metric[] = [
+    { label: "Clic da Google", value: gsc?.lastDate ? formatInt(gsc.current.clicks) : "N/D", source: "Search Console", date: gsc?.lastDate ?? null,
+      delta: gsc && gscComparable ? formatDelta(gsc.current.clicks, gsc.previous.clicks) : null,
+      previous: gsc && gscComparable ? formatInt(gsc.previous.clicks) : null, coverage: gscCoverage },
+    { label: "Impressioni su Google", value: gsc?.lastDate ? formatInt(gsc.current.impressions) : "N/D", source: "Search Console", date: gsc?.lastDate ?? null,
+      delta: gsc && gscComparable ? formatDelta(gsc.current.impressions, gsc.previous.impressions) : null,
+      previous: gsc && gscComparable ? formatInt(gsc.previous.impressions) : null, coverage: gscCoverage },
+    { label: "CTR su Google", value: gsc?.lastDate ? formatPercent(gsc.current.ctr) : "N/D", source: "Search Console", date: gsc?.lastDate ?? null,
+      delta: gsc && gscComparable ? formatDelta(gsc.current.ctr, gsc.previous.ctr) : null,
+      previous: gsc && gscComparable ? formatPercent(gsc.previous.ctr) : null, coverage: gscCoverage },
+    { label: "Sessioni sul sito", value: ga4?.lastDate ? formatInt(ga4.current.sessions) : "N/D", source: "Analytics · tutti i canali", date: ga4?.lastDate ?? null,
+      delta: ga4 && ga4Comparable ? formatDelta(ga4.current.sessions, ga4.previous.sessions) : null,
+      previous: ga4 && ga4Comparable ? formatInt(ga4.previous.sessions) : null, coverage: ga4Coverage },
+  ];
 
   return (
     <main className={`${styles.home} ${fontVariables}`}>
-      <section className={styles.hero} aria-labelledby="home-title">
-        <HeroPhoto className={styles.heroPhoto} />
-        <SiteHeader />
-
-        <div className={styles.heroBody}>
-          <span className={styles.eyebrow}>
-            <span className={styles.dot} aria-hidden="true" />
-            SEO &amp; GEO per il fotovoltaico
-          </span>
-          <h1 id="home-title">Visibilità su Google e AI</h1>
-          <p className={styles.lead}>
-            Analizziamo come Solair Group viene trovata su Google e definiamo
-            le priorità per migliorare la visibilità organica.
-          </p>
-          <div className={styles.actions}>
-            <Link className={styles.primary} href={currentReportUrl}>
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                {icons.report}
-              </svg>
-              Report del 6 settembre
-            </Link>
-            <Link className={styles.secondary} href="/sezioni/performance">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                {icons.trend}
-              </svg>
-              Verifica performance
-            </Link>
+      <SiteHeader compact current="/" />
+      <div className={styles.content}>
+        <header className={styles.heading}>
+          <div>
+            <p className={styles.eyebrow}>{siteId}</p>
+            <h1>Panoramica</h1>
           </div>
-        </div>
-      </section>
-
-      <section className={styles.progress} aria-labelledby="progress-title">
-        <CollectionNotice siteId={baselineAudit.domain} />
-        <div className={styles.progressHeading}>
-          <h2 id="progress-title">A che punto siamo</h2>
-          <span>Confronto con la baseline del {formatDate(baselineDate)}</span>
-        </div>
-        <ul className={styles.metrics}>
-          {progress.map((metric) => (
-            <li key={metric.label}>
-              <span className={styles.metricLabel}>{metric.label}</span>
-              <div className={styles.metricValue}>
-                <strong className={["Da attivare", "Non disponibile"].includes(metric.value) ? styles.metricPending : undefined}>
-                  {metric.value}
-                </strong>
-                {metric.delta && (
-                  <span className={styles[`trend_${metric.delta.trend}`]}>{metric.delta.text}</span>
-                )}
-              </div>
-              {metric.note && <span className={styles.metricNote}>{metric.note}</span>}
-              {metric.label === "Presenza nelle risposte AI" && (
-                <Link className={styles.metricLink} href="/visibilita-ai">
-                  Visibilità AI →
-                </Link>
-              )}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className={styles.cycle} aria-labelledby="cycle-title">
-        <div className={styles.sectionIntro}>
-          <h2 id="cycle-title">Un ciclo, non un report</h2>
-          <p>
-            Gli audit vengono richiesti on demand. La raccolta tecnica dei dati
-            è automatica; analisi e interventi si concordano per ogni incarico.
-          </p>
-        </div>
-        <ol className={styles.steps}>
-          {steps.map((step, index) => (
-            <li key={step.title}>
-              <span className={`${styles.stepNumber} ${step.current ? styles.stepCurrent : ""}`}>
-                {String(index + 1).padStart(2, "0")}
-              </span>
-              <h3>{step.title}</h3>
-              <p>{step.description}</p>
-              <div className={styles.stepLinks}>
-                {step.links.map((link) => (
-                  <Link key={link.href} href={link.href}>
-                    {link.label} →
-                  </Link>
-                ))}
-              </div>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <section className={styles.work} aria-labelledby="work-title">
-        <div className={styles.workHeading}>
-          <div className={styles.sectionIntro}>
-            <h2 id="work-title">Proposte da valutare</h2>
-            <p>Ipotesi di contenuto da verificare nel prossimo audit e approvare prima dell’avvio.</p>
+          <Image src="/solair-group.png" alt="Solair Group" width={180} height={72} className={styles.clientLogo} priority />
+        </header>
+        <CollectionNotice siteId={siteId} />
+        <section className={styles.performance} aria-labelledby="performance-title">
+          <div className={styles.sectionHeading}>
+            <div>
+              <h2 id="performance-title">Performance del sito</h2>
+              <p>{periodEnd ? periodLabel(periodEnd) : "Periodo non disponibile"} · confronto con i 28 giorni precedenti</p>
+            </div>
+            <Link className={styles.detailLink} href="/sezioni/performance">Dettaglio performance <span aria-hidden="true">&rarr;</span></Link>
           </div>
-          <Link className={styles.workLink} href="/sezioni/action-plan">
-            Action plan completo →
-          </Link>
-        </div>
-        <ol className={styles.workList}>
-          {workPriorities.map((item, index) => (
-            <li key={item.title}>
-              <span className={styles.workNumber}>{String(index + 1).padStart(2, "0")}</span>
-              <div className={styles.workText}>
-                <strong>{item.title}</strong>
-                <span>{item.description}</span>
-              </div>
-              <div className={styles.tags}>
-                {item.tags.map((tag) => (
-                  <span key={tag} className={tag === "GEO" ? styles.tagGeo : styles.tagSeo}>
-                    {tag}
-                  </span>
-                ))}
-              </div>
-              <span className={item.priority === "alta" ? styles.priorityHigh : styles.priorityMedium}>
-                Priorità {item.priority}
-              </span>
-            </li>
-          ))}
-        </ol>
-      </section>
+          <ul className={styles.metrics}>
+            {metrics.map((metric) => (
+              <li key={metric.label}>
+                <span className={styles.metricLabel}>{metric.label}</span>
+                <strong className={styles.metricValue}>{metric.value}</strong>
+                <span className={styles.comparison}>
+                  {metric.delta && <strong className={styles[`trend_${metric.delta.trend}`]}>{metric.delta.text}</strong>}
+                  {metric.previous !== null ? `Prima: ${metric.previous}` : "Confronto non disponibile"}
+                </span>
+                <span className={styles.metricSource}>{metric.source}</span>
+                {metric.date && <span className={styles.metricDate}>Dati al {formatDayMonth(metric.date)}</span>}
+                {metric.coverage && <span className={styles.metricDate}>{metric.coverage}</span>}
+              </li>
+            ))}
+          </ul>
+          {gsc?.lastDate && ga4?.lastDate && gsc.lastDate !== ga4.lastDate && <p className={styles.caveat}>Analytics: {periodLabel(ga4.lastDate)}. Le due fonti hanno date di aggiornamento diverse.</p>}
+        </section>
+        <section id="interventi" className={styles.interventions} aria-labelledby="interventions-title">
+          <div className={styles.sectionHeading}>
+            <div>
+              <h2 id="interventions-title">Interventi proposti</h2>
+              <p>{windows ? `Analisi: ${formatDayMonth(windows.current.from)} – ${formatDate(windows.current.to)}` : "Nessuna analisi utilizzabile"}</p>
+            </div>
+            {actions.length > 0 && <span className={styles.count}>{actions.length} da valutare</span>}
+          </div>
+          {validAnalysis && snapshot.status === "partial" && <p className={styles.caveat}>Analisi parziale: alcune fonti o verifiche non sono disponibili. Gli interventi proposti conservano le proprie evidenze.</p>}
+          {actions.length ? primary.map((item, index) => <Intervention key={item.id} item={item} index={index} />)
+            : <p className={styles.empty}>{validAnalysis ? "Nessun intervento proposto dall'ultima analisi." : "Non è disponibile un'analisi aggiornata utilizzabile per proporre interventi."}</p>}
+          {additional.length > 0 && <details className={styles.more}><summary>Altri {additional.length} interventi</summary>{additional.map((item, index) => <Intervention key={item.id} item={item} index={index + primary.length} />)}</details>}
+        </section>
+        <details className={styles.system}>
+          <summary><span>Stato sistema</span><span className={styles.systemHint}>Fonti e aggiornamenti</span></summary>
+          <div className={styles.systemBody}>
+            <dl>
+              {(["gsc", "ga4"] as const).map((kind) => {
+                const run = attempts?.find((attempt) => attempt.kind === kind);
+                const status = !run ? "Non disponibile" : run.status === "error" ? "Errore di raccolta" : run.status === "running" ? "Raccolta in corso" : run.stale ? "Da aggiornare" : "Aggiornata";
+                return <div key={kind}><dt>{kind === "gsc" ? "Search Console" : "Google Analytics"}</dt><dd><strong>{status}</strong>{run?.finishedAt && <span>{formatDateTime(new Date(run.finishedAt))}</span>}</dd></div>;
+              })}
+              <div><dt>Visibilità AI</dt><dd><strong>Non misurata</strong></dd></div>
+              <div><dt>Ultima analisi validata</dt><dd>{analysisDate && Number.isFinite(analysisDate.getTime()) ? formatDateTime(analysisDate) : "Non disponibile"}</dd></div>
+            </dl>
+            <Link className={styles.detailLink} href="/sezioni/tracking-setup">Dettaglio delle fonti <span aria-hidden="true">&rarr;</span></Link>
+          </div>
+        </details>
+      </div>
     </main>
   );
 }

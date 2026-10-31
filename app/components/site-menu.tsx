@@ -1,15 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./site-header.module.css";
 
 type MenuItem = { label: string; href: string };
 
-/**
- * Menu principale. Sopra i 900px le voci sono sempre visibili; sotto diventa
- * un pulsante hamburger che apre il pannello delle voci.
- */
+/** Navigazione espandibile nella variante compatta e su mobile. */
 export function SiteMenu({
   items,
   current,
@@ -21,21 +18,34 @@ export function SiteMenu({
   domain: string;
 }) {
   const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   // Esc chiude il pannello aperto.
   useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") {
+        setOpen(false);
+        buttonRef.current?.focus();
+      }
+    };
+    const onOutside = (event: PointerEvent) => {
+      if (event.target instanceof Node && !menuRef.current?.contains(event.target)) setOpen(false);
     };
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onOutside);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onOutside);
+    };
   }, [open]);
 
   return (
-    <div className={styles.menu}>
+    <div className={styles.menu} ref={menuRef}>
       <button
         type="button"
+        ref={buttonRef}
         className={styles.menuToggle}
         aria-expanded={open}
         aria-controls="site-menu"

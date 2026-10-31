@@ -5,19 +5,20 @@ import { SiteMenu } from "./site-menu";
 import styles from "./site-header.module.css";
 
 const menu = [
-  { label: "Report storico", href: currentReportUrl },
   { label: "Performance", href: "/sezioni/performance" },
+  { label: "Interventi proposti", href: "/#interventi" },
   { label: "Visibilità AI", href: "/visibilita-ai" },
-  { label: "Action plan", href: "/sezioni/action-plan" },
-  { label: "Tracking", href: "/sezioni/tracking-setup" },
+  { label: "Audit baseline", href: "/sezioni/executive-summary" },
   { label: "Storico", href: "/sezioni/historical-comparison" },
+  { label: "Stato sistema", href: "/sezioni/tracking-setup" },
+  { label: "Report storico", href: currentReportUrl },
   { label: "Privacy", href: "/privacy" },
 ];
 
-/** Marchio e menu principale, da mettere in cima alla hero della pagina. */
-export function SiteHeader({ current }: { current?: string }) {
+/** Marchio e menu condivisi; variante compatta per il cruscotto. */
+export function SiteHeader({ current, compact = false }: { current?: string; compact?: boolean }) {
   return (
-    <header className={styles.topbar}>
+    <header className={`${styles.topbar} ${compact ? styles.compact : ""}`}>
       <div className={styles.topbarInner}>
         <Link className={styles.brand} href="/">
           <span className={styles.brandMark} aria-hidden="true" />
