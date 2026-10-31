@@ -1,6 +1,6 @@
 import type { EngineSettings } from "./settings";
 
-export const ANALYSIS_VERSION = "rules-3";
+export const ANALYSIS_VERSION = "rules-4";
 export type Period = { from: string; to: string };
 export type SearchRow = { keys: string[]; clicks: number; impressions: number; ctr: number; position: number };
 export type SearchPeriod = {
@@ -29,7 +29,7 @@ export type TechnicalEvidence = {
   sitemapFound: boolean;
   complete: boolean;
 };
-export type Opportunity = {
+export type ReviewCheck = {
   id: string;
   kind: "ctr" | "near_top10" | "decline" | "growth" | "contact_check" | "technical";
   title: string;
@@ -41,6 +41,22 @@ export type Opportunity = {
   interpretation: string;
   action: string;
 };
+
+export type Opportunity = ReviewCheck & { expectedOutcome: string };
+
+function technicalWork(issues: string[]) {
+  const tasks: string[] = [];
+  const supported: string[] = [];
+  for (const issue of issues) {
+    let task: string | undefined;
+    if (issue.startsWith("Title mancante")) task = "Aggiungere un title univoco e descrittivo del contenuto della pagina, senza ripetizioni di keyword.";
+    if (issue.startsWith("Meta description mancante")) task = "Scrivere una meta description specifica che riassuma il contenuto e chiarisca il motivo per visitare la pagina.";
+    if (issue.startsWith("H1 mancante")) task = "Inserire un titolo principale visibile che descriva il contenuto della pagina.";
+    if (/^\d+ immagini senza alt/.test(issue)) task = "Aggiungere testi alternativi descrittivi alle immagini informative; usare alt vuoto per quelle puramente decorative.";
+    if (task) { tasks.push(task); supported.push(issue); }
+  }
+  return { tasks, supported, pending: issues.filter((issue) => !supported.includes(issue)) };
+}
 
 /** Join al livello del percorso: non identifica persone né attribuisce lead a keyword. */
 export function pagePath(raw: string, domain: string): string | null {
@@ -110,11 +126,12 @@ export function analyzeEvidence(input: {
     if (Date.parse(current.to) > now.getTime() - (settings.lagDays - 1) * 86400000) blocked.push("Periodo troppo recente per un confronto consolidato.");
   }
   if (blocked.length || !evidence) {
-    return { version: ANALYSIS_VERSION, status: "blocked" as const, windows: evidence?.windows ?? null, summary: null, opportunities: [] as Opportunity[], limitations: [...blocked, ...limitations] };
+    return { version: ANALYSIS_VERSION, status: "blocked" as const, windows: evidence?.windows ?? null, summary: null, opportunities: [] as Opportunity[], checks: [] as ReviewCheck[], limitations: [...blocked, ...limitations] };
   }
 
   let partial = false;
   const opportunities: Opportunity[] = [];
+  const checks: ReviewCheck[] = [];
   const { current, previous } = evidence.gsc;
   limitations.push(...(evidence.sourceErrors ?? []));
   const currentPages = searchPages(current.pages, domain);
@@ -129,16 +146,18 @@ export function analyzeEvidence(input: {
     if (!page || !query || row.impressions < settings.minImpressions) continue;
     const facts = { impressions: row.impressions, clicks: row.clicks, ctr: row.ctr, position: row.position };
     if (row.position > 10 && row.position <= 20) opportunities.push({
-      id: `near_top10:${page}:${query}`, kind: "near_top10", title: "Query vicina alla prima pagina", page, query,
+      id: `near_top10:${page}:${query}`, kind: "near_top10", title: "Rafforzamento della pagina sulla query", page, query,
       priority: "medium", confidence: "medium", evidence: facts,
       interpretation: "La posizione media è tra 10 e 20: la pagina ha già visibilità su questa ricerca.",
-      action: "Verificare intento di ricerca, contenuto della pagina e collegamenti interni prima di proporre un intervento.",
+      action: `Integrare la pagina ${page} con una risposta utile e documentata alla ricerca «${query}» e collegarla dalle pagine pertinenti gia' esistenti. La proposta va adattata al contenuto attuale prima della pubblicazione.`,
+      expectedOutcome: "Rafforzare pertinenza del contenuto e collegamenti interni per la ricerca osservata; misurare successivamente clic e posizione sulla stessa query/pagina, senza garanzie di crescita.",
     });
     if (row.position >= 1 && row.position <= 10 && row.impressions >= Math.max(100, settings.minImpressions) && row.ctr < 0.02) opportunities.push({
-      id: `ctr:${page}:${query}`, kind: "ctr", title: "CTR da verificare", page, query,
+      id: `ctr:${page}:${query}`, kind: "ctr", title: "Ottimizzazione del risultato di ricerca", page, query,
       priority: "medium", confidence: "medium", evidence: { ...facts, ruleThresholdCtr: 0.02 },
       interpretation: "CTR inferiore alla soglia operativa del 2% con almeno 100 impressioni e posizione media entro 10. È un segnale da verificare, non una stima di clic persi.",
-      action: "Controllare title, snippet e corrispondenza con l’intento; la media può includere dispositivi e risultati diversi.",
+      action: `Preparare una variante del title e della meta description della pagina ${page}, specifica per l'intento della ricerca «${query}» e fedele al contenuto effettivo, da approvare e pubblicare come intervento sullo snippet.`,
+      expectedOutcome: "Migliorare la chiarezza del risultato e verificare un possibile aumento del CTR su query e pagina comparabili. Google puo' riscrivere title e snippet; nessun aumento di posizione e' garantito.",
     });
   }
   if (current.pagesComplete && previous.pagesComplete) {
@@ -151,7 +170,7 @@ export function analyzeEvidence(input: {
       const delta = (after - before) / before;
       const kind = delta <= -0.2 ? "decline" : delta >= 0.3 && after >= 20 ? "growth" : null;
       if (!kind) continue;
-      opportunities.push({
+      checks.push({
         id: `${kind}:${page}`, kind, title: kind === "decline" ? "Pagina in calo di clic" : "Pagina in crescita", page,
         priority: kind === "decline" ? "high" : "medium", confidence: "high",
         evidence: { previousClicks: before, currentClicks: after, changeRatio: delta },
@@ -175,7 +194,7 @@ export function analyzeEvidence(input: {
     }
     for (const [page, row] of landingPages) {
       if (row.sessions < settings.minSessions || row.contacts !== 0 || !(currentPages.get(page)?.clicks)) continue;
-      opportunities.push({
+      checks.push({
         id: `contact_check:${page}`, kind: "contact_check", title: "Traffico organico senza interazioni di contatto rilevate", page,
         priority: "medium", confidence: "medium",
         evidence: { googleOrganicSessions: row.sessions, contactEvents: row.contacts, formSubmissions: row.forms, gscClicks: currentPages.get(page)!.clicks },
@@ -194,21 +213,31 @@ export function analyzeEvidence(input: {
       if (!row.issues.length) continue;
       const page = pagePath(row.url, domain);
       if (!page) continue;
-      opportunities.push({
-        id: `technical:${page}`, kind: "technical", title: "Criticità tecnica rilevata", page,
-        priority: (row.status !== null && row.status >= 400) || (currentPages.get(page)?.clicks ?? 0) > 0 ? "high" : "medium",
+      const work = technicalWork(row.issues);
+      if (work.tasks.length) opportunities.push({
+        id: `technical:${page}`, kind: "technical", title: "Completamento degli elementi on-page", page,
+        priority: work.supported.some((issue) => issue.startsWith("Title mancante")) && (currentPages.get(page)?.clicks ?? 0) > 0 ? "high" : "medium",
         confidence: row.status === null ? "medium" : "high",
-        evidence: { httpStatus: row.status ?? "non rilevato", issues: row.issues, onPageScore: row.score ?? "non calcolato" },
+        evidence: { httpStatus: row.status ?? "non rilevato", issues: work.supported, onPageScore: row.score ?? "non calcolato" },
         interpretation: "Controlli eseguiti sull’HTML restituito dalla pagina, senza esecuzione JavaScript.",
-        action: "Verificare e correggere le criticità elencate; confrontare lo score solo con analisi automatiche della stessa pagina.",
+        action: work.tasks.join(" "),
+        expectedOutcome: "Rendere i contenuti della pagina piu' comprensibili agli utenti e ai motori di ricerca; verificare la correzione nel successivo controllo HTML, senza equipararla a un aumento garantito del ranking o a una citazione AI.",
+      });
+      if (work.pending.length) checks.push({
+        id: `technical_review:${page}`, kind: "technical", title: "Verifica tecnica preliminare", page,
+        priority: row.status !== null && row.status >= 400 ? "high" : "medium", confidence: "medium",
+        evidence: { httpStatus: row.status ?? "non rilevato", issues: work.pending },
+        interpretation: "Anomalia o euristica da approfondire: non e' ancora una modifica al sito giustificata dalle evidenze. Le soglie di lunghezza del tool non sono limiti imposti da Google; l'assenza di schema non prova un problema di ranking o di visibilita' AI.",
+        action: "Verificare contenuto, destinazione e requisiti applicabili alla pagina prima di definire un intervento specifico; non applicare redirect, dati strutturati o modifiche ai contenuti in modo automatico.",
       });
     }
   }
   opportunities.sort((a, b) => Number(b.priority === "high") - Number(a.priority === "high") || a.id.localeCompare(b.id));
+  checks.sort((a, b) => Number(b.priority === "high") - Number(a.priority === "high") || a.id.localeCompare(b.id));
   return {
     version: ANALYSIS_VERSION, status: partial ? "partial" as const : "complete" as const,
     windows: evidence.windows,
-    summary: { current: current.totals, previous: previous.totals, opportunities: opportunities.length, ga4TimeZones: analytics?.current.timeZones ?? [] },
-    opportunities, limitations: [...new Set(limitations)],
+    summary: { current: current.totals, previous: previous.totals, opportunities: opportunities.length, checks: checks.length, ga4TimeZones: analytics?.current.timeZones ?? [] },
+    opportunities, checks, limitations: [...new Set(limitations)],
   };
 }

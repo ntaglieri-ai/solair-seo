@@ -245,11 +245,11 @@ export const baselineAudit: AuditSnapshot = {
       ],
       criticalIssues: [
         "Lo score di maggio 2026 resta un riferimento storico: i dati di traffico non costituiscono un nuovo audit completo.",
-        "Monitoraggio SERP indipendente, backlink, competitor e GEO richiedono fonti dedicate non ancora collegate.",
+        "La baseline non contiene una valutazione delle citazioni nei motori AI.",
       ],
       opportunities: [
-        "Creare una dashboard storica con delta tra baseline e audit commissionati.",
-        "Usare gli snapshot automatici GSC e GA4 per misurare traffico, ricerche e interazioni di contatto, distinguendoli dai benchmark esterni.",
+        "Espandere le FAQ e rafforzare i contenuti della homepage.",
+        "Avviare contenuti informativi collegati al configuratore e alle pagine di servizio.",
       ],
       priority: "Alta",
       auditDate: "Maggio 2026",
@@ -343,10 +343,7 @@ export const baselineAudit: AuditSnapshot = {
           "Il motore raccoglie dati GSC e GA4 e conserva gli snapshot con fonti, periodi e limiti.",
           "Raccolta e analisi hanno frequenze configurabili; gli interventi di consulenza restano da concordare.",
         ],
-        nextActions: [
-          "Verificare la qualita' delle fonti prima di approvare un intervento.",
-          "Definire il report cliente a partire dagli snapshot e dalle evidenze del motore.",
-        ],
+        nextActions: [],
       },
     ],
   },

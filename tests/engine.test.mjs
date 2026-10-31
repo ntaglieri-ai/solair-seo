@@ -5,9 +5,17 @@ import { analyzeEvidence, pagePath } from "../lib/engine/analyze.ts";
 import { readAllRows } from "../lib/engine/pagination.ts";
 import { gatherSources } from "../lib/engine/quality.ts";
 import { analysisFingerprint } from "../lib/engine/fingerprint.ts";
+import { baselineAudit } from "../app/data/audit-baseline.ts";
 
 const now = new Date("2026-10-31T12:00:00Z");
 const domain = "solairgroup.it";
+
+test("client action plan contains site work, not platform development", () => {
+  const plan = baselineAudit.areas.find(area => area.id === "action-plan");
+  assert.ok(plan.opportunities.length);
+  assert.doesNotMatch(plan.opportunities.join(" "), /dashboard|API|snapshot|report|database|integrazion/i);
+  assert.deepEqual(baselineAudit.trackingSetup.items.find(item => item.id === "measurement-api").nextActions, []);
+});
 function fixture() {
   const search = () => ({ pages: [], queryPages: [], totals: { clicks: 0, impressions: 0, ctr: 0, position: 0 }, pagesComplete: true, queriesComplete: true });
   const analytics = () => ({ pages: [], reliable: true, timeZones: ["Europe/Rome"], limitations: [] });
@@ -92,6 +100,11 @@ test("near-top-ten and low CTR opportunities include measured evidence", () => {
   const result = analyzeEvidence(f);
   assert.deepEqual(result.opportunities.map(o => o.kind).sort(), ["ctr", "near_top10"]);
   assert.equal(result.opportunities.find(o => o.kind === "ctr").evidence.impressions, 120);
+  for (const action of result.opportunities) {
+    assert.ok(action.expectedOutcome);
+    assert.ok(action.action.includes(action.page));
+    assert.ok(action.action.includes(action.query));
+  }
 });
 
 test("tiny query samples do not create opportunities", () => {
@@ -113,16 +126,17 @@ test("HTTP/www variants of one query-page pair produce one weighted opportunity"
 test("traffic drops require sufficient baseline and complete page lists", () => {
   const f = fixture(); f.evidence.gsc.previous.pages = [row("/faq", 50), row("/", 1)];
   f.evidence.gsc.current.pages = [row("/faq", 30)];
-  assert.equal(analyzeEvidence(f).opportunities.filter(o => o.kind === "decline").length, 1);
+  assert.equal(analyzeEvidence(f).checks.filter(o => o.kind === "decline").length, 1);
+  assert.equal(analyzeEvidence(f).opportunities.length, 0);
   f.evidence.gsc.current.pagesComplete = false;
   const partial = analyzeEvidence(f);
   assert.equal(partial.status, "partial");
-  assert.equal(partial.opportunities.filter(o => o.kind === "decline").length, 0);
+  assert.equal(partial.checks.filter(o => o.kind === "decline").length, 0);
 });
 
 test("absence from a paginated GSC response does not establish zero clicks", () => {
   const f = fixture(); f.evidence.gsc.previous.pages = [row("/faq", 20)];
-  assert.equal(analyzeEvidence(f).opportunities.filter(o => o.kind === "decline").length, 0);
+  assert.equal(analyzeEvidence(f).checks.filter(o => o.kind === "decline").length, 0);
 });
 
 test("a failed GA4 provider preserves valid GSC evidence", async () => {
@@ -135,7 +149,7 @@ test("a failed GA4 provider preserves valid GSC evidence", async () => {
 
 test("deduplication cannot republish technical findings after they become stale", () => {
   const f = fixture(); f.evidence.ga4 = null;
-  f.technical.pages = [{ url: "https://solairgroup.it/", status: 200, score: 90, title: "Test", issues: ["Missing title"] }];
+  f.technical.pages = [{ url: "https://solairgroup.it/", status: 200, score: 90, title: "", issues: ["Title mancante (-15)"] }];
   const fresh = analyzeEvidence({ ...f, technicalAt: "2026-10-24T00:00:00Z" });
   const stale = analyzeEvidence({ ...f, technicalAt: "2026-10-22T00:00:00Z" });
   assert.equal(fresh.status, "partial"); assert.equal(stale.status, "partial");
@@ -149,17 +163,18 @@ test("deduplication cannot republish technical findings after they become stale"
 
 test("growth from zero is not expressed as a percentage", () => {
   const f = fixture(); f.evidence.gsc.current.pages = [row("/faq", 50)];
-  assert.equal(analyzeEvidence(f).opportunities.filter(o => o.kind === "growth").length, 0);
+  assert.equal(analyzeEvidence(f).checks.filter(o => o.kind === "growth").length, 0);
 });
 
 test("conversion correlation uses Google organic landing pages and no keyword attribution", () => {
   const f = fixture(); f.evidence.gsc.current.pages = [row("/faq", 20)];
   f.evidence.ga4.current.pages = [{ page: "/faq", sessions: 40, engagedSessions: 20, contactEvents: 0, formSubmissions: 0 }];
-  const result = analyzeEvidence(f); const o = result.opportunities.find(o => o.kind === "contact_check");
+  const result = analyzeEvidence(f); const o = result.checks.find(o => o.kind === "contact_check");
+  assert.equal(result.opportunities.length, 0);
   assert.equal(o.evidence.googleOrganicSessions, 40); assert.equal(o.query, undefined);
   assert.match(result.limitations.join(" "), /non un’attribuzione keyword-lead/);
   f.evidence.ga4.current.pages[0].contactEvents = 1;
-  assert.equal(analyzeEvidence(f).opportunities.filter(o => o.kind === "contact_check").length, 0);
+  assert.equal(analyzeEvidence(f).checks.filter(o => o.kind === "contact_check").length, 0);
 });
 
 test("thresholded or sampled GA4 cannot produce conversion conclusions", () => {
@@ -167,14 +182,38 @@ test("thresholded or sampled GA4 cannot produce conversion conclusions", () => {
   f.evidence.ga4.current.pages = [{ page: "/faq", sessions: 50, engagedSessions: 20, contactEvents: 0, formSubmissions: 0 }];
   f.evidence.ga4.current.reliable = false;
   assert.equal(analyzeEvidence(f).status, "partial");
-  assert.equal(analyzeEvidence(f).opportunities.filter(o => o.kind === "contact_check").length, 0);
+  assert.equal(analyzeEvidence(f).checks.filter(o => o.kind === "contact_check").length, 0);
 });
 
 test("technical findings come only from fresh actual crawls", () => {
   const f = fixture(); f.technical.pages = [{ url: `https://${domain}/faq`, title: "", status: 404, score: null, issues: ["HTTP 404"] }];
-  assert.equal(analyzeEvidence(f).opportunities[0].kind, "technical");
+  assert.equal(analyzeEvidence(f).checks[0].kind, "technical");
   f.technicalAt = "2026-09-01T00:00:00Z";
   assert.equal(analyzeEvidence(f).opportunities.length, 0);
+  assert.equal(analyzeEvidence(f).checks.length, 0);
+});
+
+test("technical interventions exclude unverified length and schema heuristics", () => {
+  const f = fixture();
+  f.technical.pages = [{ url: `https://${domain}/faq`, title: "FAQ", status: 200, score: 80,
+    issues: ["Title fuori range (25 char) (-7)", "Schema.org assente (-5)", "2 immagini senza alt (-4)"] }];
+  const result = analyzeEvidence(f);
+  assert.equal(result.opportunities.length, 1);
+  assert.deepEqual(result.opportunities[0].evidence.issues, ["2 immagini senza alt (-4)"]);
+  assert.match(result.opportunities[0].action, /testi alternativi/);
+  assert.ok(result.opportunities[0].expectedOutcome);
+  assert.equal(result.checks.length, 1);
+  assert.deepEqual(result.checks[0].evidence.issues, ["Title fuori range (25 char) (-7)", "Schema.org assente (-5)"]);
+  assert.match(result.checks[0].interpretation, /non sono limiti imposti da Google/);
+});
+
+test("a missing title yields a concrete site intervention, not platform work", () => {
+  const f = fixture();
+  f.technical.pages = [{ url: `https://${domain}/faq`, title: "", status: 200, score: 85, issues: ["Title mancante (-15)"] }];
+  const result = analyzeEvidence(f);
+  assert.equal(result.checks.length, 0);
+  assert.match(result.opportunities[0].action, /Aggiungere un title/);
+  assert.doesNotMatch(result.opportunities[0].action, /integrare API|dashboard|report|database/i);
 });
 
 test("methodological caveats do not mean incomplete technical coverage", () => {

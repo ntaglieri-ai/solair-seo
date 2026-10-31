@@ -135,7 +135,7 @@ function TrackingDetail() {
                     </ul>
                   </div>
                   <div className="field">
-                    <h4>Azioni</h4>
+                    <h4>Verifiche della configurazione iniziale</h4>
                     <ul>
                       {item.nextActions.map((action) => (
                         <li key={action}>{action}</li>
@@ -209,7 +209,7 @@ function PerformanceDetail() {
                   <p>{item.meaning}</p>
                 </div>
                 <div className="performance-copy">
-                  <h3>Azione</h3>
+                  <h3>Nota di misurazione iniziale</h3>
                   <p>{item.action}</p>
                 </div>
               </article>

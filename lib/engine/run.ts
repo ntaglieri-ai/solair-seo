@@ -115,7 +115,7 @@ export async function runEngine(site: Site, options: { force?: boolean; backfill
               on conflict(site_id) do update set snapshot_id=excluded.snapshot_id, validated_at=now()`;
             return saved;
           });
-          return { result: { snapshotId: snapshot.id, status: analysis.status, opportunities: analysis.opportunities.length }, raw: { snapshotId: snapshot.id } };
+          return { result: { snapshotId: snapshot.id, status: analysis.status, opportunities: analysis.opportunities.length, checks: analysis.checks.length }, raw: { snapshotId: snapshot.id } };
         })).result;
       }
     } else steps.analysis = "not_due";

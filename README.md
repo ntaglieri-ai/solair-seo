@@ -58,7 +58,11 @@ Una lease sul database impedisce esecuzioni concorrenti; scade in 10 minuti.
   pagine e dimensioni; non esegue JavaScript e non è un audit tecnico completo.
 - `lib/engine/analyze.ts`: regole deterministiche per CTR, posizioni 11–20,
   variazioni dei clic, verifica del tracciamento contatti e anomalie tecniche.
-  Ogni opportunità conserva evidenze, interpretazione e azione proposta.
+  `opportunities` contiene solo proposte di intervento sul sito, con evidenze,
+  azione concreta ed effetto atteso da verificare (non una promessa di ranking).
+  Cali/crescite da interpretare, tracciamento e anomalie tecniche non diagnosticate
+  sono invece `checks`: verifiche aperte, escluse dal conteggio degli interventi.
+  Attivazione API, report e sviluppo della piattaforma non sono raccomandazioni SEO.
 - `seo.analysis_snapshots`: versioni immutabili con periodi, configurazione,
   fonti e limiti. `seo.engine_state` indica la versione corrente validata, anche
   dopo il recupero da un errore. Nessun aggiornamento modifica la baseline 76/100.
@@ -68,6 +72,14 @@ obsoleto o non confrontabile blocca le conclusioni. Una riga assente da GSC non
 equivale a zero clic. Eventi contatto non equivalgono a lead qualificati e non
 vengono attribuiti alle singole keyword. Un'analisi completa indica che le fonti
 previste sono utilizzabili, non che il sito sia privo di problemi.
+
+Le soglie di lunghezza del vecchio score restano euristiche, non prescrizioni di
+Google. La sola assenza di schema non giustifica un intervento SEO/GEO. Riferimenti:
+[titoli](https://developers.google.com/search/docs/appearance/title-link),
+[snippet](https://developers.google.com/search/docs/appearance/snippet),
+[fondamenti SEO](https://developers.google.com/search/docs/essentials),
+[funzionalita AI di Google](https://developers.google.com/search/docs/appearance/ai-features).
+Senza evidenze dedicate non vengono generate raccomandazioni GEO validate.
 
 ### Amministrazione
 
