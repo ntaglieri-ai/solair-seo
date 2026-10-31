@@ -26,10 +26,6 @@ function trackingStatusClass(status: string) {
   return `status-pill status-${status.toLowerCase().replaceAll(" ", "-")}`;
 }
 
-function performanceStatusClass(status: string) {
-  return `performance-status performance-status-${status.toLowerCase().replaceAll(" ", "-")}`;
-}
-
 function findArea(id: string) {
   return baselineAudit.areas.find((area) => area.id === id);
 }
@@ -186,37 +182,6 @@ function PerformanceDetail() {
         </div>
       </section>
 
-      <section className="content-section">
-        <div className="section-inner">
-          <div className="section-heading">
-            <h2>Note della rilevazione iniziale</h2>
-            <span>Aggiornata al {baselineAudit.performance.updatedAt}</span>
-          </div>
-          <div className="performance-grid">
-            {baselineAudit.performance.items.map((item) => (
-              <article className="performance-card" key={item.id}>
-                <div className="performance-card-top">
-                  <div>
-                    <span className="eyebrow">{item.title}</span>
-                    <h2>{item.value}</h2>
-                  </div>
-                  <span className={performanceStatusClass(item.status)}>
-                    {item.status}
-                  </span>
-                </div>
-                <div className="performance-copy">
-                  <h3>Cosa significa</h3>
-                  <p>{item.meaning}</p>
-                </div>
-                <div className="performance-copy">
-                  <h3>Nota di misurazione iniziale</h3>
-                  <p>{item.action}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
     </>
   );
 }
