@@ -11,6 +11,7 @@ const menu = [
   { label: "Action plan", href: "/sezioni/action-plan" },
   { label: "Tracking", href: "/sezioni/tracking-setup" },
   { label: "Storico", href: "/sezioni/historical-comparison" },
+  { label: "Privacy", href: "/privacy" },
 ];
 
 /** Marchio e menu principale, da mettere in cima alla hero della pagina. */
