@@ -244,12 +244,12 @@ export const baselineAudit: AuditSnapshot = {
         "Medio termine 1-3 mesi: avviare blog e citazioni NAP su directory italiane di settore.",
       ],
       criticalIssues: [
-        "Senza audit on demand o dati reali aggiunti manualmente, le decisioni restano basate sulla baseline.",
-        "L'import automatico via API di Search Console, Analytics e keyword tracking resta fuori scope in questo step.",
+        "Lo score di maggio 2026 resta un riferimento storico: i dati di traffico non costituiscono un nuovo audit completo.",
+        "Monitoraggio SERP indipendente, backlink, competitor e GEO richiedono fonti dedicate non ancora collegate.",
       ],
       opportunities: [
         "Creare una dashboard storica con delta tra baseline e audit commissionati.",
-        "Misurare traffico, keyword, conversioni e benchmark solo quando le integrazioni saranno richieste.",
+        "Usare gli snapshot automatici GSC e GA4 per misurare traffico, ricerche e interazioni di contatto, distinguendoli dai benchmark esterni.",
       ],
       priority: "Alta",
       auditDate: "Maggio 2026",
@@ -337,15 +337,15 @@ export const baselineAudit: AuditSnapshot = {
       {
         id: "measurement-api",
         title: "Import dati in dashboard",
-        status: "Da configurare",
-        source: "Fuori scope finche' non decidiamo storage e credenziali",
+        status: "Attivo",
+        source: "API Google autorizzate e archivio dati privato",
         details: [
-          "La dashboard non legge ancora dati GA4 o GSC via API.",
-          "Gli audit restano on demand: i dati possono essere inseriti manualmente o importati dopo autorizzazione.",
+          "Il motore raccoglie dati GSC e GA4 e conserva gli snapshot con fonti, periodi e limiti.",
+          "Raccolta e analisi hanno frequenze configurabili; gli interventi di consulenza restano da concordare.",
         ],
         nextActions: [
-          "Decidere se usare import manuale per i primi audit.",
-          "Introdurre database e API solo quando serve storicizzare dati reali.",
+          "Verificare la qualita' delle fonti prima di approvare un intervento.",
+          "Definire il report cliente a partire dagli snapshot e dalle evidenze del motore.",
         ],
       },
     ],

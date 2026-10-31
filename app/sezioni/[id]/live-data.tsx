@@ -35,6 +35,9 @@ const KIND_LABEL: Record<RunKind, string> = {
   ga4: "Analytics 4",
   onpage: "Analisi on-page",
   audit: "Audit live",
+  evidence: "Raccolta incrociata",
+  technical: "Scansione tecnica sito",
+  analysis: "Analisi opportunità",
 };
 
 const TRIGGER_LABEL: Record<RunSummary["trigger"], string> = {
@@ -505,7 +508,7 @@ export async function CollectionStatus({ siteId }: { siteId: string }) {
   const runs = await safeRead("stato raccolta", () => getLatestAttempts(siteId));
   if (!runs) return <Unavailable />;
 
-  const latestByKind = (["gsc", "ga4", "onpage", "audit"] as const)
+  const latestByKind = (["gsc", "ga4", "evidence", "technical", "analysis", "onpage", "audit"] as const)
     .map((kind) => runs.find((run) => run.kind === kind))
     .filter((run) => run !== undefined);
 

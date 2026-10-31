@@ -3,7 +3,7 @@ import { getSql } from "../db";
 
 /** Punto unico di lettura dei dati archiviati, usato dalle pagine. */
 
-export type RunKind = "baseline" | "gsc" | "ga4" | "onpage" | "audit";
+export type RunKind = "baseline" | "gsc" | "ga4" | "onpage" | "audit" | "evidence" | "technical" | "analysis";
 
 export type RunSummary = {
   id: string;

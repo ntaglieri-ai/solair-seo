@@ -47,9 +47,9 @@ export async function getSite(id: string): Promise<Site | null> {
  * Apre una rilevazione, esegue `work` e la chiude come ok o error.
  * L'errore viene salvato e poi rilanciato al chiamante.
  */
-async function withRun<T>(
+export async function withRun<T>(
   siteId: string,
-  kind: "gsc" | "ga4" | "onpage" | "audit",
+  kind: "gsc" | "ga4" | "onpage" | "audit" | "evidence" | "technical" | "analysis",
   trigger: Trigger,
   work: (runId: string, sql: postgres.Sql) => Promise<{ result: T; raw: unknown }>
 ): Promise<{ runId: string; result: T }> {
@@ -89,12 +89,13 @@ export async function collectGsc(
   days: number = GSC_REFRESH_DAYS
 ) {
   return withRun(site.id, "gsc", trigger, async (runId, sql) => {
+    const startDate = isoDate(daysAgo(days));
     const endDate = isoDate(daysAgo(1));
     const topStart = isoDate(daysAgo(GSC_TOP_WINDOW_DAYS));
 
     const [daily, queries, pages] = await Promise.all([
       queryGsc(site.gsc_property, {
-        startDate: isoDate(daysAgo(days)),
+        startDate,
         endDate,
         dimension: "date",
         rowLimit: Math.max(days, 1),
@@ -104,17 +105,10 @@ export async function collectGsc(
     ]);
 
     await sql.begin(async (tx) => {
-      for (const row of daily) {
-        await tx`
-          insert into seo.gsc_daily (site_id, date, clicks, impressions, ctr, position)
-          values (${site.id}, ${row.key}, ${row.clicks}, ${row.impressions}, ${row.ctr}, ${row.position})
-          on conflict (site_id, date) do update set
-            clicks = excluded.clicks,
-            impressions = excluded.impressions,
-            ctr = excluded.ctr,
-            position = excluded.position,
-            updated_at = now()
-        `;
+      await tx`delete from seo.gsc_daily where site_id=${site.id} and date between ${startDate} and ${endDate}`;
+      const series = daily.map((row) => ({ site_id: site.id, date: row.key, clicks: row.clicks, impressions: row.impressions, ctr: row.ctr, position: row.position }));
+      for (let offset = 0; offset < series.length; offset += 2000) {
+        await tx`insert into seo.gsc_daily ${tx(series.slice(offset, offset + 2000))}`;
       }
 
       const top = [
@@ -158,30 +152,18 @@ export async function collectGa4(site: Site, trigger: Trigger, days: number = GS
     ]);
 
     await sql.begin(async (tx) => {
-      for (const row of rows) {
-        await tx`
-          insert into seo.ga4_daily
-            (site_id, date, channel, sessions, users, new_users, engaged_sessions, key_events)
-          values (${site.id}, ${row.date}, ${row.channel}, ${row.sessions}, ${row.users},
-                  ${row.newUsers}, ${row.engagedSessions}, ${row.keyEvents})
-          on conflict (site_id, date, channel) do update set
-            sessions = excluded.sessions,
-            users = excluded.users,
-            new_users = excluded.new_users,
-            engaged_sessions = excluded.engaged_sessions,
-            key_events = excluded.key_events,
-            updated_at = now()
-        `;
+      await tx`delete from seo.ga4_daily where site_id=${site.id} and date between ${startDate} and ${endDate}`;
+      await tx`delete from seo.ga4_events where site_id=${site.id} and date between ${startDate} and ${endDate}`;
+      const series = rows.map((row) => ({ site_id: site.id, date: row.date, channel: row.channel,
+        sessions: row.sessions, users: row.users, new_users: row.newUsers,
+        engaged_sessions: row.engagedSessions, key_events: row.keyEvents }));
+      for (let offset = 0; offset < series.length; offset += 2000) {
+        await tx`insert into seo.ga4_daily ${tx(series.slice(offset, offset + 2000))}`;
       }
-      for (const event of events) {
-        await tx`
-          insert into seo.ga4_events (site_id, date, event_name, event_count, users)
-          values (${site.id}, ${event.date}, ${event.eventName}, ${event.eventCount}, ${event.users})
-          on conflict (site_id, date, event_name) do update set
-            event_count = excluded.event_count,
-            users = excluded.users,
-            updated_at = now()
-        `;
+      const eventRows = events.map((event) => ({ site_id: site.id, date: event.date, event_name: event.eventName,
+        event_count: event.eventCount, users: event.users }));
+      for (let offset = 0; offset < eventRows.length; offset += 2000) {
+        await tx`insert into seo.ga4_events ${tx(eventRows.slice(offset, offset + 2000))}`;
       }
     });
 

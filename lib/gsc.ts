@@ -1,4 +1,5 @@
 import { google } from "googleapis";
+import { readAllRows } from "./engine/pagination";
 
 export type GscKeywordRow = {
   keys: string[];
@@ -135,6 +136,27 @@ export type GscRow = {
   position: number;
 };
 
+export type GscDatasetRow = { keys: string[]; clicks: number; impressions: number; ctr: number; position: number };
+
+/** Dataset finalizzato, paginato. Le query anonimizzate da Google restano escluse. */
+export async function queryGscDataset(
+  siteUrl: string,
+  period: { from: string; to: string },
+  dimensions: string[],
+) {
+  const api = google.searchconsole({ version: "v1", auth: getOAuthClient() });
+  return readAllRows<GscDatasetRow>(async (startRow, rowLimit) => {
+    const { data } = await api.searchanalytics.query({
+      siteUrl,
+      requestBody: { startDate: period.from, endDate: period.to, dimensions, startRow, rowLimit, dataState: "final", type: "web" },
+    }, { timeout: 20000 });
+    return { rows: (data.rows ?? []).map((row) => ({
+      keys: row.keys ?? [], clicks: row.clicks ?? 0, impressions: row.impressions ?? 0,
+      ctr: row.ctr ?? 0, position: row.position ?? 0,
+    })) };
+  }, 25000);
+}
+
 /**
  * Lettura grezza per il motore dati: a differenza di getGscData gli errori
  * non vengono assorbiti, così la rilevazione viene registrata come fallita.
@@ -159,7 +181,7 @@ export async function queryGsc(
       rowLimit: options.rowLimit,
       dataState: "all",
     },
-  });
+  }, { timeout: 20000 });
 
   return (res.data.rows ?? []).map((row) => ({
     key: row.keys?.[0] ?? "",
