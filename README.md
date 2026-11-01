@@ -127,7 +127,7 @@ Il punteggio globale provvisorio di maggio resta distinto dagli score automatici
 
 Le nuove scritture sono protette dalla sessione operatore e dal controllo dell’origine; le tabelle restano nello schema privato `seo` con RLS. Nessuna nuova dipendenza, credenziale o servizio a pagamento.
 
-## Home operativa
+## Home operativa precedente
 
 La home `/` presenta tre accessi: Current Status, Analisi SEO/GEO, Impostazioni. La precedente home completa è conservata in `/home2`, con gli stessi componenti, dati e stile; tutte le altre pagine restano disponibili.
 
@@ -136,3 +136,11 @@ Current Status invia un POST esplicito a `/api/home-run` con `mode: "status"`: f
 Il run dalla home è disponibile ai visitatori del portale per il solo sito Solair, senza esporre CRON_SECRET: controllo dell’origine, operazioni e parametri fissi, lease esistente e limite persistente di una richiesta ogni cinque minuti per operazione. Gli errori non vengono presentati come aggiornamenti riusciti; i risultati parziali sono indicati. Nessuna operazione è avviata tramite GET o prefetch.
 
 `/impostazioni` mostra frequenza e stato dell’automazione. Solo la sessione operatore può salvare `enabled` e `analysisDays` (1–90 giorni); il resto delle impostazioni del motore resta invariato. L’automazione disattivata ferma i run programmati, ma permette i run manuali espliciti. I report programmati sono consultabili in app; non sono state aggiunte email o API a pagamento.
+
+## Percorso attuale centrato sul report
+
+La home conserva hero e riepilogo dinamico. I tre accessi sono **Genera analisi**, **Report e storico**, **Impostazioni**. Solo il primo avvia un’elaborazione (`mode: analysis`); il secondo apre `/report` senza raccogliere o generare dati. La precedente funzione Current Status resta disponibile negli approfondimenti delle statistiche, con le sue rotte e il suo endpoint, ma non costituisce un prodotto distinto nel percorso principale.
+
+Il menu principale contiene soltanto Panoramica, Report e Impostazioni. `/report` elenca gli snapshot reali di `seo.analysis_snapshots`, con stato, date, periodo e origine, venti per pagina. Ogni voce apre `/analisi?id=...`; la pagina organizza gli stessi dati del motore in sintesi, risultati, interventi prioritari, fonte GEO non misurata e approfondimenti. Le rilevazioni più vecchie restano consultabili anche se alcuni campi editoriali mancavano. Il pulsante PDF usa la stampa del browser, come il documento storico esistente.
+
+Statistiche, ricerca SEO, verifiche AI, baseline e documenti storici sono raggiungibili dal contesto Report. Programmazione e stato delle fonti Google sono in Impostazioni; la gestione delle checklist è raggiungibile negli strumenti interni dopo l’accesso operatore. `/home2` e tutte le pagine precedenti rimangono disponibili. Nessuna funzione SaaS, iscrizione, audit pubblico per URL o nuova configurazione OAuth è stata implementata in questo refactoring.

@@ -22,14 +22,14 @@ export default function Home() {
           <p className={base.lead}>Performance del sito e analisi per migliorare la visibilità di Solair Group.</p>
           <div className={base.heroActions}>
             <Link className={base.primary} href="#operazioni">Inizia da qui <span aria-hidden="true">↓</span></Link>
-            <Link className={base.secondary} href="/analisi">Ultima analisi <span aria-hidden="true">→</span></Link>
+            <Link className={base.secondary} href="/analisi">Apri ultimo report <span aria-hidden="true">→</span></Link>
           </div>
         </div>
       </section>
       <div className={styles.content}>
         <HomePerformanceSummary />
         <HomeOperations />
-        <footer className={styles.footer}><Link href="/home2">Panoramica precedente <span aria-hidden="true">↗</span></Link></footer>
+        <footer className={styles.footer}><span>Solair Group · solairgroup.it</span><Link href="/privacy">Privacy</Link></footer>
       </div>
     </main>
   );

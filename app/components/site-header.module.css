@@ -101,13 +101,11 @@
   text-decoration: none;
 }
 
-/* Il menu non sta più accanto al marchio: va su una riga sua */
+/* I tre accessi principali restano accanto al marchio anche su tablet. */
 @media (max-width: 1180px) {
   .topbarInner {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-    padding: 20px 0 16px;
+    gap: 20px;
+    padding: 24px 0;
   }
 
   .topnav {
@@ -116,12 +114,6 @@
 }
 
 /* Sotto i 900px: marchio a sinistra, hamburger a destra, voci in un pannello */
-@media (min-width: 900px) and (max-width: 1180px) {
-  .menu { width: 100%; min-width: 0; }
-  .topnav { flex-wrap: wrap; row-gap: 14px; }
-  .compact .menu { width: auto; }
-}
-
 @media (max-width: 899px) {
   .topbarInner {
     flex-direction: row;

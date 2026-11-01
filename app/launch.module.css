@@ -15,7 +15,7 @@
 .tileButton:disabled { cursor:wait;opacity:.65; }.tileButton svg { flex-shrink:0; }.tileButton:focus-visible { outline:none; }.tileButton:focus-visible::after,.tile:focus-visible { outline:3px solid #3277aa;outline-offset:5px; }
 .latest { position:relative;z-index:2;display:block;width:fit-content;margin-top:8px;color:#708078;font-size:13px;line-height:1.6; }.latest:hover { text-decoration:underline; }.latest:focus-visible { outline:2px solid #3277aa;outline-offset:4px; }
 .settings .latest { cursor:pointer; }.feedback { position:relative;z-index:2; }.feedback p { margin:14px 0 0;color:#5d7365;font-size:13px;line-height:1.6; }.feedback .error { color:#a3432b; }
-.footer { display:flex;justify-content:flex-end;padding-top:30px; }.footer a { color:#657c6d;font-size:14px; }.footer a:hover { text-decoration:underline; }
+.footer { display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;padding-top:30px;color:#657c6d;font-size:14px; }.footer a { color:#657c6d;font-size:14px; }.footer a:hover { text-decoration:underline; }
 .spin { animation:spin 1.2s linear infinite; }@keyframes spin { to{transform:rotate(360deg);} }
 @media(min-width:1600px){.tile{padding:42px;min-height:500px;}.tile h2{font-size:44px;}.description{font-size:20px;}}
 @media(max-width:1050px){.tiles{gap:16px;}.tile{padding:28px 24px;}.tile h2{font-size:31px;min-height:80px;}.description{font-size:17px;min-height:140px;}.tileButton{font-size:17px;}}
