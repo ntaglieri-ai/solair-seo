@@ -2,7 +2,8 @@ import "server-only";
 import { getSql } from "../db";
 import { collectGa4, collectGsc, collectOnPage, withRun, type Site, type Trigger } from "./collect";
 import { collectEvidence } from "./evidence";
-import { crawlSite } from "./crawl";
+import { PUBLIC_CRAWL_VERSION } from "./crawl";
+import { collectPublicSite } from "../public-collection";
 import { analyzeEvidence, ANALYSIS_VERSION } from "./analyze";
 import { acquireLease, getEngineInputs, getEngineSettings, getLastSnapshot, releaseLease } from "./store";
 import { isDue } from "./settings";
@@ -62,14 +63,9 @@ export async function runEngine(site: Site, options: { force?: boolean; backfill
 
     if (options.mode === "status") return { site: site.id, ok: !errors.length, steps, errors };
 
-    if (options.force || initial.technical?.data.maxPages !== settings.maxPages || isDue(lastRuns.technical?.startedAt ?? null, settings.technicalDays, now)) {
+    if (options.force || initial.technical?.data.version !== PUBLIC_CRAWL_VERSION || initial.technical?.data.maxPages !== settings.maxPages || isDue(lastRuns.technical?.startedAt ?? null, settings.technicalDays, now)) {
       try {
-        steps.technical = (await withRun(site.id, "technical", options.trigger, async (runId, tx) => {
-          const data = { ...await crawlSite(site.home_url, settings.maxPages), maxPages: settings.maxPages };
-          if (!data.pages.length) throw new Error("Nessuna pagina analizzata.");
-          await tx`insert into seo.technical_batches(run_id, site_id, data) values (${runId}, ${site.id}, ${tx.json(data)})`;
-          return { result: { pages: data.pages.length, limitations: data.limitations }, raw: { pages: data.pages.length } };
-        })).result;
+        steps.technical = (await collectPublicSite(site, settings.maxPages, options.trigger)).result;
         // Mantiene lo storico on-page esistente senza mescolarlo alla baseline manuale.
         if (isDue(lastRuns.onpage?.startedAt ?? null, settings.technicalDays, now)) {
           steps.onpage = (await collectOnPage(site, options.trigger)).result;

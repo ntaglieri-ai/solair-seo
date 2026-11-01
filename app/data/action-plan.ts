@@ -45,6 +45,7 @@ export function pageLabel(path: string) {
 }
 
 export function actionTitle(item: Opportunity) {
+  if (item.id.startsWith("public_url:")) return item.title;
   const page = pageLabel(item.page);
   if (item.kind === "ctr") return `Un risultato Google più chiaro per la ${page}`;
   if (item.kind === "near_top10") return `Contenuti più forti per la ${page}`;

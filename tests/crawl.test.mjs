@@ -55,6 +55,15 @@ test("exports production crawler and scores homepage without a GSC deduction", a
   assert.match(result.limitations.join(" "), /senza esecuzione JavaScript/);
 });
 
+test("public content links discover customer paths omitted from the sitemap, within the same safe crawl budget", async () => {
+  const {crawl,calls}=fixture({'/':[html().replace('</body>','<a href="/contatti">Contattaci</a><a href="/api/delete">Ignore API</a><a href="/logout">Ignore action</a><a href="https://evil.it/lead">External</a></body>')],'/sitemap.xml':[xml(['/'])],'/contatti':['missing',404]});
+  const result=await crawl(origin,5);
+  assert.ok(result.pages.some(page=>page.url===origin+'/contatti'&&page.status===404));
+  assert.ok(!calls.some(url=>/evil|api\/delete|logout/.test(url)));
+  assert.ok(result.pages[0].profile.links.some(link=>link.label==='Contattaci'));
+  assert.ok(result.pages[0].download.milliseconds>=0);
+});
+
 test("XML namespaces, nested sitemap, CDATA, entities and www variants", async () => {
   const { crawl, calls } = fixture({
     "/": [html()],

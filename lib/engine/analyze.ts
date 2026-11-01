@@ -1,6 +1,7 @@
 import type { EngineSettings } from "./settings";
+import type { UrlAudit } from "../url-audit";
 
-export const ANALYSIS_VERSION = "rules-4";
+export const ANALYSIS_VERSION = "rules-5";
 export type Period = { from: string; to: string };
 export type SearchRow = { keys: string[]; clicks: number; impressions: number; ctr: number; position: number };
 export type SearchPeriod = {
@@ -27,6 +28,8 @@ export type Evidence = {
   sourceErrors?: string[];
 };
 export type TechnicalEvidence = {
+  version?: string;
+  publicAnalysis?: UrlAudit;
   pages: { url: string; status: number | null; score: number | null; issues: string[]; title: string }[];
   limitations: string[];
   sitemapFound: boolean;
@@ -211,6 +214,16 @@ export function analyzeEvidence(input: {
     partial = true; limitations.push("Controlli tecnici assenti o non aggiornati: nessuna conclusione tecnica automatica.");
   } else {
     limitations.push(...technical.limitations);
+    for (const finding of technical.publicAnalysis?.findings ?? []) {
+      const page = pagePath(finding.evidence[0]?.url ?? "", domain);
+      if (!page) continue;
+      opportunities.push({ id: `public_url:${finding.id}`, kind: "technical", title: finding.title, page,
+        priority: finding.priority === "alta" ? "high" : "medium", confidence: "medium",
+        evidence: { publicSources: finding.evidence.map(item => `${item.url}: ${item.detail}`), publicAuditVersion: technical.publicAnalysis!.version, basis: finding.basis },
+        interpretation: `${finding.observation} ${finding.impact}`, action: finding.action,
+        expectedOutcome: "Verificare sul sito la correzione o il contenuto pubblicato e leggere i risultati delle rilevazioni successive. La proposta non stima incrementi di traffico o ritorni economici.",
+      });
+    }
     if (!technical.complete) partial = true;
     for (const row of technical.pages) {
       if (!row.issues.length) continue;

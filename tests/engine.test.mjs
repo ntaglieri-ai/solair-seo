@@ -10,6 +10,14 @@ import { baselineAudit } from "../app/data/audit-baseline.ts";
 const now = new Date("2026-10-31T12:00:00Z");
 const domain = "solairgroup.it";
 
+test('the detailed report preserves site-wide public findings and their source references',()=>{
+  const f=fixture();
+  f.technical.publicAnalysis={version:'public-url-2',findings:[{id:'contact:/contatti',title:'Ripristinare il contatto',priority:'alta',basis:'riscontro',observation:'Un pulsante porta a HTTP 404.',impact:'Il percorso si interrompe.',action:'Correggere il collegamento nel sito.',evidence:[{url:'https://solairgroup.it/',detail:'Pulsante Contattaci → /contatti, HTTP 404'}]}]};
+  const result=analyzeEvidence(f);
+  assert.equal(result.opportunities[0].id,'public_url:contact:/contatti');assert.equal(result.opportunities[0].priority,'high');
+  assert.match(result.opportunities[0].evidence.publicSources[0],/HTTP 404/);
+});
+
 test("client action plan contains site work, not platform development", () => {
   const plan = baselineAudit.areas.find(area => area.id === "action-plan");
   assert.ok(plan.opportunities.length);

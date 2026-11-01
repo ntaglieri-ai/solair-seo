@@ -7,6 +7,7 @@ export type WorkItem = {
   measurement: Measurement | null; revision: number;
 };
 export function tasksFor(item: Opportunity): ChecklistTask[] {
+  if (item.id.startsWith("public_url:")) return [{ id: "site-work", label: item.action, done: false }];
   const tasks = item.kind === "ctr" ? [
     ["title", "Rivedere il title della pagina rispetto alla ricerca indicata."],
     ["description", "Rivedere la descrizione del risultato e la promessa della pagina."],

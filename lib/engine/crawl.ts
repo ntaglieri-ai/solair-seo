@@ -3,6 +3,9 @@ import { lookup } from "node:dns/promises";
 import { BlockList, isIP } from "node:net";
 import { scanOnPage } from "../onpage-scan";
 import { computeSeoScore } from "../seo-score";
+import { extractSiteContent, type SiteContent } from "../site-content";
+
+export const PUBLIC_CRAWL_VERSION = "url-2";
 
 export type CrawlPage = {
   url: string;
@@ -14,6 +17,8 @@ export type CrawlPage = {
   canonical: string;
   noindex: boolean;
   content?: { h1: string[]; schemaTypes: string[]; words: number; internalLinks: number };
+  profile?: SiteContent;
+  download?: { milliseconds: number; bytes: number };
 };
 
 type CrawlResult = { pages: CrawlPage[]; limitations: string[]; sitemapFound: boolean; complete: boolean };
@@ -107,6 +112,7 @@ export function createSiteCrawler(overrides: Partial<Dependencies> = {}) {
     if (!Number.isFinite(maxPages) || maxPages !== limit) limitations.add(`Limite pagine normalizzato a ${limit} (massimo 50, homepage sempre inclusa).`);
 
     async function download(start: URL, sitemap: boolean) {
+      const started = performance.now();
       const controller = new AbortController();
       let lastStatus: number | null = null;
       let timer: ReturnType<typeof setTimeout>;
@@ -126,7 +132,7 @@ export function createSiteCrawler(overrides: Partial<Dependencies> = {}) {
           if (!addresses.length || addresses.some((address) => !publicAddress(address))) throw new Error("Indirizzo privato o riservato non consentito");
           if (controller.signal.aborted) throw new Error("Timeout di 8 secondi");
           const response = await deps.fetch(safe.href, {
-            redirect: "manual", signal: controller.signal,
+            redirect: "manual", signal: controller.signal, cache: "no-store",
             headers: { "User-Agent": "Mozilla/5.0 (compatible; MosTagAuditBot/1.0)", Accept: sitemap ? "application/xml,text/xml" : "text/html,application/xhtml+xml" },
           });
           lastStatus = response.status;
@@ -162,7 +168,7 @@ export function createSiteCrawler(overrides: Partial<Dependencies> = {}) {
             controller.signal.removeEventListener("abort", cancelReader);
             if (reader) { void reader.cancel().catch(() => {}); reader.releaseLock(); }
           }
-          return { url: safe.href, status: response.status, headers: response.headers, body };
+          return { url: safe.href, status: response.status, headers: response.headers, body, bytes, milliseconds: Math.round(performance.now() - started) };
         }
         throw new Error("Limite redirect raggiunto");
       };
@@ -202,6 +208,8 @@ export function createSiteCrawler(overrides: Partial<Dependencies> = {}) {
         page.title = onpage.title;
         page.description = onpage.metaDescription;
         page.canonical = onpage.canonical;
+        page.profile = extractSiteContent(result.body, result.url);
+        page.download = { milliseconds: result.milliseconds, bytes: result.bytes };
         $("script,style,noscript,template,svg,iframe").remove();
         page.content = {
           h1: onpage.h1, schemaTypes: onpage.schemaTypes, internalLinks: onpage.internalLinks,
@@ -271,6 +279,21 @@ export function createSiteCrawler(overrides: Partial<Dependencies> = {}) {
       while (cursor < urls.length) { const index = cursor++; scanned[index] = await scan(urls[index]); }
     }));
     pages.push(...scanned);
+    // Follow links in public content too: a sitemap alone can omit important customer paths.
+    // Exclude query URLs, actions, account pages and resources from automatic discovery.
+    const discovered = new Set(pages.map(page => pageKey(new URL(page.url))));
+    for (let index = 0; index < pages.length; index++) {
+      for (const link of pages[index].profile?.links ?? []) {
+        const target = allowedUrl(link.url, home);
+        if (!target || target.search || !pagePath(target) || /(?:^|\/)(?:login|logout|signin|signout|account|admin|checkout|cart)(?:\/|$)/i.test(target.pathname)) continue;
+        const key = pageKey(target);
+        if (discovered.has(key)) continue;
+        discovered.add(key);
+        if (pages.length >= limit) { recordIncomplete(`Scoperta da link troncata: limite di ${limit} pagine raggiunto.`); continue; }
+        seenPages.add(key);
+        pages.push(await scan(target));
+      }
+    }
     const titles = new Map<string, CrawlPage[]>();
     for (const page of pages) {
       const key = page.title.replace(/\s+/g, " ").trim().toLowerCase();
