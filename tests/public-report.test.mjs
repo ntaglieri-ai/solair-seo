@@ -1,7 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {publicPageReport,comparePublicPage,publicPath} from '../lib/public-report.ts';
+import {clientOpportunity} from '../lib/report-language.ts';
 const page={url:'https://solairgroup.it/faq',status:200,score:88,title:'FAQ Solair',description:'Risposte sul fotovoltaico',canonical:'https://solairgroup.it/faq',noindex:false,issues:[]};
+test('client wording retains query-level observations without inventing missing results',()=>{
+  const action={kind:'ctr',query:'impianto solare',evidence:{impressions:1500,clicks:0}};
+  const before=JSON.stringify(action);
+  const copy=clientOpportunity(action);
+  assert.match(copy.observed,/«impianto solare»/);
+  assert.match(copy.observed,/1\.?500 volte/);
+  assert.match(copy.observed,/0 clic/);
+  assert.equal(JSON.stringify(action),before);
+  assert.doesNotMatch(clientOpportunity({...action,evidence:{}}).observed,/\d/);
+});
 test('public report is independent of account data and never exposes a global score',()=>{
   const result=publicPageReport({...page,clicks:123,gsc:{secret:'account'},score:2,issues:['Title fuori range (10 char) (-7)']});
   assert.equal(result.findings.length,0);
