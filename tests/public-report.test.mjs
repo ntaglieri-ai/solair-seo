@@ -2,7 +2,20 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {publicPageReport,comparePublicPage,publicPath} from '../lib/public-report.ts';
 import {clientOpportunity} from '../lib/report-language.ts';
+import {faqTitleOpportunity} from '../lib/initial-diagnosis.ts';
 const page={url:'https://solairgroup.it/faq',status:200,score:88,title:'FAQ Solair',description:'Risposte sul fotovoltaico',canonical:'https://solairgroup.it/faq',noindex:false,issues:[]};
+test('initial editorial diagnosis requires public evidence and disappears when the title states its topic',()=>{
+  const observed=publicPageReport(page);
+  const result=faqTitleOpportunity([observed]);
+  assert.equal(result.page.title,'FAQ Solair');
+  assert.match(result.proposedTitle,/Fotovoltaico/);
+  assert.equal(faqTitleOpportunity([{...observed,title:'Fotovoltaico: domande frequenti | Solair'}]),null);
+  assert.equal(faqTitleOpportunity([{...observed,title:'Installazione e garanzie: FAQ | Solair Group'}]),null);
+  assert.equal(faqTitleOpportunity([{...observed,noindex:true}]),null);
+  assert.equal(faqTitleOpportunity([{...observed,description:'Domande frequenti'}]),null);
+  assert.equal(faqTitleOpportunity([{...observed,readable:false}]),null);
+  assert.equal(faqTitleOpportunity([]),null);
+});
 test('client wording retains query-level observations without inventing missing results',()=>{
   const action={kind:'ctr',query:'impianto solare',evidence:{impressions:1500,clicks:0}};
   const before=JSON.stringify(action);
