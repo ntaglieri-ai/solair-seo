@@ -6,6 +6,7 @@ import styles from "./site-header.module.css";
 
 const menu = [
   { label: "Performance", href: "/sezioni/performance" },
+  { label: "Ricerca SEO", href: "/ricerca" },
   { label: "Interventi proposti", href: "/interventi" },
   { label: "Visibilità AI", href: "/visibilita-ai" },
   { label: "Audit baseline", href: "/sezioni/executive-summary" },

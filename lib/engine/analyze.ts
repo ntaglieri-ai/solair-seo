@@ -4,6 +4,9 @@ export const ANALYSIS_VERSION = "rules-4";
 export type Period = { from: string; to: string };
 export type SearchRow = { keys: string[]; clicks: number; impressions: number; ctr: number; position: number };
 export type SearchPeriod = {
+  /** Query aggregate direttamente da Google, senza sommare le righe query/pagina. */
+  queries?: SearchRow[];
+  keywordRowsComplete?: boolean;
   pages: SearchRow[];
   queryPages: SearchRow[];
   totals: { clicks: number; impressions: number; ctr: number; position: number };

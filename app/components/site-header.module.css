@@ -116,6 +116,12 @@
 }
 
 /* Sotto i 900px: marchio a sinistra, hamburger a destra, voci in un pannello */
+@media (min-width: 900px) and (max-width: 1180px) {
+  .menu { width: 100%; min-width: 0; }
+  .topnav { flex-wrap: wrap; row-gap: 14px; }
+  .compact .menu { width: auto; }
+}
+
 @media (max-width: 899px) {
   .topbarInner {
     flex-direction: row;

@@ -8,6 +8,7 @@ import { acquireLease, getEngineInputs, getEngineSettings, getLastSnapshot, rele
 import { isDue } from "./settings";
 import { getLatestRuns } from "./read";
 import { analysisFingerprint } from "./fingerprint";
+import { collectMarket } from "../research-store";
 
 export async function runEngine(site: Site, options: { force?: boolean; backfillDays?: number; trigger: Trigger }) {
   const settings = await getEngineSettings(site.id);
@@ -73,6 +74,9 @@ export async function runEngine(site: Site, options: { force?: boolean; backfill
         }
       } catch (error) { errors.push(`technical: ${error instanceof Error ? error.message : "scansione fallita"}`); }
     } else steps.technical = "not_due";
+
+    try { steps.competitors=await collectMarket(site.id,settings.technicalDays,options.force); }
+    catch { steps.competitors={status:"unavailable"}; console.error("[engine] Confronto concorrenti non disponibile."); }
 
     const settingsChanged = !lastSnapshot || lastSnapshot.data.version !== ANALYSIS_VERSION || Object.entries(settings).some(([key, value]) => lastSnapshot.data.settings?.[key] !== value);
     if (options.force || errors.length || settingsChanged || lastSnapshot?.status !== "complete" || isDue(lastSnapshot?.validatedAt ?? lastRuns.analysis?.startedAt ?? null, settings.analysisDays, now)) {

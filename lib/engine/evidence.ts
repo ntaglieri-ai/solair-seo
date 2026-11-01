@@ -7,16 +7,18 @@ import type { Evidence, Period, SearchPeriod } from "./analyze";
 import { gatherSources } from "./quality";
 
 async function searchPeriod(property: string, period: Period): Promise<SearchPeriod> {
-  const [daily, pages, queryPages] = await Promise.all([
+  const [daily, pages, queryPages, queries] = await Promise.all([
     queryGscDataset(property, period, ["date"]),
     queryGscDataset(property, period, ["page"]),
     queryGscDataset(property, period, ["query", "page"]),
+    queryGscDataset(property, period, ["query"]),
   ]);
   if (daily.truncated) throw new Error("Serie giornaliera Search Console incompleta.");
   const clicks = daily.rows.reduce((n, r) => n + r.clicks, 0);
   const impressions = daily.rows.reduce((n, r) => n + r.impressions, 0);
   return {
     pages: pages.rows, queryPages: queryPages.rows,
+    queries: queries.rows, keywordRowsComplete: !queries.truncated,
     pagesComplete: !pages.truncated, queriesComplete: !queryPages.truncated,
     totals: { clicks, impressions, ctr: impressions ? clicks / impressions : 0,
       position: impressions ? daily.rows.reduce((n, r) => n + r.position * r.impressions, 0) / impressions : 0 },

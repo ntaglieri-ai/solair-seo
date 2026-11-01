@@ -7,6 +7,7 @@ import { getGa4Totals, getGscTotals, getLatestAttempts } from "../lib/engine/rea
 import { safeRead } from "../lib/engine/safe";
 import { getWork } from "../lib/interventions-store";
 import { workIdentity } from "../lib/interventions";
+import { getAiStatus } from "../lib/research-store";
 import { formatDate, formatDateTime, formatDayMonth, formatDelta, formatInt, formatPercent } from "../lib/format";
 import { SiteHeader } from "./components/site-header";
 import { CollectionNotice } from "./components/collection-notice";
@@ -36,21 +37,22 @@ type Metric = {
 
 async function readOverview() {
   const siteId = baselineAudit.domain;
-  const [gsc, ga4, plan, attempts, work] = await Promise.all([
+  const [gsc, ga4, plan, attempts, work, ai] = await Promise.all([
     safeRead("home gsc", () => getGscTotals(siteId, WINDOW_DAYS)),
     safeRead("home ga4", () => getGa4Totals(siteId, WINDOW_DAYS)),
     readActionPlan(siteId),
     safeRead("home fonti", () => getLatestAttempts(siteId)),
     safeRead("home avanzamento", () => getWork(siteId)),
+    safeRead("home verifiche AI", () => getAiStatus(siteId)),
   ]);
   const pending=new Map(plan.actions.map((item)=>[workIdentity(item),item]));
   for(const item of work??[]) { if(item.completedAt)pending.delete(item.actionId);else pending.set(item.actionId,item.proposal); }
-  return { gsc, ga4, plan:{...plan,actions:[...pending.values()]}, attempts };
+  return { gsc, ga4, plan:{...plan,actions:[...pending.values()]}, attempts, ai };
 }
 
 export default async function Home() {
   const siteId = baselineAudit.domain;
-  const { gsc, ga4, plan, attempts } = await readOverview();
+  const { gsc, ga4, plan, attempts, ai } = await readOverview();
   const periodEnd = gsc?.lastDate ?? ga4?.lastDate;
   const { actions, period, validatedAt: analysisDate } = plan;
   const reading = performanceReading(gsc, ga4);
@@ -154,7 +156,7 @@ export default async function Home() {
                 const status = !run ? "Non disponibile" : run.status === "error" ? "Errore di raccolta" : run.status === "running" ? "Raccolta in corso" : run.stale ? "Da aggiornare" : "Aggiornata";
                 return <div key={kind}><dt>{kind === "gsc" ? "Search Console" : "Google Analytics"}</dt><dd><strong>{status}</strong>{run?.finishedAt && <span>{formatDateTime(new Date(run.finishedAt))}</span>}</dd></div>;
               })}
-              <div><dt>Visibilità AI</dt><dd><strong>Non misurata</strong></dd></div>
+              <div><dt>Visibilità AI</dt><dd><strong>{ai===null?"Stato non disponibile":ai.count?"Verifiche manuali archiviate":"Non misurata"}</strong>{ai?.date&&<span>{formatDate(ai.date)}</span>}</dd></div>
               <div><dt>Ultima analisi validata</dt><dd>{analysisDate && Number.isFinite(analysisDate.getTime()) ? formatDateTime(analysisDate) : "Non disponibile"}</dd></div>
             </dl>
             <Link className={styles.detailLink} href="/sezioni/tracking-setup">Dettaglio delle fonti <span aria-hidden="true">&rarr;</span></Link>
