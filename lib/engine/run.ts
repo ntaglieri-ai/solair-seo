@@ -10,9 +10,9 @@ import { getLatestRuns } from "./read";
 import { analysisFingerprint } from "./fingerprint";
 import { collectMarket } from "../research-store";
 
-export async function runEngine(site: Site, options: { force?: boolean; backfillDays?: number; trigger: Trigger }) {
+export async function runEngine(site: Site, options: { force?: boolean; backfillDays?: number; trigger: Trigger; mode?: "status" | "analysis" }) {
   const settings = await getEngineSettings(site.id);
-  if (!settings.enabled) return { site: site.id, ok: true, skipped: "disabled" };
+  if (!settings.enabled && options.trigger !== "manual") return { site: site.id, ok: true, skipped: "disabled" };
   const lease = await acquireLease(site.id);
   if (!lease) return { site: site.id, ok: true, skipped: "already_running" };
   const sql = getSql();
@@ -59,6 +59,8 @@ export async function runEngine(site: Site, options: { force?: boolean; backfill
       }
       catch (error) { collectionFailed = true; evidenceFailed = true; errors.push(`evidence: ${error instanceof Error ? error.message : "raccolta fallita"}`); }
     } else steps.evidence = "not_due";
+
+    if (options.mode === "status") return { site: site.id, ok: !errors.length, steps, errors };
 
     if (options.force || initial.technical?.data.maxPages !== settings.maxPages || isDue(lastRuns.technical?.startedAt ?? null, settings.technicalDays, now)) {
       try {

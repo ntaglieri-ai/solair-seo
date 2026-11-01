@@ -126,3 +126,13 @@ Il punteggio globale provvisorio di maggio resta distinto dagli score automatici
 `/visibilita-ai` conserva verifiche manuali con motore, domanda, contesto, data, risposta completa, link condiviso facoltativo e fonti dichiarate. Menzione del nome e fonte Solair sono misure separate: nessuna interpretazione automatica come raccomandazione. Sono confrontate solo prove con lo stesso motore, domanda e contesto. Le verifiche mancanti restano non misurate. Non sono usati file di esempio, API LLM, crediti, abbonamenti, scraping di risposte protette o servizi a consumo.
 
 Le nuove scritture sono protette dalla sessione operatore e dal controllo dell’origine; le tabelle restano nello schema privato `seo` con RLS. Nessuna nuova dipendenza, credenziale o servizio a pagamento.
+
+## Home operativa
+
+La home `/` presenta tre accessi: Current Status, Analisi SEO/GEO, Impostazioni. La precedente home completa è conservata in `/home2`, con gli stessi componenti, dati e stile; tutte le altre pagine restano disponibili.
+
+Current Status invia un POST esplicito a `/api/home-run` con `mode: "status"`: forza GSC, GA4 ed evidenze, quindi apre `/current-status` con le date delle raccolte e dei dati. Non esegue scansioni dei concorrenti o l’analisi delle opportunità. Analisi SEO/GEO usa `mode: "analysis"`, forza la normale elaborazione completa e apre `/analisi?id=...` sullo snapshot archiviato. La pagina legge risultati e suggerimenti direttamente dallo snapshot, senza checklist o stato dei lavori; i limiti GEO restano espliciti. `/analisi` senza ID legge l’ultimo snapshot validato, prodotto dallo stesso motore in modalità manuale o programmata.
+
+Il run dalla home è disponibile ai visitatori del portale per il solo sito Solair, senza esporre CRON_SECRET: controllo dell’origine, operazioni e parametri fissi, lease esistente e limite persistente di una richiesta ogni cinque minuti per operazione. Gli errori non vengono presentati come aggiornamenti riusciti; i risultati parziali sono indicati. Nessuna operazione è avviata tramite GET o prefetch.
+
+`/impostazioni` mostra frequenza e stato dell’automazione. Solo la sessione operatore può salvare `enabled` e `analysisDays` (1–90 giorni); il resto delle impostazioni del motore resta invariato. L’automazione disattivata ferma i run programmati, ma permette i run manuali espliciti. I report programmati sono consultabili in app; non sono state aggiunte email o API a pagamento.
