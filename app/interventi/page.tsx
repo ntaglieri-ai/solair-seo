@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { cookies } from "next/headers";
 import Link from "next/link";
 import { ArrowLeft, ArrowUpRight, Check, Search, ShieldCheck } from "lucide-react";
 import { baselineAudit } from "../data/audit-baseline";
@@ -8,6 +9,11 @@ import { formatDate, formatDayMonth, formatInt, formatPercent } from "../../lib/
 import { SiteHeader } from "../components/site-header";
 import { fontVariables } from "../fonts";
 import styles from "./interventi.module.css";
+import { getWork, getOutcomes } from "../../lib/interventions-store";
+import { newWorkItem, workIdentity } from "../../lib/interventions";
+import { OPERATOR_COOKIE, validOperatorToken } from "../../lib/operator";
+import { safeRead } from "../../lib/engine/safe";
+import { Checklist, OperatorAccess } from "./checklist";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Interventi per Solair Group | SolairSEO" };
@@ -23,7 +29,11 @@ function readableText(text: string) {
 }
 
 export default async function InterventionsPage() {
-  const plan = await readActionPlan(baselineAudit.domain);
+  const siteId=baselineAudit.domain;
+  const [plan,saved,cookieStore]=await Promise.all([readActionPlan(siteId),safeRead("checklist",()=>getWork(siteId)),cookies()]);
+  const editable=validOperatorToken(cookieStore.get(OPERATOR_COOKIE)?.value,process.env.CRON_SECRET);
+  const items=[...(saved??[]),...plan.actions.filter((action)=>!saved?.some((item)=>item.actionId===workIdentity(action))).map(newWorkItem)];
+  const outcomes=await safeRead("risultati interventi",()=>getOutcomes(siteId,items));
   return (
     <main className={`${styles.page} ${fontVariables}`}>
       <SiteHeader compact current="/interventi" />
@@ -37,15 +47,18 @@ export default async function InterventionsPage() {
           </div>
           <Image src="/solair-group.png" alt="Solair Group" width={180} height={72} className={styles.logo} />
         </header>
-        {plan.period && <div className={styles.context}><span>Analisi: {formatDayMonth(plan.period.from)} – {formatDate(plan.period.to)}</span><strong>{plan.actions.length} proposte da valutare</strong></div>}
+        {plan.period && <div className={styles.context}><span>Ultima analisi: {formatDayMonth(plan.period.from)} – {formatDate(plan.period.to)}</span><strong>{items.length} interventi nel piano</strong></div>}
         {plan.status === "partial" && <p className={styles.notice}>Analisi parziale: alcune fonti o verifiche non sono disponibili. Le proposte sotto riportano le evidenze effettivamente raccolte.</p>}
+        <OperatorAccess authenticated={editable} />
+        {saved===null&&<p className={styles.notice}>Checklist non disponibili. Le proposte restano consultabili; ricarica prima di modificarle.</p>}
         <div className={styles.proposals}>
-          {plan.actions.map((item, index) => {
+          {items.map((work, index) => {
+            const item=work.proposal;
             const technical = item.kind === "technical";
             const Icon = technical ? ShieldCheck : Search;
             const measuredQuery = typeof item.evidence.impressions === "number" && typeof item.evidence.clicks === "number" && typeof item.evidence.ctr === "number";
             return (
-              <article key={item.id} id={`intervento-${index + 1}`} className={styles.proposal}>
+              <article key={work.actionId} id={`intervento-${index + 1}`} className={styles.proposal}>
                 <div className={styles.proposalHeading}>
                   <span className={styles.number}>{String(index + 1).padStart(2, "0")}</span>
                   <span className={technical ? styles.technical : styles.search}><Icon size={18} aria-hidden="true" />{technical ? "Qualità delle pagine" : "Ricerca Google"}</span>
@@ -55,6 +68,7 @@ export default async function InterventionsPage() {
                 <p className={styles.target}>{pageLabel(item.page)}{item.query && <> · Ricerca: <strong>{item.query}</strong></>}</p>
                 <div className={styles.evidence}>
                   <span className={styles.evidenceLabel}>Da cosa partiamo</span>
+                  {typeof item.evidence.periodFrom==="string"&&typeof item.evidence.periodTo==="string"&&<p>Evidenze salvate: {formatDate(item.evidence.periodFrom)} – {formatDate(item.evidence.periodTo)}.</p>}
                   {measuredQuery ? <div className={styles.queryMetrics}><span><strong>{formatInt(item.evidence.impressions as number)}</strong>impressioni</span><span><strong>{formatInt(item.evidence.clicks as number)}</strong>clic</span><span><strong>{formatPercent(item.evidence.ctr as number)}</strong>CTR</span></div>
                     : Array.isArray(item.evidence.issues) ? <ul>{item.evidence.issues.map((issue) => <li key={String(issue)}><Check size={17} aria-hidden="true" />{issueLabel(String(issue))}</li>)}</ul> : null}
                   <p>{readableText(item.interpretation)}</p>
@@ -63,11 +77,12 @@ export default async function InterventionsPage() {
                   <div><h3>Cosa proponiamo</h3><p>{readableText(item.action)}</p></div>
                   <div className={styles.objective}><h3>Il risultato da verificare</h3><p>{readableText(item.expectedOutcome)}</p></div>
                 </div>
+                <Checklist key={work.actionId} item={work} editable={editable&&saved!==null} after={outcomes?.find((o)=>o.actionId===work.actionId)?.after}/>
               </article>
             );
           })}
         </div>
-        {plan.actions.length > 0 && <section className={styles.nextStep}><div><h2>Un piano da definire insieme.</h2><p>Queste proposte non sono ancora approvate o applicate al sito. Priorità, perimetro e incarico vanno concordati prima dell’avvio.</p></div><Link href="/sezioni/performance">Rivedi i risultati <ArrowUpRight size={20} aria-hidden="true" /></Link></section>}
+        {items.length > 0 && <section className={styles.nextStep}><div><h2>Dalla proposta ai risultati.</h2><p>Ogni intervento viene approvato, svolto e verificato. La checklist registra il lavoro; il confronto successivo mostra l’andamento del sito.</p></div><Link href="/sezioni/performance">Rivedi i risultati <ArrowUpRight size={20} aria-hidden="true" /></Link></section>}
         {plan.status === "unavailable" && <Link className={styles.resultsLink} href="/sezioni/performance">Consulta le performance <ArrowUpRight size={20} aria-hidden="true" /></Link>}
       </div>
     </main>

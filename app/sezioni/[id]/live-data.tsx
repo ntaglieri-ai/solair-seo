@@ -1,13 +1,13 @@
 import { WeeklyBars } from "../../components/weekly-bars";
-import { CONTACT_EVENTS, INTEREST_EVENTS, TRACKED_EVENTS } from "../../../lib/engine/contacts";
+import { hasComparableCoverage } from "../../data/home-overview";
+import { getConfigurator } from "../../../lib/service-read";
+import { AuditScore } from "../../components/audit-score";
 import {
-  getGa4EventTotals,
   getGa4Totals,
   getGscMonthly,
   getGscTop,
   getGscTotals,
   getGscWeekly,
-  getOnPageHistory,
   getRecentRuns,
   getLatestAttempts,
   type GscTopRow,
@@ -170,28 +170,28 @@ export async function PerformanceLive({ siteId }: { siteId: string }) {
             value={formatInt(current.clicks)}
             previous={formatInt(previous.clicks)}
             delta={formatDelta(current.clicks, previous.clicks)}
-            partial={!totals.previousComplete}
+            partial={!hasComparableCoverage(totals,28)}
           />
           <Tile
             label="Impressioni"
             value={formatInt(current.impressions)}
             previous={formatInt(previous.impressions)}
             delta={formatDelta(current.impressions, previous.impressions)}
-            partial={!totals.previousComplete}
+            partial={!hasComparableCoverage(totals,28)}
           />
           <Tile
             label="CTR medio"
             value={formatPercent(current.ctr)}
             previous={formatPercent(previous.ctr)}
             delta={formatDelta(current.ctr, previous.ctr)}
-            partial={!totals.previousComplete}
+            partial={!hasComparableCoverage(totals,28)}
           />
           <Tile
             label="Posizione media"
             value={formatDecimal(current.position)}
             previous={formatDecimal(previous.position)}
             delta={formatDelta(current.position, previous.position, { lowerIsBetter: true })}
-            partial={!totals.previousComplete}
+            partial={!hasComparableCoverage(totals,28)}
           />
         </div>
         <p className={styles.note}>
@@ -239,14 +239,14 @@ export async function PerformanceLive({ siteId }: { siteId: string }) {
 /** Performance: sessioni e conversioni da Analytics 4. */
 export async function AnalyticsLive({ siteId }: { siteId: string }) {
   const data = await safeRead("ga4", async () => {
-    const [totals, events] = await Promise.all([
+    const [totals, configurator] = await Promise.all([
       getGa4Totals(siteId, 28),
-      getGa4EventTotals(siteId, TRACKED_EVENTS, 28),
+      getConfigurator(siteId),
     ]);
-    return { totals, events };
+    return { totals, configurator };
   });
   if (!data) return <Unavailable />;
-  const { totals, events } = data;
+  const { totals, configurator } = data;
   if (!totals.lastDate) {
     return (
       <section className={styles.block} aria-labelledby="ga4-kpi">
@@ -261,60 +261,45 @@ export async function AnalyticsLive({ siteId }: { siteId: string }) {
   }
 
   const { current, previous } = totals;
-  const byName = new Map(events.events.map((event) => [event.name, event]));
-  const contacts = CONTACT_EVENTS.map((event) => ({
-    ...event,
-    current: byName.get(event.name)?.current ?? 0,
-    previous: byName.get(event.name)?.previous ?? 0,
-  }));
-  const interest = INTEREST_EVENTS.map((event) => ({
-    ...event,
-    current: byName.get(event.name)?.current ?? 0,
-    previous: byName.get(event.name)?.previous ?? 0,
-  }));
-  const contactsCurrent = contacts.reduce((sum, event) => sum + event.current, 0);
-  const contactsPrevious = contacts.reduce((sum, event) => sum + event.previous, 0);
+  const comparable=hasComparableCoverage(totals,28);
+  const configured=configurator?.data;
+  const configCurrent=configured?.current, configPrevious=configured?.previous;
+  const configComparable=!!configCurrent?.reliable&&!!configPrevious?.reliable;
+  const configRows=configCurrent ? [
+    {label:"Visualizzazioni delle pagine del configuratore",current:configCurrent.pageViews,previous:configPrevious?.pageViews},
+    {label:"Interazioni di avvio",current:configCurrent.events.start_configurator,previous:configPrevious?.events.start_configurator},
+    {label:"Conferme di completamento",current:configCurrent.events.complete_configurator,previous:configPrevious?.events.complete_configurator},
+    {label:"Richieste inviate",current:configCurrent.events.lead_submit,previous:configPrevious?.events.lead_submit},
+  ]:[];
 
   return (
     <section className={styles.block} aria-labelledby="ga4-kpi">
       <div className={styles.heading}>
-        <h2 id="ga4-kpi">Analytics 4 · ultimi 28 giorni</h2>
+        <h2 id="ga4-kpi">Traffico da ricerca organica · ultimi 28 giorni</h2>
         <span>Dati fino al {formatDate(totals.lastDate)}, confronto con i 28 giorni precedenti</span>
       </div>
       <div className={styles.tiles}>
         <Tile
-          label="Sessioni"
+          label="Sessioni da ricerca organica"
           value={formatInt(current.sessions)}
           previous={formatInt(previous.sessions)}
           delta={formatDelta(current.sessions, previous.sessions)}
-          partial={!totals.previousComplete}
-        />
-        <Tile
-          label="Sessioni da Google organico"
-          value={formatInt(current.organicSessions)}
-          previous={formatInt(previous.organicSessions)}
-          delta={formatDelta(current.organicSessions, previous.organicSessions)}
-          partial={!totals.previousComplete}
+          partial={!comparable}
         />
         <Tile
           label="Tasso di coinvolgimento"
           value={formatPercent(current.engagementRate)}
           previous={formatPercent(previous.engagementRate)}
           delta={formatDelta(current.engagementRate, previous.engagementRate)}
-          partial={!totals.previousComplete}
-        />
-        <Tile
-          label="Contatti"
-          value={formatInt(contactsCurrent)}
-          previous={formatInt(contactsPrevious)}
-          delta={formatDelta(contactsCurrent, contactsPrevious)}
-          partial={!events.previousComplete}
+          partial={!comparable}
         />
       </div>
-
+      <p className={styles.note}>Fonte: Analytics 4, canale Organic Search (tutti i motori di ricerca). Le sessioni includono anche i ritorni; non sono persone uniche. I clic di Search Console e le sessioni Analytics sono misure diverse.</p>
+      <div className={styles.heading}><h2>Il configuratore nella ricerca organica</h2><span>{configCurrent?`${formatDate(configCurrent.from)} – ${formatDate(configCurrent.to)}`:"Periodo non disponibile"}</span></div>
+      {!configCurrent?<p className={styles.empty}>{configured?.error??"Statistiche del configuratore non ancora raccolte."}</p>:<>
       <div className={`${styles.panel} ${styles.tableWrap}`}>
         <table className={styles.table}>
-          <caption>Contatti e interesse</caption>
+          <caption>Utilizzo del configuratore · Analytics, Organic Search</caption>
           <thead>
             <tr>
               <th scope="col">Azione</th>
@@ -323,28 +308,23 @@ export async function AnalyticsLive({ siteId }: { siteId: string }) {
             </tr>
           </thead>
           <tbody>
-            {contacts.map((event) => (
-              <tr key={event.name}>
+            {configRows.map((event) => (
+              <tr key={event.label}>
                 <td>{event.label}</td>
-                <td>{formatInt(event.current)}</td>
-                <td>{formatInt(event.previous)}</td>
-              </tr>
-            ))}
-            {interest.map((event) => (
-              <tr key={event.name}>
-                <td>{event.label} (interesse, non contatto)</td>
-                <td>{formatInt(event.current)}</td>
-                <td>{formatInt(event.previous)}</td>
+                <td>{configCurrent.reliable?formatInt(event.current??0):"N/D · dati limitati"}</td>
+                <td>{configComparable?formatInt(event.previous??0):"N/D"}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
       <p className={styles.note}>
-        Contatti = richieste inviate dal configuratore + clic su WhatsApp, telefono ed email. Il
-        conteggio usa i singoli eventi del sito, non il totale &quot;eventi chiave&quot; di GA4.
-        {!events.previousComplete && " Il periodo precedente è coperto solo in parte."}
+        Sono conteggi di eventi, compresi quelli ripetuti, non utenti unici. Le visualizzazioni possono comprendere la pagina contenitore e quella del configuratore incorporato.
+        Le interazioni di avvio possono scattare sia sul link sia all’inizio della compilazione: non misurano avvii unici.
+        Completamento e richiesta inviata si riferiscono allo stesso invio riuscito: non vanno sommati. Nessun tasso di conversione viene calcolato da questi eventi.
       </p>
+      <details className={styles.panel}><summary>Come vengono misurate queste statistiche</summary><p className={styles.note}>Verifica del codice del sito: start_configurator su link e passaggio iniziale; lead_submit dopo una risposta positiva del servizio di invio; complete_configurator nella schermata di conferma. La ricezione commerciale non è stata verificata con un invio di prova. I conteggi riflettono soltanto gli eventi che Analytics ha potuto registrare.</p><p className={styles.note}>Raccolta: {configurator&&formatDateTime(configurator.collectedAt)} · fuso proprietà: {configCurrent.timeZone??"non disponibile"}.</p>{[...new Set([...configCurrent.limitations,...(configPrevious?.limitations??[])])].map((note)=><p className={styles.note} key={note}>{note}</p>)}</details>
+      </>}
     </section>
   );
 }
@@ -352,22 +332,19 @@ export async function AnalyticsLive({ siteId }: { siteId: string }) {
 /** Storico: andamento mensile, score nel tempo e registro delle rilevazioni. */
 export async function HistoryLive({
   siteId,
-  baseline,
 }: {
   siteId: string;
-  baseline: { label: string; date: string; score: number };
 }) {
   const data = await safeRead("storico", async () => {
-    const [monthly, scans, runs] = await Promise.all([
+    const [monthly, runs] = await Promise.all([
       getGscMonthly(siteId),
-      getOnPageHistory(siteId, 20),
       getRecentRuns(siteId, 20),
     ]);
-    return { monthly, scans, runs };
+    return { monthly, runs };
   });
 
   if (!data) return <Unavailable />;
-  const { monthly, scans, runs } = data;
+  const { monthly, runs } = data;
 
   return (
     <>
@@ -411,41 +388,10 @@ export async function HistoryLive({
 
       <section className={styles.block} aria-labelledby="history-score">
         <div className={styles.heading}>
-          <h2 id="history-score">Score nel tempo</h2>
-          <span>Analisi on-page della home e audit live</span>
+          <h2 id="history-score">Punteggi degli audit SEO</h2>
+          <span>Ultimo audit e andamento confrontabile</span>
         </div>
-        <div className={`${styles.panel} ${styles.tableWrap}`}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th scope="col">Rilevazione</th>
-                <th scope="col">Data</th>
-                <th scope="col">Pagina</th>
-                <th scope="col">Score</th>
-              </tr>
-            </thead>
-            <tbody>
-              {scans.map((scan) => (
-                <tr key={scan.runId}>
-                  <td>{KIND_LABEL[scan.kind]}</td>
-                  <td>{formatDateTime(scan.scannedAt)}</td>
-                  <td title={scan.url}>{shortPath(scan.url)}</td>
-                  <td>{scan.score}/100</td>
-                </tr>
-              ))}
-              <tr>
-                <td>{baseline.label}</td>
-                <td>{baseline.date}</td>
-                <td>Sito intero</td>
-                <td>{baseline.score}/100</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p className={styles.note}>
-          La baseline è un audit manuale sull&apos;intero sito; gli score successivi sono calcolati in
-          automatico sulla singola pagina. Sono confrontabili tra loro solo quelli automatici.
-        </p>
+        <AuditScore siteId={siteId} expanded />
       </section>
 
       <RunLog runs={runs} title="Registro rilevazioni" subtitle={`Ultime ${runs.length}`} id="history-runs" />

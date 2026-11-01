@@ -165,7 +165,7 @@ function PerformanceDetail() {
             <span className="badge">Dati archiviati con data di riferimento</span>
           </div>
           <p className="hero-copy">
-            Visibilità su Google e traffico sul sito, confrontati con il periodo precedente.
+            Visibilità su Google, traffico da ricerca organica e utilizzo del configuratore.
           </p>
         </div>
       </section>
@@ -198,8 +198,7 @@ function HistoryDetail() {
           <span className="eyebrow">Storico</span>
           <h1>Confronto nel tempo</h1>
           <div className="detail-meta">
-            <span className="badge">Baseline: {baselineAudit.auditDate}</span>
-            <span className="badge priority-high">Aggiornamento giornaliero</span>
+            <span className="badge">Dati SEO e audit datati</span>
           </div>
           <p className="hero-copy">
             Andamento di Search Console mese per mese, score delle analisi e registro di tutte le
@@ -210,14 +209,7 @@ function HistoryDetail() {
 
       <section className="content-section">
         <div className="section-inner">
-          <HistoryLive
-            siteId={siteId}
-            baseline={{
-              label: `${baselineAudit.label} (manuale)`,
-              date: baselineAudit.auditDate,
-              score: baselineAudit.globalScore,
-            }}
-          />
+          <HistoryLive siteId={siteId} />
         </div>
       </section>
     </>

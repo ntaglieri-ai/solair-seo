@@ -244,7 +244,8 @@ export type Ga4Totals = {
 };
 
 /**
- * Totali GA4 sugli ultimi `days` giorni disponibili e sul periodo precedente.
+ * Totali GA4 Organic Search sugli ultimi `days` giorni disponibili e sul periodo precedente.
+ * Le righe "all" verificano soltanto la copertura della raccolta: non entrano nei KPI SEO.
  * Gli utenti non si sommano tra giorni (contano doppio), quindi non sono qui.
  */
 export async function getGa4Totals(
@@ -276,14 +277,14 @@ export async function getGa4Totals(
   const rows = await sql<(Ga4Totals & { period: "current" | "previous" })[]>`
     select
       case when date > ${last}::date - ${days}::int then 'current' else 'previous' end as period,
-      coalesce(sum(sessions) filter (where channel = 'all'), 0)::int as sessions,
-      coalesce(sum(engaged_sessions) filter (where channel = 'all'), 0)::int as "engagedSessions",
+      coalesce(sum(sessions) filter (where channel = 'Organic Search'), 0)::int as sessions,
+      coalesce(sum(engaged_sessions) filter (where channel = 'Organic Search'), 0)::int as "engagedSessions",
       coalesce(
-        sum(engaged_sessions) filter (where channel = 'all')::float
-          / nullif(sum(sessions) filter (where channel = 'all'), 0),
+        sum(engaged_sessions) filter (where channel = 'Organic Search')::float
+          / nullif(sum(sessions) filter (where channel = 'Organic Search'), 0),
         0
       ) as "engagementRate",
-      coalesce(sum(key_events) filter (where channel = 'all'), 0)::float as "keyEvents",
+      coalesce(sum(key_events) filter (where channel = 'Organic Search'), 0)::float as "keyEvents",
       coalesce(sum(sessions) filter (where channel = 'Organic Search'), 0)::int as "organicSessions",
       count(distinct date) filter (where channel = 'all')::int as days
     from seo.ga4_daily

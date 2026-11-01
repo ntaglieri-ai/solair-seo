@@ -5,10 +5,13 @@ import { hasComparableCoverage, performanceReading } from "./data/home-overview"
 import { readActionPlan } from "./data/read-action-plan";
 import { getGa4Totals, getGscTotals, getLatestAttempts } from "../lib/engine/read";
 import { safeRead } from "../lib/engine/safe";
+import { getWork } from "../lib/interventions-store";
+import { workIdentity } from "../lib/interventions";
 import { formatDate, formatDateTime, formatDayMonth, formatDelta, formatInt, formatPercent } from "../lib/format";
 import { SiteHeader } from "./components/site-header";
 import { CollectionNotice } from "./components/collection-notice";
 import { HeroPhoto } from "./components/hero-photo";
+import { AuditScore } from "./components/audit-score";
 import { fontVariables } from "./fonts";
 import styles from "./home.module.css";
 
@@ -33,13 +36,16 @@ type Metric = {
 
 async function readOverview() {
   const siteId = baselineAudit.domain;
-  const [gsc, ga4, plan, attempts] = await Promise.all([
+  const [gsc, ga4, plan, attempts, work] = await Promise.all([
     safeRead("home gsc", () => getGscTotals(siteId, WINDOW_DAYS)),
     safeRead("home ga4", () => getGa4Totals(siteId, WINDOW_DAYS)),
     readActionPlan(siteId),
     safeRead("home fonti", () => getLatestAttempts(siteId)),
+    safeRead("home avanzamento", () => getWork(siteId)),
   ]);
-  return { gsc, ga4, plan, attempts };
+  const pending=new Map(plan.actions.map((item)=>[workIdentity(item),item]));
+  for(const item of work??[]) { if(item.completedAt)pending.delete(item.actionId);else pending.set(item.actionId,item.proposal); }
+  return { gsc, ga4, plan:{...plan,actions:[...pending.values()]}, attempts };
 }
 
 export default async function Home() {
@@ -64,7 +70,7 @@ export default async function Home() {
     { label: "CTR su Google", value: gsc?.lastDate ? formatPercent(gsc.current.ctr) : "N/D", source: "Search Console", date: gsc?.lastDate ?? null,
       delta: gsc && gscComparable ? formatDelta(gsc.current.ctr, gsc.previous.ctr) : null,
       previous: gsc && gscComparable ? formatPercent(gsc.previous.ctr) : null, coverage: gscCoverage },
-    { label: "Sessioni sul sito", value: ga4?.lastDate ? formatInt(ga4.current.sessions) : "N/D", source: "Analytics · tutti i canali", date: ga4?.lastDate ?? null,
+    { label: "Sessioni da ricerca organica", value: ga4?.lastDate ? formatInt(ga4.current.sessions) : "N/D", source: "Analytics · Organic Search", date: ga4?.lastDate ?? null,
       delta: ga4 && ga4Comparable ? formatDelta(ga4.current.sessions, ga4.previous.sessions) : null,
       previous: ga4 && ga4Comparable ? formatInt(ga4.previous.sessions) : null, coverage: ga4Coverage },
   ];
@@ -128,16 +134,17 @@ export default async function Home() {
             {period && <span className={styles.serviceDate}>Analisi: {formatDayMonth(period.from)} – {formatDate(period.to)}</span>}
           </div>
           <div className={styles.planPreview}>
-            <div className={styles.planPreviewHeading}><span className={styles.planNumber}>{actions.length ? String(actions.length).padStart(2, "0") : "—"}</span><div><strong>{actions.length ? "opportunità da valutare" : plan.status === "unavailable" ? "Piano non disponibile" : "Nessun intervento proposto"}</strong><span>Una proposta di lavoro per Solair Group</span></div></div>
+            <div className={styles.planPreviewHeading}><span className={styles.planNumber}>{actions.length ? String(actions.length).padStart(2, "0") : "—"}</span><div><strong>{actions.length ? "interventi da valutare o svolgere" : plan.status === "unavailable" ? "Piano non disponibile" : "Nessun intervento in attesa"}</strong><span>Una proposta di lavoro per Solair Group</span></div></div>
             <div className={styles.planAreas}>
               {searchPages > 0 && <div><span className={styles.searchIcon}><Search size={25} aria-hidden="true" /></span><div><strong>Risultati di ricerca</strong><p>{searchPages} {searchPages === 1 ? "pagina da valorizzare" : "pagine da valorizzare"}</p></div></div>}
               {technicalCount > 0 && <div><span className={styles.qualityIcon}><ShieldCheck size={25} aria-hidden="true" /></span><div><strong>Qualità delle pagine</strong><p>{technicalCount} {technicalCount === 1 ? "intervento proposto" : "interventi proposti"}</p></div></div>}
             </div>
-            <p className={styles.planFootnote}>{plan.status === "partial" ? "Analisi parziale: alcune verifiche restano aperte." : actions.length ? "Proposte motivate da dati rilevati. Non ancora approvate o applicate." : plan.status === "unavailable" ? "Al momento non è disponibile un piano aggiornato." : "L'ultima analisi non ha generato proposte d'intervento."}</p>
+            <p className={styles.planFootnote}>{plan.status === "partial" ? "Analisi parziale: alcune verifiche restano aperte." : actions.length ? "Proposte motivate da dati rilevati. Approvazione e avanzamento sono consultabili nel piano di intervento." : plan.status === "unavailable" ? "Al momento non è disponibile un piano aggiornato." : "L'ultima analisi non ha generato proposte d'intervento."}</p>
           </div>
         </div>
       </section>
       <div className={styles.content}>
+        <AuditScore siteId={siteId} />
         <details className={styles.system}>
           <summary><span>Stato sistema</span><span className={styles.systemHint}>Fonti e aggiornamenti</span></summary>
           <div className={styles.systemBody}>

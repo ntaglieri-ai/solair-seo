@@ -104,3 +104,13 @@ Verifiche: `npm test`, `npm run lint`, `npm run build`.
 Restano separati da questa fase: impaginazione/export dei report, invio email,
 monitoraggio SERP indipendente, backlink/competitor da provider esterni e GEO/AI
 Visibility. Il motore non inventa questi dati e non modifica automaticamente il sito.
+
+# Misurazione SEO e gestione del servizio
+
+La home e le performance usano GA4 `Organic Search`: non il totale di tutti i canali e non soltanto Google. Search Console conserva la propria definizione di clic. Il configuratore è raccolto nelle esecuzioni GA4 in due periodi chiusi di 28 giorni, con tre giorni di attesa; eventi ripetuti non equivalgono a utenti unici. `start_configurator` è ambiguo (link e primo passo); `lead_submit` e `complete_configurator` non vanno sommati. Un errore API o una limitazione di qualità non diventa uno zero attendibile. Nessun invio commerciale di prova viene fatto automaticamente.
+
+Le checklist di `/interventi` sono conservate nel database con revisione e registro delle modifiche. Gli aggiornamenti automatici non cancellano il piano già approvato. I problemi tecnici con attività diverse generano un nuovo incarico. L’accesso di scrittura usa un codice operatore distinto dal segreto del motore e una sessione HttpOnly di otto ore, controllo dell’origine e limite ai tentativi. Per ottenere le istruzioni private sul Mac: `node scripts/operator-access.mjs`. Nessun codice viene aggiunto al repository.
+
+Al completamento viene congelato un riferimento di 28 giorni di dati consolidati del sito. I 28 giorni interi successivi vengono confrontati solo a copertura completa e dopo il consolidamento. Il confronto è un contesto a livello di sito, non una prova causale sulla singola modifica. La verifica è registrata dall’operatore con una nota; non è una promessa di miglioramento automatico.
+
+Il punteggio globale provvisorio di maggio resta distinto dagli score automatici on-page. Alla consegna, pubblicare il primo audit completo validato con `node scripts/audit-score.mjs /percorso/audit.json --publish`. Il JSON deve contenere `date` (YYYY-MM-DD), `score` (0–100), `methodology` (versione dei criteri), `source` (riferimento verificabile all’audit), `startsService: true`. Per i successivi usare `startsService: false`. Il primo audit di servizio esclude maggio dalla vista e avvia il trend. Il grafico collega solo audit con lo stesso metodo; non viene inventato un punteggio globale a partire dalla sola homepage.

@@ -5,6 +5,8 @@ import { queryGsc } from "../gsc";
 import { queryGa4Daily, queryGa4Events } from "../ga4";
 import { scanOnPage, type OnPageData } from "../onpage-scan";
 import { computeSeoScore } from "../seo-score";
+import { queryConfigurator } from "../configurator-api";
+import { shiftDay } from "./settings";
 
 export type Site = {
   id: string;
@@ -143,13 +145,26 @@ export async function collectGa4(site: Site, trigger: Trigger, days: number = GS
   const propertyId = site.ga4_property;
   if (!propertyId) return null;
 
-  return withRun(site.id, "ga4", trigger, async (_runId, sql) => {
+  return withRun(site.id, "ga4", trigger, async (runId, sql) => {
     const startDate = isoDate(daysAgo(days));
     const endDate = isoDate(daysAgo(1));
     const [rows, events] = await Promise.all([
       queryGa4Daily(propertyId, startDate, endDate),
       queryGa4Events(propertyId, startDate, endDate),
     ]);
+    // Due finestre chiuse di 28 giorni. Un errore qui è esplicito, non diventa zero.
+    const periodTo = isoDate(daysAgo(3));
+    const periodFrom = shiftDay(periodTo, -27);
+    let configurator;
+    try {
+      const [current, previous] = await Promise.all([
+        queryConfigurator(propertyId, periodFrom, periodTo),
+        queryConfigurator(propertyId, shiftDay(periodFrom, -28), shiftDay(periodFrom, -1)),
+      ]);
+      configurator = { current, previous, error: null };
+    } catch {
+      configurator = { current: null, previous: null, error: "Statistiche del configuratore non disponibili nell’ultima raccolta." };
+    }
 
     await sql.begin(async (tx) => {
       await tx`delete from seo.ga4_daily where site_id=${site.id} and date between ${startDate} and ${endDate}`;
@@ -165,6 +180,7 @@ export async function collectGa4(site: Site, trigger: Trigger, days: number = GS
       for (let offset = 0; offset < eventRows.length; offset += 2000) {
         await tx`insert into seo.ga4_events ${tx(eventRows.slice(offset, offset + 2000))}`;
       }
+      await tx`insert into seo.configurator_batches(run_id, site_id, data) values (${runId}, ${site.id}, ${tx.json(configurator)})`;
     });
 
     const dates = new Set(rows.map((row) => row.date));

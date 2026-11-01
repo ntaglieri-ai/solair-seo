@@ -25,8 +25,8 @@ export function performanceReading(search: SearchReading | null, analytics: Anal
   const comparableAnalytics = hasComparableCoverage(analytics, 28) && analytics?.lastDate === search.lastDate;
   const sessions = comparableAnalytics && analytics ? direction(analytics.current.sessions, analytics.previous.sessions) : null;
   if (clicks > 0 && sessions !== null && sessions < 0) return {
-    tone: "mixed", title: "Google porta più clic. Il traffico complessivo rallenta.",
-    detail: "Un segnale positivo dalla ricerca, con un calo delle sessioni totali da approfondire.",
+    tone: "mixed", title: "Più clic da Google, meno sessioni dalla ricerca organica.",
+    detail: "Search Console e Analytics misurano aspetti diversi: il confronto delle sessioni riguarda soltanto la ricerca organica.",
   };
   if (clicks > 0) return { tone: "positive", title: "Da Google arrivano più clic al sito.", detail: "Un segnale positivo da consolidare con interventi mirati sulle pagine." };
   if (clicks < 0) return { tone: "attention", title: "Da Google arrivano meno clic al sito.", detail: "Un calo rispetto al periodo precedente, da approfondire prima di attribuirgli una causa." };

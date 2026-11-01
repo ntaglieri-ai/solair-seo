@@ -22,11 +22,11 @@ test("home shows at most three primary proposals without losing additional ones"
   assert.deepEqual(splitInterventions([]), { primary: [], additional: [] });
 });
 
-test("service reading distinguishes Google clicks from total sessions", () => {
+test("service reading distinguishes Google clicks from organic sessions", () => {
   const search = { lastDate: "2026-10-30", previousComplete: true, current: { days: 28, clicks: 270 }, previous: { days: 28, clicks: 244 } };
   const analytics = { lastDate: search.lastDate, previousComplete: true, current: { days: 28, sessions: 458 }, previous: { days: 28, sessions: 579 } };
   assert.equal(performanceReading(search, analytics).tone, "mixed");
-  assert.match(performanceReading(search, analytics).title, /traffico complessivo rallenta/);
+  assert.match(performanceReading(search, analytics).title, /sessioni dalla ricerca organica/);
   assert.equal(performanceReading(search, { ...analytics, lastDate: "2026-10-29" }).tone, "positive");
   assert.equal(performanceReading({ ...search, current: { days: 10, clicks: 100 } }, analytics).tone, "neutral");
   assert.equal(performanceReading(null, null).tone, "neutral");
