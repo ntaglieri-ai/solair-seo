@@ -4,8 +4,11 @@ import { SiteHeader } from "./components/site-header";
 import { HeroPhoto } from "./components/hero-photo";
 import { fontVariables } from "./fonts";
 import { HomeOperations } from "./home-operations";
+import { HomePerformanceSummary } from "./components/home-performance-summary";
 import base from "./home.module.css";
 import styles from "./launch.module.css";
+
+export const dynamic = "force-dynamic";
 
 export default function Home() {
   return (
@@ -24,6 +27,7 @@ export default function Home() {
         </div>
       </section>
       <div className={styles.content}>
+        <HomePerformanceSummary />
         <HomeOperations />
         <footer className={styles.footer}><Link href="/home2">Panoramica precedente <span aria-hidden="true">↗</span></Link></footer>
       </div>

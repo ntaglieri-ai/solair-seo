@@ -1,6 +1,6 @@
 .home { background:radial-gradient(ellipse at 85% 65%,#e3f0e8,transparent 55%),#f4f5f2; }
 .content { position:relative;z-index:2;width:var(--content);margin:0 auto;padding-bottom:44px; }
-.tiles { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;margin-top:-64px;scroll-margin-top:24px;align-items:start; }
+.tiles { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;margin-top:36px;scroll-margin-top:24px;align-items:start; }
 .tile { --accent:#267747;--tint:#e6f6eb;position:relative;display:flex;flex-direction:column;min-width:0;min-height:460px;padding:34px 32px 26px;border:1px solid #dce7df;border-radius:28px;background:linear-gradient(155deg,#fff 50%,#f1f9f3);color:#162b24;box-shadow:0 24px 60px #173c2914,0 3px 8px #173c2905;transition:transform .2s,box-shadow .2s; }
 .tile:hover { transform:translateY(-5px);box-shadow:0 30px 65px #173c2924; }
 .analysis { --accent:#286da6;--tint:#e8f2ff;border-color:#d9e5f0;background:linear-gradient(155deg,#fff 50%,#edf5fe); }
