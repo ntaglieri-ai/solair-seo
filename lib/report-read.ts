@@ -6,6 +6,7 @@ import type { Opportunity,ReviewCheck } from "./engine/analyze";
 export type ReportTotals={clicks:number;impressions:number;ctr:number;position:number};
 export type StoredReport={id:string;status:string;createdAt:Date;validatedAt:Date;data:{
   version?:string;
+  sourceRunIds?:{technical?:string|null;evidence?:string|null};
   windows?:{current:{from:string;to:string};previous:{from:string;to:string}};
   summary?:{current:ReportTotals;previous:ReportTotals;ga4TimeZones?:string[]};
   opportunities?:Opportunity[];checks?:ReviewCheck[];limitations?:string[];

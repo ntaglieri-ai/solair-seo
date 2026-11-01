@@ -48,6 +48,9 @@ test("exports production crawler and scores homepage without a GSC deduction", a
   assert.equal(result.pages.length, 2);
   assert.equal(result.pages[0].score, 100);
   assert.deepEqual(result.pages[0].issues, []);
+  assert.deepEqual(result.pages[0].content.h1, ["Heading"]);
+  assert.deepEqual(result.pages[0].content.schemaTypes, ["Organization"]);
+  assert.equal(result.pages[0].content.words, 1);
   assert.equal(calls.filter((url) => url === origin + "/").length, 1);
   assert.match(result.limitations.join(" "), /senza esecuzione JavaScript/);
 });

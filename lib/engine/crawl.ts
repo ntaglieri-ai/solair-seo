@@ -13,6 +13,7 @@ export type CrawlPage = {
   description: string;
   canonical: string;
   noindex: boolean;
+  content?: { h1: string[]; schemaTypes: string[]; words: number; internalLinks: number };
 };
 
 type CrawlResult = { pages: CrawlPage[]; limitations: string[]; sitemapFound: boolean; complete: boolean };
@@ -201,6 +202,11 @@ export function createSiteCrawler(overrides: Partial<Dependencies> = {}) {
         page.title = onpage.title;
         page.description = onpage.metaDescription;
         page.canonical = onpage.canonical;
+        $("script,style,noscript,template,svg,iframe").remove();
+        page.content = {
+          h1: onpage.h1, schemaTypes: onpage.schemaTypes, internalLinks: onpage.internalLinks,
+          words: $("body").text().split(/\s+/).filter(word => /[\p{L}\p{N}]/u.test(word)).length,
+        };
         page.score = scored.score;
         page.issues.push(...scored.deductions);
       } catch (error) {

@@ -35,6 +35,7 @@ export default async function Analysis({searchParams}:{searchParams:Promise<{id?
         <div className={styles.links}><Link href="/current-status">Statistiche più recenti →</Link><Link href="/ricerca">Keyword, concorrenti e backlink →</Link></div><p className={styles.note}>Gli approfondimenti mostrano le fonti più recenti disponibili e possono riferirsi a date successive a questo report.</p>
       </section>
     </>}
+    {report&&<div className={styles.links}><Link href={`/report/sito?id=${report.id}`}>Analisi del sito pubblico →</Link><Link href={`/report/confronto?id=${report.id}`}>Confronta con i dati Google →</Link></div>}
     <div className={styles.links}><Link href="/report">Tutti i report →</Link><Link href="/impostazioni">Frequenza dei report automatici →</Link></div>
   </OperationFrame>;
 }
