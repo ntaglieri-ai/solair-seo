@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.112",
+    "@ai-sdk/openai": "^4.0.109",
     "ai": "^7.0.163",
     "cheerio": "^1.2.0",
     "googleapis": "^182.0.0",
