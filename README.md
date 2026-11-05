@@ -127,6 +127,8 @@ Il punteggio globale provvisorio di maggio resta distinto dagli score automatici
 
 ### Risposte AI automatiche (livello iniziale)
 
+**Aggiornamento 5 novembre 2026:** la raccolta iniziale senza web è sospesa in produzione (`AI_FREE_TIER_CONFIRMED=false`) dopo il passaggio al piano Gemini a pagamento. Il pilota manuale con ricerca web è documentato in [docs/geo-pilot.md](docs/geo-pilot.md); i venti risultati reali, le fonti e le stime di costo sono consultabili in `/visibilita-ai/confronto`. Nessun cron o pulsante pubblico avvia chiamate del pilota. Il budget cumulativo e le prenotazioni persistono nel database; ricaricare una pagina o rilanciare lo script non ripete le coppie domanda/motore già tentate.
+
 La pagina `/visibilita-ai` interroga `gemini-3.5-flash-lite` con quattro domande pubbliche fisse sul fotovoltaico nazionale, senza suggerire Solair e senza inviare metriche GSC/GA4 o dati dei contatti. Ogni domanda usa una nuova richiesta senza storia; il protocollo `solair-api-no-web-v1` conserva modello, prompt versionato, domanda, risposta, data ed esito in `seo.ai_check_batches` (migrazione 010). Le risposte sono testo semplice, senza esecuzione di HTML o link generati. I nomi dei benchmark sono cercati solo nelle risposte, non inviati al modello.
 
 Configurazione server: `GEMINI_API_KEY` segreta e `AI_FREE_TIER_CONFIRMED=true`, dopo aver verificato in AI Studio che il progetto non abbia fatturazione attiva. Il flag è una conferma operativa, non un controllo via API del piano: non attivare in seguito la fatturazione del progetto senza rivedere la configurazione. La chiave locale dedicata può restare in `.env.ai.local` (ignorato); per gli avvii locali caricarla esplicitamente insieme a `.env.local`. Mai usare un prefisso `NEXT_PUBLIC_`.

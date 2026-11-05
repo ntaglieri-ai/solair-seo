@@ -16,6 +16,7 @@ import { getAiChecks } from "../../lib/ai-collection";
 import { aiConfigured } from "../../lib/ai-provider";
 import { getEngineSettings } from "../../lib/engine/store";
 import { AiChecksPanel } from "./ai-checks-panel";
+import Link from "next/link";
 export const dynamic="force-dynamic";
 
 export const metadata: Metadata = {
@@ -40,6 +41,7 @@ export default async function VisibilitaAi() {
       <section className="content-section">
         <div className="section-inner">
           <ResearchTabs current="/visibilita-ai"/>
+          <section className={researchStyles.panel}><h2>Pilota con ricerca web</h2><p>Il confronto tra Gemini e OpenAI usa dieci domande identiche e conserva risposte, citazioni e costi stimati. È separato dalle precedenti verifiche senza ricerca.</p><Link className={researchStyles.back} href="/visibilita-ai/confronto">Apri il confronto pilota →</Link></section>
           <OperatorAccess authenticated={editable} label="Gestione fonti"/>
           <AiChecksPanel batches={batches} configured={aiConfigured()} editable={editable} cadence={settings}/>
           <details className={researchStyles.panel}><summary>Verifiche manuali su altri motori</summary>

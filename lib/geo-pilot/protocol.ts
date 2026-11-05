@@ -16,20 +16,23 @@ export const PILOT_PROMPTS = [
 ] as const;
 export type PilotEngine = "gemini" | "openai";
 export const PILOT_MODELS: Record<PilotEngine, string> = { gemini: "gemini-3.5-flash-lite", openai: "gpt-5-mini" };
-export type PilotCitation = { url: string; title: string; verification: "not_verified" };
+export type PilotCitation = { url: string; title: string; verification: "not_verified" | "reachable" | "unreachable" | "blocked";
+  finalUrl?: string; httpStatus?: number | null; pageTitle?: string; excerpt?: string; checkedAt?: string };
 export type PilotAnswer = {
   engine: PilotEngine; model: string; protocol: string; promptId: string; question: string;
   intent: "brand" | "non-brand"; collectedAt: string; answer: string; complete: boolean;
   mentioned: boolean | null; citations: PilotCitation[]; citedSolair: boolean;
   searches: number | null; inputTokens: number | null; outputTokens: number | null;
   estimatedUsd: number | null;
+  reviewNotes?: { note: string; urls: string[]; checkedAt: string }[];
 };
 
 function safeCitation(url: unknown, title: unknown): PilotCitation | null {
   if (typeof url !== "string") return null;
   try {
     const parsed = new URL(url);
-    if (!/^https?:$/.test(parsed.protocol) || parsed.username || parsed.password) return null;
+    if (!/^https?:$/.test(parsed.protocol) || parsed.username || parsed.password || parsed.port ||
+      !/^([a-z0-9-]+\.)+[a-z]{2,}$/i.test(parsed.hostname) || /(?:^|\.)(localhost|local|internal|test|invalid)$/.test(parsed.hostname)) return null;
     return { url: parsed.href, title: typeof title === "string" ? title : parsed.hostname, verification: "not_verified" };
   } catch { return null; }
 }
@@ -57,7 +60,7 @@ function uniqueCitations(citations: PilotCitation[]): PilotCitation[] {
 }
 export function citesSolair(citations: PilotCitation[]) {
   return citations.some(citation => {
-    const host = new URL(citation.url).hostname.toLowerCase();
+    const host = new URL(citation.verification === "reachable" && citation.finalUrl ? citation.finalUrl : citation.url).hostname.toLowerCase();
     return host === "solairgroup.it" || host.endsWith(".solairgroup.it");
   });
 }

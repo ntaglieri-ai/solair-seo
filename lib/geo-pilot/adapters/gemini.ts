@@ -15,6 +15,7 @@ export async function askGeminiWithSearch(question: string) {
   const grounding = (result.providerMetadata?.google as GoogleProviderMetadata | undefined)?.groundingMetadata;
   return {
     text: result.text, finishReason: result.finishReason,
+    actualModel: result.response.modelId,
     citations: googleCitations(grounding),
     searches: grounding?.webSearchQueries ? new Set(grounding.webSearchQueries.filter(Boolean)).size : null,
     inputTokens: result.usage.inputTokens ?? null, outputTokens: result.usage.outputTokens ?? null,

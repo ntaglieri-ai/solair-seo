@@ -10,6 +10,7 @@
     "db:migrate": "node scripts/db-migrate.mjs",
     "google:auth": "node scripts/google-auth.mjs",
     "engine": "node scripts/engine.mjs",
+    "geo:pilot": "node --conditions=react-server scripts/geo-pilot.mjs",
     "test": "node --experimental-strip-types --test tests/*.test.mjs"
   },
   "dependencies": {

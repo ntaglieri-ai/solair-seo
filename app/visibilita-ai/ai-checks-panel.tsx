@@ -20,7 +20,7 @@ export function AiChecksPanel({ batches, configured, editable, cadence }: {
         <h2 id="ai-check-title">Solair compare nelle risposte?</h2>
         <p>Interroghiamo Gemini su quattro domande relative al fotovoltaico in Italia, senza suggerire il nome di Solair. Puoi leggere ogni risposta e confrontare le rilevazioni nel tempo.</p>
         {editable ? <RunAiCheck available={configured} /> : <p className={shared.note}>Per avviare una nuova verifica accedi alla gestione fonti qui sopra. Le risposte già raccolte sono consultabili qui sotto.</p>}
-        {!configured && <p className={shared.notice}>Collegamento Gemini non attivo. Le nuove verifiche sono sospese.</p>}
+        {!configured && <p className={shared.notice}>La precedente raccolta senza ricerca web è sospesa. I risultati già archiviati restano disponibili.</p>}
       </div>
       <div className={styles.method}>
         <h3>Cosa stiamo misurando</h3>

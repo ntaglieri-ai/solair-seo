@@ -17,6 +17,7 @@ export async function askOpenaiWithSearch(question: string) {
   const annotations = result.content.flatMap(part => part.type === "text" && Array.isArray(part.providerMetadata?.openai?.annotations) ? part.providerMetadata.openai.annotations : []);
   return {
     text: result.text, finishReason: result.finishReason,
+    actualModel: result.response.modelId,
     citations: openaiCitations(annotations),
     searches: result.toolCalls.filter(call => call.toolName === "web_search").length,
     inputTokens: result.usage.inputTokens ?? null, outputTokens: result.usage.outputTokens ?? null,
