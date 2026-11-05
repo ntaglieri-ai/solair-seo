@@ -2,3 +2,10 @@
 .env*
 .geo-pilot/
 .claude/
+node_modules/
+.next/
+.git/
+.vercel/
+out/
+*.tsbuildinfo
+*.log
