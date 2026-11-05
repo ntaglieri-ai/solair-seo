@@ -1,0 +1,4 @@
+# Credenziali e materiali di lavoro restano sul Mac.
+.env*
+.geo-pilot/
+.claude/
