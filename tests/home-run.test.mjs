@@ -5,10 +5,13 @@ import { createRequire } from 'node:module';
 import ts from 'typescript';
 const require=createRequire(import.meta.url),Module=require('node:module');
 const {NextRequest}=require('next/server');
-const state={slot:true,calls:[],result:{ok:true,steps:{}},snapshot:{id:'11111111-1111-4111-8111-111111111111'},throw:false};
+const state={slot:true,calls:[],result:{ok:true,steps:{}},snapshot:{id:'11111111-1111-4111-8111-111111111111'},throw:false,operator:false,geoEnabled:true,geoConfigured:true};
 const originalLoad=Module._load,previousExtension=require.extensions['.ts'];
 require.extensions['.ts']=(module,file)=>module._compile(ts.transpileModule(readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,file);
 Module._load=function(id,...rest){
+  if(id==='../../../lib/operator')return {OPERATOR_COOKIE:'solair_operator',validOperatorToken:()=>state.operator};
+  if(id==='../../../lib/geo/store')return {getGeoSettings:async()=>({enabled:state.geoEnabled,engine:'gemini'})};
+  if(id==='../../../lib/geo/run-scan')return {geoConfigured:()=>state.geoConfigured};
   if(id==='../../../lib/db')return {getSql:()=>async()=>state.slot?[{mode:'status'}]:[]};
   if(id==='../../../lib/engine/collect')return {getSite:async()=>({id:'solairgroup.it'})};
   if(id==='../../../lib/engine/store')return {getLastSnapshot:async()=>state.snapshot};
@@ -21,7 +24,7 @@ if(previousExtension)require.extensions['.ts']=previousExtension;else delete req
 function request(body,origin='https://solair.example'){
   return new NextRequest('https://solair.example/api/home-run',{method:'POST',headers:{origin,'content-type':'application/json'},body:JSON.stringify(body)});
 }
-function reset(){state.slot=true;state.calls=[];state.result={ok:true,steps:{}};state.throw=false;}
+function reset(){state.slot=true;state.calls=[];state.result={ok:true,steps:{}};state.throw=false;state.operator=false;state.geoEnabled=true;state.geoConfigured=true;}
 test('home run rejects cross-origin requests and arbitrary sites or operations before running the engine',async()=>{
   reset();assert.equal((await POST(request({mode:'status'},'https://outside.example'))).status,403);
   for(const body of [{mode:'status',siteId:'other.com'},{mode:'unknown'},null,[],{mode:'analysis',force:true}])assert.equal((await POST(request(body))).status,400);
@@ -64,4 +67,11 @@ test('manual status still works with automation paused, refreshes sources and do
   assert.equal((await runEngine(site,{trigger:'cron'})).skipped,'disabled');assert.equal(counts.lease,0);
   const result=await runEngine(site,{trigger:'manual',force:true,mode:'status'});
   assert.equal(result.ok,true);assert.deepEqual(counts,{lease:1,gsc:1,ga4:1,evidence:1,release:1});assert.equal(result.steps.analysis,undefined);
+});
+
+test('home offers the paid Gemini continuation only to authenticated operators when the site and provider are enabled',async()=>{
+  reset();assert.equal((await (await POST(request({mode:'analysis'}))).json()).geoAvailable,false);
+  state.operator=true;assert.equal((await (await POST(request({mode:'analysis'}))).json()).geoAvailable,true);
+  state.geoEnabled=false;assert.equal((await (await POST(request({mode:'analysis'}))).json()).geoAvailable,false);
+  state.geoEnabled=true;state.geoConfigured=false;assert.equal((await (await POST(request({mode:'analysis'}))).json()).geoAvailable,false);
 });

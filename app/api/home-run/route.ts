@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSql } from "../../../lib/db";
 import { getSite } from "../../../lib/engine/collect";
 import { runEngine } from "../../../lib/engine/run";
+import { OPERATOR_COOKIE, validOperatorToken } from "../../../lib/operator";
+import { getGeoSettings } from "../../../lib/geo/store";
+import { geoConfigured } from "../../../lib/geo/run-scan";
 import { getLastSnapshot } from "../../../lib/engine/store";
 
 export const maxDuration = 300;
@@ -29,7 +32,9 @@ export async function POST(request: NextRequest) {
     if(mode==="analysis"){
       const snapshot=await getLastSnapshot(siteId);
       if(!snapshot)return NextResponse.json({error:"Analisi non disponibile. Controlla lo stato delle fonti."},{status:503,headers});
-      return NextResponse.json({ok:result.ok,partial:!result.ok,url:`/analisi?id=${snapshot.id}`,message:result.ok?null:"Alcune fonti non sono state aggiornate: il report ne indica i limiti."},{headers});
+      const geo = await getGeoSettings(siteId).catch(() => null);
+      const geoAvailable = Boolean(geo?.enabled && geoConfigured(geo.engine) && validOperatorToken(request.cookies.get(OPERATOR_COOKIE)?.value, process.env.CRON_SECRET));
+      return NextResponse.json({ok:result.ok,partial:!result.ok,geoAvailable,url:`/analisi?id=${snapshot.id}`,message:result.ok?null:"Alcune fonti non sono state aggiornate: il report ne indica i limiti."},{headers});
     }
     return NextResponse.json({ok:result.ok,partial:!result.ok,url:"/current-status",message:result.ok?null:"La raccolta è parziale. Controlla le date e lo stato delle fonti."},{headers});
   }catch(error){console.error("[home-run] Elaborazione fallita",error);return NextResponse.json({error:"Non è stato possibile completare l’operazione. Gli ultimi dati restano consultabili."},{status:503,headers});}

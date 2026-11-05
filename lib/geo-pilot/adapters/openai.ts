@@ -5,7 +5,7 @@ import { PILOT_MODELS, PILOT_SYSTEM, openaiCitations } from "../protocol";
 
 /** Stessa domanda e istruzioni di Gemini. Nessun dato GSC/GA4 nel prompt. */
 export async function askOpenaiWithSearch(question: string) {
-  if (process.env.GEO_PAID_PILOT_ENABLED !== "true" || !process.env.OPENAI_API_KEY) throw new Error("Pilota a pagamento non attivo.");
+  if ((process.env.GEO_PAID_PILOT_ENABLED !== "true" && process.env.GEO_LEVEL2_ENABLED !== "true") || !process.env.OPENAI_API_KEY) throw new Error("Consumi a pagamento non attivi.");
   const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const result = await generateText({
     model: openai.responses(PILOT_MODELS.openai), system: PILOT_SYSTEM, prompt: question,

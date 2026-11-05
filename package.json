@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node scripts/dev.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -11,7 +11,7 @@
     "google:auth": "node scripts/google-auth.mjs",
     "engine": "node scripts/engine.mjs",
     "geo:pilot": "node --conditions=react-server scripts/geo-pilot.mjs",
-    "test": "node --experimental-strip-types --test tests/*.test.mjs"
+    "test": "node --experimental-strip-types --import ./tests/ts-resolve.mjs --test tests/*.test.mjs"
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.112",

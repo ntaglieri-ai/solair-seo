@@ -17,14 +17,19 @@ import { aiConfigured } from "../../lib/ai-provider";
 import { getEngineSettings } from "../../lib/engine/store";
 import { AiChecksPanel } from "./ai-checks-panel";
 import Link from "next/link";
+import { getGeoDashboard } from "../../lib/geo/read";
+import { geoConfigured } from "../../lib/geo/run-scan";
+import { GeoPanel } from "./geo-panel";
 export const dynamic="force-dynamic";
 
 export const metadata: Metadata = {
   title: `Visibilità AI · ${clientConfig.productName}`,
 };
 
-export default async function VisibilitaAi() {
+export default async function VisibilitaAi({ searchParams }: { searchParams: Promise<{ "seo-partial"?: string }> }) {
+  const query = await searchParams;
   const [observations,editable,batches,settings]=await Promise.all([safeRead("visibilità AI",()=>getObservations("solairgroup.it")),researchAccess(),safeRead("risposte AI",()=>getAiChecks("solairgroup.it")),safeRead("programmazione AI",()=>getEngineSettings("solairgroup.it"))]);
+  const geo = await safeRead("analisi Gemini con ricerca web", () => getGeoDashboard("solairgroup.it"));
   return (
     <main className={`${styles.page} ${fontVariables}`}>
       <section className={styles.hero} aria-labelledby="page-title">
@@ -41,6 +46,10 @@ export default async function VisibilitaAi() {
       <section className="content-section">
         <div className="section-inner">
           <ResearchTabs current="/visibilita-ai"/>
+          <OperatorAccess authenticated={editable} label="Accesso al servizio"/>
+          {query["seo-partial"] === "1" && <p className={researchStyles.notice}>Alcune fonti SEO non sono state aggiornate durante questo avvio. La lettura congiunta indica la data del contesto effettivamente disponibile; verifica i dettagli nell’analisi SEO.</p>}
+          <GeoPanel data={geo} editable={editable} configured={geoConfigured("gemini")}/>
+          <details className={researchStyles.panel}><summary>Archivio tecnico e verifiche precedenti</summary>
           <section className={researchStyles.panel}><h2>Pilota con ricerca web</h2><p>Il confronto tra Gemini e OpenAI usa dieci domande identiche e conserva risposte, citazioni e costi stimati. È separato dalle precedenti verifiche senza ricerca.</p><Link className={researchStyles.back} href="/visibilita-ai/confronto">Apri il confronto pilota →</Link></section>
           <OperatorAccess authenticated={editable} label="Gestione fonti"/>
           <AiChecksPanel batches={batches} configured={aiConfigured()} editable={editable} cadence={settings}/>
@@ -57,6 +66,7 @@ export default async function VisibilitaAi() {
                 <details><summary>Leggi risposta e fonti archiviate</summary><div className={researchStyles.answer}>{o.answer}</div>{o.evidenceUrl&&<p><a className={researchStyles.back} href={o.evidenceUrl} target="_blank" rel="noreferrer">Risposta condivisa ↗</a></p>}<ul className={researchStyles.sourceList}>{o.sources.map(url=><li key={url}><a href={url} target="_blank" rel="noreferrer">{url}</a></li>)}</ul></details></section>;
             })}
           </>}
+          </details>
           </details>
         </div>
       </section>

@@ -4,13 +4,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowUpRight, ChartNoAxesCombined, Files, LoaderCircle, Settings2 } from "lucide-react";
 import styles from "./launch.module.css";
+import { collectGeo } from "../lib/geo/client";
 
 export function HomeOperations() {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState("");
   const [error, setError] = useState("");
   async function generate() {
-    setBusy(true); setError("");
+    setBusy(true); setError(""); setProgress("Aggiornamento delle fonti Google e analisi SEO in corso…");
     try {
       const response = await fetch("/api/home-run", {
         method: "POST", headers: { "content-type": "application/json" },
@@ -18,7 +20,13 @@ export function HomeOperations() {
       });
       const result = await response.json();
       if (!response.ok || typeof result.url !== "string") throw new Error(result.error ?? "Analisi non completata. Riprova tra poco.");
-      router.push(result.url + (result.partial ? (result.url.includes("?") ? "&" : "?") + "partial=1" : ""));
+      if (result.geoAvailable) {
+        setProgress("Risultati SEO salvati. Sto raccogliendo le risposte Gemini e verificando le fonti…");
+        await collectGeo(setProgress);
+        router.push("/visibilita-ai" + (result.partial ? "?seo-partial=1" : ""));
+      } else {
+        router.push(result.url + (result.partial ? (result.url.includes("?") ? "&" : "?") + "partial=1" : ""));
+      }
     } catch (e) {
       setError(e instanceof Error && e.name !== "TimeoutError" ? e.message : "L’analisi sta richiedendo più tempo del previsto. Consulta l’ultimo report prima di riprovare.");
       setBusy(false);
@@ -31,7 +39,8 @@ export function HomeOperations() {
       <p className={styles.description}>Aggiorna le fonti disponibili e ottieni un report con risultati, interpretazione e interventi consigliati.</p>
       <button type="button" className={styles.tileButton} disabled={busy} onClick={generate}>{busy ? <><LoaderCircle className={styles.spin} size={23} aria-hidden="true" />Analisi in corso</> : <>Genera il report<ArrowUpRight size={25} aria-hidden="true" /></>}</button>
       <Link className={styles.latest} href="/analisi">Apri l’ultimo report disponibile</Link>
-      <div className={styles.feedback} role="status">{busy && <p>Raccolta e analisi in corso. Il report indicherà il periodo effettivamente disponibile.</p>}{error && <p className={styles.error}>{error}</p>}</div>
+      <Link className={styles.latest} href="/visibilita-ai">Analizza la presenza di Solair su Gemini →</Link>
+      <div className={styles.feedback} role="status">{busy && <p>{progress}</p>}{error && <p className={styles.error}>{error}</p>}</div>
     </article>
     <Link className={`${styles.tile} ${styles.analysis}`} href="/report">
       <div className={styles.tileTop}><span className={styles.icon}><Files size={34} strokeWidth={1.8} aria-hidden="true" /></span><span className={styles.number}>02</span></div>
