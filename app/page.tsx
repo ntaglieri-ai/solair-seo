@@ -5,7 +5,10 @@ import { baselineAudit } from "./data/audit-baseline";
 import { SiteHeader } from "./components/site-header";
 import { HeroPhoto } from "./components/hero-photo";
 import { fontVariables } from "./fonts";
-import { HomeOperations } from "./home-operations";
+import { HomeGemini } from "./components/home-gemini";
+import { HomeActions } from "./components/home-actions";
+import { HomeLatest } from "./components/home-latest";
+import overview from "./components/overview.module.css";
 import { HomePerformanceSummary } from "./components/home-performance-summary";
 import base from "./home.module.css";
 import styles from "./launch.module.css";
@@ -27,7 +30,8 @@ export default function Home() {
       </section>
       <div className={styles.content}>
         <HomePerformanceSummary />
-        <HomeOperations />
+        <div className={overview.row}><HomeGemini /><HomeActions /></div>
+        <HomeLatest />
         <footer className={styles.footer}><span>Solair Group · solairgroup.it</span><Link href="/privacy">Privacy</Link></footer>
       </div>
     </main></ReportRunProvider>

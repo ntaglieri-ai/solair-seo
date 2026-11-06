@@ -3,7 +3,7 @@ import { join } from "node:path";
 import PDFDocument from "pdfkit";
 import { formatDate, formatDateTime, formatDecimal, formatInt, formatPercent } from "../format";
 import { formatPeriod } from "../comparison-periods";
-import { reportReading, reportText, STABLE_CLICKS_BAND } from "../report-presentation";
+import { rankActions, reportReading, reportText, STABLE_CLICKS_BAND } from "../report-presentation";
 import { summarizeScan, citationHost, SOURCE_CHECKS } from "../geo/summary";
 import type { GeoAnswer } from "../geo/answer";
 import { documentStatus, type ReportPayload } from "./model";
@@ -247,9 +247,7 @@ export function renderReportPdf(payload: ReportPayload): Promise<Buffer> {
       newPage();
       chapter("03 / Piano di miglioramento", "Gli interventi sostenuti dai dati", "Priorità sulle pagine e sui contenuti del sito. Nessuna modifica viene applicata automaticamente.");
       const brandQuery = (query: unknown) => typeof query === "string" && /solair/i.test(query);
-      const actions = (data.opportunities ?? []).filter(a => typeof a.action === "string" && typeof a.page === "string")
-        .map((a, index) => ({ a, index, rank: /lavora-con-noi/i.test(a.page) ? 2 : brandQuery(a.query) ? 1 : 0 }))
-        .sort((x, y2) => x.rank - y2.rank || x.index - y2.index).map(item => item.a);
+      const actions = rankActions((data.opportunities ?? []).filter(a => typeof a.action === "string" && typeof a.page === "string"));
       if (!actions.length) para("Le evidenze disponibili non sostengono interventi prioritari in questa rilevazione. Questo non dimostra l'assenza di opportunità nel sito.");
       actions.forEach((a, index) => {
         const editorial = a.evidence?.basis === "opportunità";

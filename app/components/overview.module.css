@@ -1,0 +1,83 @@
+/* Colori del marchio Solair: blu notte e verde petrolio, un solo tono di fondo per i riquadri. */
+.performance, .card { --navy:#16264A; --teal:#2A6F66; --tint:#F3F7F6; --line:#DCE3EB; --muted:#5B6878; --amber:#8F6410; --amberTint:#FFF6E5; position:relative; z-index:2; border:1px solid var(--line); border-radius:16px; background:#fff; box-shadow:0 16px 44px #16264A14; color:var(--navy); }
+.performance { margin-top:calc(-1 * var(--overlap)); overflow:hidden; }
+.cardHead { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:22px 28px; border-bottom:1px solid var(--line); }
+.cardHead h2 { margin:0; font-size:21px; font-weight:600; line-height:1.3; }
+.cardHead p { margin:6px 0 0; color:var(--muted); font-size:14px; line-height:1.55; }
+.cardHead p b { color:var(--navy); font-weight:600; }
+.link { display:inline-flex; align-items:center; gap:8px; flex-shrink:0; color:var(--teal); font-size:15px; font-weight:600; }
+.link:hover { text-decoration:underline; text-underline-offset:4px; }
+
+.reading { padding:18px 28px; border-bottom:1px solid var(--line); background:var(--tint); }
+.reading h3 { margin:0; font-size:19px; font-weight:600; line-height:1.4; }
+.reading p { margin:5px 0 0; color:var(--muted); font-size:15px; line-height:1.6; }
+.reading[data-tone="attention"] { background:var(--amberTint); }
+.reading[data-tone="attention"] h3 { color:#6B4A0E; }
+.reading[data-tone="positive"] h3 { color:var(--teal); }
+
+.metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); margin:0; padding:0; list-style:none; }
+.metrics li { display:flex; flex-direction:column; min-width:0; padding:24px 28px; }
+.metrics li + li { border-left:1px solid var(--line); }
+.metricLabel { color:var(--muted); font-size:14px; font-weight:500; }
+.metricValue { margin:8px 0 10px; font-size:40px; font-weight:700; line-height:1.15; font-variant-numeric:tabular-nums; }
+.comparison { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 10px; color:var(--muted); font-size:13px; }
+.comparison b { padding:2px 9px; border-radius:999px; background:#EEF1F5; color:#445066; font-size:12px; font-weight:600; }
+.comparison b[data-tone="up"] { background:#E3F1EE; color:var(--teal); }
+.comparison b[data-tone="down"] { background:#FDEFD6; color:var(--amber); }
+.metricNote { margin-top:8px; color:var(--amber); font-size:12px; }
+
+.trend { --accent-dark:#2A6F66; padding:22px 28px 26px; border-top:1px solid var(--line); }
+.trendHead { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:6px 16px; margin-bottom:16px; }
+.trendHead h3 { margin:0; font-size:16px; font-weight:600; }
+.trendHead span { color:var(--muted); font-size:13px; }
+.caveat { margin:0 28px 22px; padding-left:12px; border-left:2px solid #C79A3B; color:#70603d; font-size:14px; line-height:1.6; }
+
+.row { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:24px; margin-top:24px; align-items:stretch; }
+.card { display:flex; flex-direction:column; }
+.empty { margin:0; padding:28px; color:var(--muted); font-size:15px; line-height:1.7; }
+
+.geoStats { display:grid; grid-template-columns:1fr 1fr; }
+.geoStats > div { display:flex; flex-direction:column; gap:6px; padding:24px 28px 18px; }
+.geoStats > div + div { border-left:1px solid var(--line); }
+.geoStats strong { font-size:46px; font-weight:700; line-height:1.1; font-variant-numeric:tabular-nums; }
+.geoStats strong[data-tone="alert"] { color:var(--amber); }
+.geoStats span { color:var(--muted); font-size:13px; line-height:1.5; }
+.sources { padding:6px 28px 20px; }
+.sources h3 { margin:8px 0 10px; font-size:15px; font-weight:600; }
+.sources ul { margin:0; padding:0; list-style:none; }
+.sources li { display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 24px; align-items:center; gap:12px; padding:9px 0; border-top:1px solid #EEF1F5; font-size:14px; }
+.sources a { color:var(--teal); font-weight:600; overflow-wrap:anywhere; }
+.sources a:hover { text-decoration:underline; }
+.bar { display:block; height:8px; border-radius:4px; background:#E9EEF3; overflow:hidden; }
+.bar i { display:block; height:100%; border-radius:4px; background:var(--teal); }
+.sources b { text-align:right; font-variant-numeric:tabular-nums; }
+.sources p { margin:8px 0 0; color:var(--muted); font-size:12px; }
+.cardFoot { display:flex; flex-wrap:wrap; justify-content:space-between; gap:6px 18px; margin-top:auto; padding:14px 28px; border-top:1px solid var(--line); background:var(--tint); border-radius:0 0 16px 16px; color:var(--muted); font-size:13px; }
+.cardFoot b { color:var(--navy); font-weight:600; }
+
+.actions { margin:0; padding:6px 0; list-style:none; }
+.actions li { display:grid; grid-template-columns:28px minmax(0,1fr) auto; align-items:center; gap:14px; padding:18px 28px; }
+.actions li + li { border-top:1px solid #EEF1F5; }
+.ordinal { color:var(--teal); font-size:18px; font-weight:700; font-variant-numeric:tabular-nums; }
+.actions div { display:flex; flex-direction:column; gap:4px; min-width:0; }
+.actions strong { font-size:16px; font-weight:600; line-height:1.4; overflow-wrap:anywhere; }
+.actions div span { color:var(--muted); font-size:13px; overflow-wrap:anywhere; }
+.actions em { padding:5px 11px; border-radius:999px; background:#EEF1F5; color:#445066; font-size:12px; font-style:normal; font-weight:600; white-space:nowrap; }
+.actions em[data-priority="high"] { background:#FDEFD6; color:var(--amber); }
+
+.strip { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px 28px; margin-top:24px; padding:20px 28px; border-radius:16px; background:#16264A; color:#fff; scroll-margin-top:24px; }
+.stripMain { display:flex; align-items:center; gap:16px; min-width:0; }
+.stripIcon { display:flex; align-items:center; justify-content:center; flex-shrink:0; width:46px; height:46px; border-radius:12px; background:#ffffff1c; color:#F0B84C; }
+.stripMain div { display:flex; flex-direction:column; gap:3px; min-width:0; }
+.stripMain strong { font-size:16px; font-weight:600; }
+.stripMain div span { color:#C4CEE0; font-size:13px; }
+.stripLinks { display:flex; flex-wrap:wrap; gap:10px; }
+.stripLinks a { display:inline-flex; align-items:center; gap:8px; min-height:44px; padding:10px 16px; border:1px solid #ffffff40; border-radius:10px; color:#fff; font-size:14px; font-weight:600; }
+.stripLinks a:hover { background:#ffffff1a; border-color:#ffffff80; }
+
+@media (max-width:1050px) { .row { grid-template-columns:1fr; } .metrics { grid-template-columns:repeat(2,minmax(0,1fr)); } .metrics li:nth-child(3) { border-left:0; } .metrics li:nth-child(n+3) { border-top:1px solid var(--line); } }
+@media (max-width:640px) {
+  .cardHead { flex-wrap:wrap; padding:18px 20px; } .reading { padding:16px 20px; } .metrics li { padding:20px 18px; } .metricValue { font-size:32px; }
+  .trend { padding:18px 16px 22px; } .geoStats > div { padding:20px 20px 14px; } .geoStats strong { font-size:36px; } .sources { padding:4px 20px 18px; } .cardFoot { padding:14px 20px; }
+  .actions li { grid-template-columns:22px minmax(0,1fr); padding:16px 20px; } .actions em { grid-column:2; justify-self:start; } .strip { padding:18px 20px; } .caveat { margin:0 20px 20px; }
+}

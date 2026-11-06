@@ -35,6 +35,21 @@ export function citationHost(citation: GeoAnswer["citations"][number]): string |
   } catch { return null; }
 }
 
+/** Siti citati nelle risposte spontanee in cui Solair non compare, ordinati per numero di risposte. */
+export function gapSources(answers: GeoAnswer[]) {
+  const gaps = answers.filter(a => a.complete && a.intent === "non-brand" && !a.mentioned && !a.citedSolair);
+  const byHost = new Map<string, { prompts: Set<string>; url: string }>();
+  for (const a of gaps) for (const c of a.citations) {
+    const host = citationHost(c);
+    if (!host || host === OWN || host.endsWith(`.${OWN}`)) continue;
+    const entry = byHost.get(host) ?? { prompts: new Set<string>(), url: c.finalUrl ?? `https://${host}` };
+    entry.prompts.add(a.promptId); byHost.set(host, entry);
+  }
+  const ranked = [...byHost].map(([host, info]) => ({ host, url: info.url, prompts: info.prompts.size }))
+    .sort((a, b) => b.prompts - a.prompts || a.host.localeCompare(b.host));
+  return { gaps: gaps.length, ranked };
+}
+
 export type Opportunity = {
   kind: "prompt_gap" | "source_domain";
   title: string;

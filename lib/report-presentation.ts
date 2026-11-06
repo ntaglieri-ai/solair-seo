@@ -17,3 +17,10 @@ export function reportPage(value:unknown){
 export function reportText(value:unknown){
   return typeof value==="string"?value.replace(/\bpuo'/g,"può").replace(/\bpiu'/g,"più").replace(/\be'/g,"è").replace(/\bgia'/g,"già"):"Non specificato in questa rilevazione.";
 }
+
+/** Ordine degli interventi nei report e nella home: prima le pagine di contenuto, poi le ricerche sul marchio, per ultima la pagina lavoro. */
+export function rankActions<T extends{page:string;query?:string}>(items:T[]):T[]{
+  const brand=(query:unknown)=>typeof query==="string"&&/solair/i.test(query);
+  return items.map((a,index)=>({a,index,rank:/lavora-con-noi/i.test(a.page)?2:brand(a.query)?1:0}))
+    .sort((x,y)=>x.rank-y.rank||x.index-y.index).map(item=>item.a);
+}

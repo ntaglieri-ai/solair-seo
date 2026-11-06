@@ -1,3 +1,5 @@
+import { STABLE_CLICKS_BAND } from "../../lib/report-presentation";
+
 type PeriodCoverage = {
   lastDate: string | null;
   previousComplete: boolean;
@@ -20,13 +22,15 @@ type AnalyticsReading = PeriodCoverage & { current: { days: number; sessions: nu
 /** L’indicatore in hero riguarda soltanto i clic, con copertura completa di entrambe le finestre. */
 export function googleClickDirection(search: SearchReading | null): "up" | "down" | "flat" | "unavailable" {
   if (!search || !hasComparableCoverage(search, 28)) return "unavailable";
-  return search.current.clicks > search.previous.clicks ? "up" : search.current.clicks < search.previous.clicks ? "down" : "flat";
+  const { clicks } = search.current, before = search.previous.clicks;
+  if (before > 0 && Math.abs(clicks - before) / before < STABLE_CLICKS_BAND) return "flat";
+  return clicks > before ? "up" : clicks < before ? "down" : "flat";
 }
 
 export function performanceReading(search: SearchReading | null, analytics: AnalyticsReading | null) {
   const neutral = { tone: "neutral", title: "I risultati disponibili per Solair Group.", detail: "Il confronto richiede due periodi completi e verificati." };
   if (!hasComparableCoverage(search, 28) || !search) return neutral;
-  const direction = (current: number, previous: number) => previous === 0 ? Math.sign(current) : Math.abs((current - previous) / previous) < 0.005 ? 0 : Math.sign(current - previous);
+  const direction = (current: number, previous: number) => previous === 0 ? Math.sign(current) : Math.abs((current - previous) / previous) < STABLE_CLICKS_BAND ? 0 : Math.sign(current - previous);
   const clicks = direction(search.current.clicks, search.previous.clicks);
   const comparableAnalytics = hasComparableCoverage(analytics, 28) && analytics?.lastDate === search.lastDate;
   const sessions = comparableAnalytics && analytics ? direction(analytics.current.sessions, analytics.previous.sessions) : null;
@@ -36,5 +40,5 @@ export function performanceReading(search: SearchReading | null, analytics: Anal
   };
   if (clicks > 0) return { tone: "positive", title: "Da Google arrivano più clic al sito.", detail: "Un segnale positivo da consolidare con interventi mirati sulle pagine." };
   if (clicks < 0) return { tone: "attention", title: "Da Google arrivano meno clic al sito.", detail: "Un calo rispetto al periodo precedente, da approfondire prima di attribuirgli una causa." };
-  return { tone: "neutral", title: "I clic da Google restano stabili.", detail: "Il volume è in linea con il periodo precedente; le opportunità dipendono dalle singole pagine." };
+  return { tone: "neutral", title: "I clic da Google sono stabili.", detail: "La variazione rientra nella normale oscillazione tra periodi; le opportunità dipendono dalle singole pagine." };
 }
