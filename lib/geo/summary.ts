@@ -44,7 +44,7 @@ export type Opportunity = {
   checks: string[];
 };
 
-const SOURCE_CHECKS = [
+export const SOURCE_CHECKS = [
   "La pagina citata tratta davvero il tema delle domande in cui Solair è assente.",
   "La fonte accetta schede, recensioni o contributi, oppure è un contenuto editoriale aperto a nuovi soggetti.",
   "Un contenuto di Solair su quel tema sarebbe coerente con ciò che il sito pubblica e verificabile.",

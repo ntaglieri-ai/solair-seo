@@ -10,6 +10,13 @@ test('executive report distinguishes growth, decline and unchanged clicks withou
   assert.match(reportReading({...totals,clicks:0},{...totals,clicks:0}).title,/Nessun clic/);
   assert.match(reportReading({...totals,clicks:8},totals).text,/non ne identifica la causa/);
 });
+test('a change within five percent is stable, not a decline or a growth',()=>{
+  const a={clicks:255,impressions:2307,ctr:.111,position:7},b={clicks:257,impressions:2391,ctr:.107,position:7.2};
+  assert.match(reportReading(a,b).title,/stabili/);assert.match(reportReading(b,a).title,/stabili/);
+  assert.match(reportReading({...totals,clicks:11},totals).title,/più clic/);
+  assert.match(reportReading({...totals,clicks:9},totals).title,/diminuiti/);
+  assert.match(reportReading({...totals,clicks:10,impressions:300},totals).title,/stabili/);
+});
 test('archive pagination accepts only bounded positive integer pages',()=>{
   assert.equal(reportPage('2'),2);
   for(const value of [undefined,'0','-1','2.5','x','1000000',['2']])assert.equal(reportPage(value),1);

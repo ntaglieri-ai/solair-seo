@@ -1,5 +1,9 @@
 type Totals={clicks:number;impressions:number;ctr:number;position:number};
+/** Variazioni dei clic entro questa fascia (±5%) non sono un aumento o un calo: sono rumore normale tra periodi. */
+export const STABLE_CLICKS_BAND=0.05;
 export function reportReading(current:Totals,previous:Totals){
+  if(previous.clicks>0&&current.clicks>0&&Math.abs(current.clicks-previous.clicks)/previous.clicks<STABLE_CLICKS_BAND)
+    return {title:"I clic da Google sono stabili.",text:"La variazione dei clic rispetto al periodo precedente è contenuta e rientra nella normale oscillazione. Impressioni e singole query indicano dove intervenire."};
   if(current.clicks>previous.clicks){
     if(current.impressions<previous.impressions)return {title:"Più clic da Google, con meno impressioni.",text:"Il sito ha ricevuto più clic pur comparendo meno volte nei risultati. Il confronto delle singole query aiuta a capire quali pagine hanno contribuito al cambiamento."};
     return {title:"Da Google arrivano più clic al sito.",text:"Il volume dei clic è cresciuto rispetto al periodo precedente. Le proposte sotto indicano dove intervenire sulla base delle evidenze disponibili."};

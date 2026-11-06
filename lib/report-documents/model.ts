@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import type { StoredReport } from "../report-read";
 import type { GeoAnswer } from "../geo/answer";
 import { summarizeScan } from "../geo/summary";
-export const PDF_TEMPLATE_VERSION = "solair-report-pdf-v1";
+export const PDF_TEMPLATE_VERSION = "solair-report-pdf-v2";
 export const UUID = /^[\da-f]{8}(-[\da-f]{4}){3}-[\da-f]{12}$/i;
 export type DocumentAnswer = Omit<GeoAnswer, "estimatedUsd" | "searches" | "searchQueries" | "inputTokens" | "outputTokens">;
 export type DocumentGeo = { id: string; status: string; model: string | null; protocol: string; planned: number; startedAt: string; answers: DocumentAnswer[] };
@@ -10,6 +10,8 @@ export type ReportPayload = {
   version: string; siteId: string; client: string; generatedAt: string;
   report: { id: string; status: string; createdAt: string; data: StoredReport["data"] };
   geo: DocumentGeo | null; geoRefreshFailed: boolean; sourceRefreshFailed: boolean;
+  /** 28 giorni completi fino alla data di baseline del servizio; assente se archivio incompleto o periodo sovrapposto. */
+  baseline?: { from: string; to: string; clicks: number } | null;
 };
 /** Le chiavi del documento dipendono dalle fonti, non dall'ora o da chi preme il pulsante. */
 export function documentFingerprint(payload: ReportPayload) {

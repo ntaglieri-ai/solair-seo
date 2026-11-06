@@ -4,8 +4,19 @@ import { getSql } from "../db";
 import { readReport } from "../report-read";
 import type { GeoAnswer } from "../geo/answer";
 import { renderReportPdf } from "./render";
+import { getGscClicksBetween } from "../engine/read";
+import { baselineDate } from "../../app/data/home";
 import { documentFingerprint, documentStatus, documentUrls, PDF_TEMPLATE_VERSION, UUID, type DocumentAnswer, type DocumentGeo, type ReportPayload } from "./model";
 const SITE = "solairgroup.it";
+const shiftDays = (date: string, days: number) => { const d = new Date(`${date}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + days); return d.toISOString().slice(0, 10); };
+
+/** Confronto con l'avvio del servizio: solo con 28 giorni archiviati per intero e senza sovrapposizione col periodo attuale. */
+async function captureBaseline(currentFrom: string | undefined) {
+  if (!currentFrom || baselineDate >= currentFrom) return null;
+  const from = shiftDays(baselineDate, -27);
+  const found = await getGscClicksBetween(SITE, from, baselineDate);
+  return found.days === 28 ? { from, to: baselineDate, clicks: found.clicks } : null;
+}
 export type DocumentMeta = { id: string; snapshotId: string; geoScanId: string | null; status: "complete" | "partial"; trigger: "manual" | "scheduled"; createdAt: Date; from: string | null; to: string | null };
 
 async function capturePayload(snapshotId?: string, geoScanId?: string, geoRefreshFailed = false, sourceRefreshFailed = false): Promise<ReportPayload | null> {
@@ -29,8 +40,9 @@ async function capturePayload(snapshotId?: string, geoScanId?: string, geoRefres
       citedSolair: row.result.citedSolair, competitorsMentioned: row.result.competitorsMentioned ?? [], reviewNotes: row.result.reviewNotes }] : []);
     documentGeo = { ...geo, startedAt: new Date(geo.startedAt).toISOString(), answers };
   }
+  const baseline = await captureBaseline(report.data.windows?.current.from).catch(() => null);
   return { version: PDF_TEMPLATE_VERSION, siteId: SITE, client: "Solair Group S.r.l.", generatedAt: new Date().toISOString(),
-    report: { id: report.id, status: report.status, createdAt: new Date(report.createdAt).toISOString(), data: report.data }, geo: documentGeo, geoRefreshFailed, sourceRefreshFailed };
+    report: { id: report.id, status: report.status, createdAt: new Date(report.createdAt).toISOString(), data: report.data }, geo: documentGeo, geoRefreshFailed, sourceRefreshFailed, baseline };
 }
 
 /** Un solo generatore e un solo formato per il pulsante manuale e il Cron. Nessuna chiamata AI qui. */
