@@ -62,7 +62,7 @@ export default async function VisibilitaAi({ searchParams }: { searchParams: Pro
             {observations.map((o,index)=>{
               const previous=observations.slice(index+1).find(p=>p.engine===o.engine&&p.question===o.question&&p.context===o.context);
               return <section className={researchStyles.panel} key={o.id}><h2>{o.engine} · {formatDate(o.date)}</h2><h3>{o.question}</h3><p className={researchStyles.note}>{o.context}</p><p><span className={researchStyles.tag}>{o.mentionsBrand?"Solair menzionata":"Solair non menzionata"}</span> <span className={researchStyles.tag}>{o.citesSite?"Fonte solairgroup.it riportata":"Fonte Solair non riportata"}</span></p>
-                {previous&&<p className={researchStyles.note}>Prova precedente con stessa domanda e contesto: {formatDate(previous.date)} · {previous.mentionsBrand?"Solair menzionata":"Solair non menzionata"}. Il confronto riguarda soltanto queste due risposte.</p>}
+                {previous&&<p className={researchStyles.note}>Rilevazione attuale: {formatDate(o.date)} · rilevazione di confronto con stessa domanda e contesto: {formatDate(previous.date)} · {previous.mentionsBrand?"Solair menzionata":"Solair non menzionata"}. Il confronto riguarda soltanto queste due risposte.</p>}
                 <details><summary>Leggi risposta e fonti archiviate</summary><div className={researchStyles.answer}>{o.answer}</div>{o.evidenceUrl&&<p><a className={researchStyles.back} href={o.evidenceUrl} target="_blank" rel="noreferrer">Risposta condivisa ↗</a></p>}<ul className={researchStyles.sourceList}>{o.sources.map(url=><li key={url}><a href={url} target="_blank" rel="noreferrer">{url}</a></li>)}</ul></details></section>;
             })}
           </>}

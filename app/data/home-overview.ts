@@ -17,6 +17,12 @@ export function splitInterventions<T>(items: T[]) {
 type SearchReading = PeriodCoverage & { current: { days: number; clicks: number }; previous: { days: number; clicks: number } };
 type AnalyticsReading = PeriodCoverage & { current: { days: number; sessions: number }; previous: { days: number; sessions: number } };
 
+/** L’indicatore in hero riguarda soltanto i clic, con copertura completa di entrambe le finestre. */
+export function googleClickDirection(search: SearchReading | null): "up" | "down" | "flat" | "unavailable" {
+  if (!search || !hasComparableCoverage(search, 28)) return "unavailable";
+  return search.current.clicks > search.previous.clicks ? "up" : search.current.clicks < search.previous.clicks ? "down" : "flat";
+}
+
 export function performanceReading(search: SearchReading | null, analytics: AnalyticsReading | null) {
   const neutral = { tone: "neutral", title: "I risultati disponibili per Solair Group.", detail: "Il confronto richiede due periodi completi e verificati." };
   if (!hasComparableCoverage(search, 28) || !search) return neutral;

@@ -2,19 +2,15 @@ import Link from "next/link";
 import { ArrowUpRight, Compass, Eye, MousePointer2, MousePointerClick, UsersRound } from "lucide-react";
 import { baselineAudit } from "../data/audit-baseline";
 import { hasComparableCoverage, performanceReading } from "../data/home-overview";
-import { getGa4Totals, getGscTotals } from "../../lib/engine/read";
-import { safeRead } from "../../lib/engine/safe";
-import { formatDate, formatDayMonth, formatDelta, formatInt, formatPercent } from "../../lib/format";
+import { readHomePerformance } from "../data/home-performance";
+import { comparisonPeriods, formatPeriod } from "../../lib/comparison-periods";
+import { ComparisonPeriods } from "./comparison-periods";
+import { formatDelta, formatInt, formatPercent } from "../../lib/format";
 import { CollectionNotice } from "./collection-notice";
 import styles from "../home.module.css";
 
 const WINDOW_DAYS = 28;
 
-function periodLabel(end: string) {
-  const from = new Date(`${end}T12:00:00Z`);
-  from.setUTCDate(from.getUTCDate() - WINDOW_DAYS + 1);
-  return `${formatDayMonth(from)} – ${formatDate(end)}`;
-}
 
 type Metric = {
   label: string;
@@ -28,10 +24,7 @@ type Metric = {
 
 export async function HomePerformanceSummary() {
   const siteId = baselineAudit.domain;
-  const [gsc, ga4] = await Promise.all([
-    safeRead("home gsc", () => getGscTotals(siteId, WINDOW_DAYS)),
-    safeRead("home ga4", () => getGa4Totals(siteId, WINDOW_DAYS)),
-  ]);
+  const { gsc, ga4 } = await readHomePerformance(siteId);
   const periodEnd = gsc?.lastDate ?? ga4?.lastDate;
   const reading = performanceReading(gsc, ga4);
   const gscComparable = hasComparableCoverage(gsc, WINDOW_DAYS);
@@ -59,10 +52,11 @@ export async function HomePerformanceSummary() {
           <div className={styles.sectionHeading}>
             <div>
               <h2 id="performance-title">I risultati di Solair, in sintesi</h2>
-              <p>{periodEnd ? periodLabel(periodEnd) : "Periodo non disponibile"} · confronto con i 28 giorni precedenti</p>
+              <p>{periodEnd ? "Search Console e Analytics · periodi di 28 giorni" : "Periodo non disponibile"}</p>
             </div>
             <Link className={styles.detailLink} href="/sezioni/performance">Approfondisci i risultati <ArrowUpRight size={18} aria-hidden="true" /></Link>
           </div>
+          {periodEnd && <div className={styles.periodInset}><ComparisonPeriods {...comparisonPeriods(periodEnd)}/></div>}
           <div className={`${styles.reading} ${styles[`reading_${reading.tone}`]}`}>
             <span className={styles.readingIcon}><Compass size={25} aria-hidden="true" /></span>
             <div><h3>{reading.title}</h3><p>{reading.detail}</p></div>
@@ -76,15 +70,15 @@ export async function HomePerformanceSummary() {
                 <strong className={styles.metricValue}>{metric.value}</strong>
                 <span className={styles.comparison}>
                   {metric.delta && <strong className={styles[`trend_${metric.delta.trend}`]}>{metric.delta.text}</strong>}
-                  {metric.previous !== null ? `Prima: ${metric.previous}` : "Confronto non disponibile"}
+                  {metric.previous !== null ? `Nel periodo di confronto: ${metric.previous}` : "Confronto non disponibile"}
                 </span>
                 <span className={styles.metricSource}>{metric.source}</span>
-                {metric.date && <span className={styles.metricDate}>Dati al {formatDayMonth(metric.date)}</span>}
+                {metric.date && <><span className={styles.metricDate}>Attuale: {formatPeriod(comparisonPeriods(metric.date).current)}</span><span className={styles.metricDate}>Confronto: {formatPeriod(comparisonPeriods(metric.date).previous)}</span></>}
                 {metric.coverage && <span className={styles.metricDate}>{metric.coverage}</span>}
               </li>
             ); })}
           </ul>
-          {gsc?.lastDate && ga4?.lastDate && gsc.lastDate !== ga4.lastDate && <p className={styles.caveat}>Analytics: {periodLabel(ga4.lastDate)}. Le due fonti hanno date di aggiornamento diverse.</p>}
+          {gsc?.lastDate && ga4?.lastDate && gsc.lastDate !== ga4.lastDate && <p className={styles.caveat}>Analytics: {formatPeriod(comparisonPeriods(ga4.lastDate).current)} · confronto: {formatPeriod(comparisonPeriods(ga4.lastDate).previous)}. Le due fonti hanno date di aggiornamento diverse.</p>}
         </section>
   );
 }

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { hasComparableCoverage, performanceReading, splitInterventions } from "../app/data/home-overview.ts";
+import { hasComparableCoverage, googleClickDirection, performanceReading, splitInterventions } from "../app/data/home-overview.ts";
 import { actionPlanFromSnapshot } from "../app/data/action-plan.ts";
 
 test("home compares only two fully covered periods, not merely archive min/max", () => {
@@ -45,4 +45,15 @@ test("home and proposal page share only valid, current site interventions", () =
     const rejected = actionPlanFromSnapshot(invalid, now, "rules-test");
     assert.equal(rejected.status, "unavailable"); assert.deepEqual(rejected.actions, []);
   }
+});
+
+test("hero uses only Google clicks and never assigns a direction to incomplete samples", () => {
+  const row = (current, previous) => ({ lastDate: "2026-11-05", previousComplete: true, current: { days: 28, clicks: current }, previous: { days: 28, clicks: previous } });
+  assert.equal(googleClickDirection(row(110, 100)), "up");
+  assert.equal(googleClickDirection(row(90, 100)), "down");
+  assert.equal(googleClickDirection(row(100, 100)), "flat");
+  assert.equal(googleClickDirection(row(0, 0)), "flat");
+  assert.equal(googleClickDirection(row(1, 0)), "up");
+  assert.equal(googleClickDirection(null), "unavailable");
+  assert.equal(googleClickDirection({ ...row(110,100), current: { days: 27, clicks: 110 } }), "unavailable");
 });

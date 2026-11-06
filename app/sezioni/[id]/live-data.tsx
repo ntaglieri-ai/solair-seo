@@ -1,3 +1,5 @@
+import { ComparisonPeriods } from "../../components/comparison-periods";
+import { comparisonPeriods, formatPeriod } from "../../../lib/comparison-periods";
 import { WeeklyBars } from "../../components/weekly-bars";
 import { hasComparableCoverage } from "../../data/home-overview";
 import { getConfigurator } from "../../../lib/service-read";
@@ -85,7 +87,7 @@ function Tile({
           </span>
         )}
         <span>
-          prima: {previous}
+          Periodo di confronto: {previous}
           {partial && " (dati parziali)"}
         </span>
       </span>
@@ -162,8 +164,9 @@ export async function PerformanceLive({ siteId }: { siteId: string }) {
       <section className={styles.block} aria-labelledby="gsc-kpi">
         <div className={styles.heading}>
           <h2 id="gsc-kpi">Search Console · ultimi 28 giorni</h2>
-          <span>Dati fino al {formatDate(totals.lastDate)}, confronto con i 28 giorni precedenti</span>
+          <span>Dati fino al {formatDate(totals.lastDate)}</span>
         </div>
+        <ComparisonPeriods {...comparisonPeriods(totals.lastDate)}/>
         <div className={styles.tiles}>
           <Tile
             label="Clic"
@@ -276,8 +279,9 @@ export async function AnalyticsLive({ siteId }: { siteId: string }) {
     <section className={styles.block} aria-labelledby="ga4-kpi">
       <div className={styles.heading}>
         <h2 id="ga4-kpi">Traffico da ricerca organica · ultimi 28 giorni</h2>
-        <span>Dati fino al {formatDate(totals.lastDate)}, confronto con i 28 giorni precedenti</span>
+        <span>Dati fino al {formatDate(totals.lastDate)}</span>
       </div>
+      <ComparisonPeriods {...comparisonPeriods(totals.lastDate)}/>
       <div className={styles.tiles}>
         <Tile
           label="Sessioni da ricerca organica"
@@ -303,8 +307,8 @@ export async function AnalyticsLive({ siteId }: { siteId: string }) {
           <thead>
             <tr>
               <th scope="col">Azione</th>
-              <th scope="col">Ultimi 28 giorni</th>
-              <th scope="col">28 giorni prima</th>
+              <th scope="col">Periodo analizzato<br/>{formatPeriod(configCurrent)}</th>
+              <th scope="col">Periodo di confronto<br/>{configPrevious ? formatPeriod(configPrevious) : "Periodo non disponibile"}</th>
             </tr>
           </thead>
           <tbody>

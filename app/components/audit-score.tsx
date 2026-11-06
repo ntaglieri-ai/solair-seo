@@ -10,7 +10,7 @@ export async function AuditScore({ siteId, expanded = false }: { siteId: string;
   const { latest, points, difference, serviceStarted } = trend;
   return <section className={styles.score} aria-label="Punteggio dell’ultimo audit">
     <div className={styles.summary}><div><span className={styles.label}>Ultimo audit SEO</span><strong>{latest.score}<small>/100</small></strong></div>
-      <div><p>{serviceStarted ? formatDate(latest.date) : "Maggio 2026"}</p><span>{!serviceStarted ? "Riferimento provvisorio" : difference === null ? "Primo audit del nuovo trend" : `${difference > 0 ? "+" : ""}${difference} punti rispetto all’audit precedente`}</span></div>
+      <div><p>{serviceStarted ? formatDate(latest.date) : "Maggio 2026"}</p><span>{!serviceStarted ? "Riferimento provvisorio" : difference === null ? "Primo audit del nuovo trend" : `${difference > 0 ? "+" : ""}${difference} punti rispetto all’audit del ${formatDate(points.at(-2)!.date)}`}</span></div>
       {!expanded && <Link href="/sezioni/historical-comparison#history-score">Andamento dei punteggi →</Link>}
     </div>
     {expanded && <><p className={styles.note}>{serviceStarted ? "Il trend parte dall’audit di avvio del servizio. Sono collegati solo punteggi calcolati con lo stesso metodo." : "Riferimento provvisorio di maggio. Il nuovo audit alla consegna lo sostituirà in questa vista e sarà il primo punto del trend."}</p>

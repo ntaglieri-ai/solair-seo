@@ -37,7 +37,7 @@ export function AiChecksPanel({ batches, configured, editable, cadence }: {
         <div className={styles.metrics}>
           <div><span>Risposte complete</span><strong>{sample!.measured}<small> / {sample!.expected}</small></strong></div>
           <div><span>Risposte che menzionano Solair</span><strong>{sample!.measured ? sample!.mentioned : "—"}</strong><span>{sample!.measured ? `su ${sample!.measured} risposte misurate` : "Non misurato"}</span></div>
-          <div><span>Confronto precedente</span><strong>{previous ? `${aiSample(previous).mentioned} → ${sample!.mentioned}` : "—"}</strong><span>{previous ? formatDateTime(new Date(previous.createdAt)) : "Nessuna rilevazione completa confrontabile"}</span></div>
+          <div><span>Confronto precedente</span><strong>{previous ? `${aiSample(previous).mentioned} → ${sample!.mentioned}` : "—"}</strong><span>{previous ? `Attuale: ${formatDateTime(new Date(latest.createdAt))} · confronto: ${formatDateTime(new Date(previous.createdAt))}` : "Nessuna rilevazione completa confrontabile"}</span></div>
         </div>
         <p className={shared.note}>È un campione di risposte, non un punteggio GEO. I confronti richiedono stesso modello, stesse domande e stesso protocollo; un cambiamento non dimostra l’effetto di un intervento sul sito.</p>
         {AI_QUESTIONS.map(question => {

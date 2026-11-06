@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { ReportRunProvider, HeroReportControls } from "./components/report-runner";
+import { HeroTrend } from "./components/hero-trend";
 import { baselineAudit } from "./data/audit-baseline";
 import { SiteHeader } from "./components/site-header";
 import { HeroPhoto } from "./components/hero-photo";
@@ -12,7 +14,7 @@ export const dynamic = "force-dynamic";
 
 export default function Home() {
   return (
-    <main className={`${base.home} ${styles.home} ${fontVariables}`}>
+    <ReportRunProvider><main className={`${base.home} ${styles.home} ${fontVariables}`}>
       <section className={base.hero} aria-labelledby="home-title">
         <HeroPhoto className={base.heroPhoto} />
         <SiteHeader current="/" />
@@ -20,10 +22,7 @@ export default function Home() {
           <p className={base.eyebrow}>Solair Group · {baselineAudit.domain}</p>
           <h1 id="home-title">Visibilità su Google e AI</h1>
           <p className={base.lead}>Performance del sito e analisi per migliorare la visibilità di Solair Group.</p>
-          <div className={base.heroActions}>
-            <Link className={base.primary} href="#operazioni">Inizia da qui <span aria-hidden="true">↓</span></Link>
-            <Link className={base.secondary} href="/analisi">Apri ultimo report <span aria-hidden="true">→</span></Link>
-          </div>
+          <HeroReportControls><HeroTrend siteId={baselineAudit.domain}/></HeroReportControls>
         </div>
       </section>
       <div className={styles.content}>
@@ -31,6 +30,6 @@ export default function Home() {
         <HomeOperations />
         <footer className={styles.footer}><span>Solair Group · solairgroup.it</span><Link href="/privacy">Privacy</Link></footer>
       </div>
-    </main>
+    </main></ReportRunProvider>
   );
 }
