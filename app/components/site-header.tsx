@@ -16,12 +16,11 @@ export function SiteHeader({ current, compact = false }: { current?: string; com
   return (
     <header className={`${styles.topbar} ${compact ? styles.compact : ""}`}>
       <div className={styles.topbarInner}>
-        <Link className={styles.brand} href="/">
-          <span className={styles.brandMark} aria-hidden="true" />
-          <span className={styles.brandText}>
-            <strong>SolairSEO</strong>
-            <span>by Solair Group</span>
+        <Link className={styles.brand} href="/" aria-label="MosTag Studio, by Nando Taglieri">
+          <span className={styles.wordmark} aria-hidden="true">
+            <i>M</i>os<i>T</i>ag<i>S</i>tudio<span className={styles.dot} />
           </span>
+          <span className={styles.byline} aria-hidden="true">by Nando Taglieri</span>
         </Link>
         <SiteMenu items={menu} current={section} domain={baselineAudit.domain} />
       </div>
