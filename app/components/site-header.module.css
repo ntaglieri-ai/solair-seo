@@ -199,11 +199,3 @@
   .compact { --content: calc(100% - 32px); }
   .compact .topnav { right: 16px; }
 }
-
-/* Il saldo resta sul provider: collegamento diretto, nessun importo stimato. */
-.headerActions{display:flex;align-items:center;gap:20px;min-width:0}
-.creditLink{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;padding:10px 14px;border:1px solid #90c9a25c;border-radius:999px;background:#163b2d99;color:#d5f0de;font-size:14px;font-weight:600}
-.creditLink:hover{background:#23513d;text-decoration:none}.creditLink:focus-visible{outline:3px solid #8fdba5;outline-offset:4px}
-@media(max-width:1180px){.headerActions{gap:14px}.topnav{gap:18px}}
-@media(max-width:540px){.headerActions{gap:8px}.topbarInner{gap:10px}.creditLink{font-size:12px;padding:9px 10px;gap:5px}.brand{gap:8px}.brand strong{font-size:18px}.brandMark{width:8px;height:30px}.brandText span{font-size:11px}}
-@media(max-width:360px){.brand strong{font-size:17px}.creditLink{padding:9px 8px}.menuToggle{width:40px}}

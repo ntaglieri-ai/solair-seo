@@ -23,12 +23,7 @@ export function SiteHeader({ current, compact = false }: { current?: string; com
             <span>by Solair Group</span>
           </span>
         </Link>
-        <div className={styles.headerActions}>
-          <SiteMenu items={menu} current={section} domain={baselineAudit.domain} />
-          <a className={styles.creditLink} href="https://aistudio.google.com/billing" target="_blank" rel="noopener noreferrer" aria-label="Apri il credito Google in AI Studio, nuova scheda" title="Consulta il saldo reale su Google AI Studio">
-            Credito Google <span aria-hidden="true">↗</span>
-          </a>
-        </div>
+        <SiteMenu items={menu} current={section} domain={baselineAudit.domain} />
       </div>
     </header>
   );
