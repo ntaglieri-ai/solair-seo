@@ -5,7 +5,7 @@ export async function collectGeo(onProgress: (message: string) => void) {
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || "Analisi Gemini non disponibile.");
     onProgress(`${result.completed} di ${result.planned} risposte complete. ${result.status === "in_progress" ? "Verifica delle fonti e completamento in corso…" : "Risultati salvati nello storico."}`);
-    if (result.status !== "in_progress") return result.status as "done" | "partial";
+    if (result.status !== "in_progress") return { status: result.status as "done" | "partial", scanId: result.scanId as string };
   }
   throw new Error("I progressi sono salvati. Apri Presenza su Gemini e premi Riprendi analisi per completare le verifiche restanti.");
 }

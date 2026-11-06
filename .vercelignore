@@ -9,3 +9,7 @@ node_modules/
 out/
 *.tsbuildinfo
 *.log
+
+# Report di prova e dati di lavoro locali
+tmp/
+output/

@@ -2,8 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   agentRules: false,
+  serverExternalPackages: ["pdfkit"],
+  outputFileTracingIncludes: { "/*": ["./node_modules/pdfkit/js/data/*.afm"] },
   outputFileTracingExcludes: {
-    "/*": ["./.env*", "./.geo-pilot/**/*", "./.claude/**/*"],
+    "/*": ["./.env*", "./.geo-pilot/**/*", "./.claude/**/*", "./tmp/**/*", "./output/**/*"],
   },
 };
 

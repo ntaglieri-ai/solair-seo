@@ -12,6 +12,10 @@
     {
       "path": "/api/cron/geo",
       "schedule": "45 5 * * *"
+    },
+    {
+      "path": "/api/cron/reports",
+      "schedule": "15 6 * * *"
     }
   ]
 }

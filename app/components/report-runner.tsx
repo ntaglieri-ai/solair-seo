@@ -23,11 +23,18 @@ export function ReportRunProvider({ children }: { children: ReactNode }) {
       const response = await fetch("/api/home-run", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mode: "analysis" }), signal: AbortSignal.timeout(290000) });
       const result = await response.json();
       if (!response.ok || typeof result.url !== "string") throw new Error(result.error ?? "Analisi non completata. Riprova tra poco.");
+      let geoScanId: string | undefined;
+      let geoRefreshFailed = false;
       if (result.geoAvailable) {
-        setProgress("Risultati SEO salvati. Sto raccogliendo le risposte Gemini e verificando le fonti…");
-        await collectGeo(setProgress);
-        router.push("/visibilita-ai" + (result.partial ? "?seo-partial=1" : ""));
-      } else router.push(result.url + (result.partial ? (result.url.includes("?") ? "&" : "?") + "partial=1" : ""));
+        setProgress("Risultati SEO salvati. Raccolta delle risposte Gemini e verifica delle fonti…");
+        try { geoScanId = (await collectGeo(setProgress)).scanId; }
+        catch { geoRefreshFailed = true; }
+      }
+      setProgress("Preparazione del PDF e salvataggio nello storico…");
+      const pdf = await fetch("/api/reports/generate", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ snapshotId: result.snapshotId, geoScanId, geoRefreshFailed, sourceRefreshFailed: result.partial === true }) });
+      const document = await pdf.json();
+      if (!pdf.ok || typeof document.url !== "string") throw new Error(document.error || "Analisi salvata, ma il PDF non è stato generato. Puoi riprovare dall’archivio.");
+      router.push(document.url);
     } catch (e) {
       setError(e instanceof Error && e.name !== "TimeoutError" ? e.message : "L’analisi sta richiedendo più tempo del previsto. Consulta l’ultimo report prima di riprovare.");
       lock.current = false; setBusy(false);
@@ -38,7 +45,7 @@ export function ReportRunProvider({ children }: { children: ReactNode }) {
 export function HeroReportControls({ children }: { children: ReactNode }) {
   const { busy, progress, error, generate } = useReportRun();
   return <div className={styles.controls}>
-    <div className={base.heroActions}><button type="button" className={`${base.primary} ${styles.generate}`} disabled={busy} onClick={generate}>{busy ? "Generazione in corso…" : "Genera Report"}<span aria-hidden="true">↗</span></button><Link className={base.secondary} href="/analisi">Consulta ultimo report <span aria-hidden="true">→</span></Link></div>
+    <div className={base.heroActions}><button type="button" className={`${base.primary} ${styles.generate}`} disabled={busy} onClick={generate}>{busy ? "Generazione in corso…" : "Genera Report"}<span aria-hidden="true">↗</span></button><Link className={base.secondary} href="/report/ultimo">Consulta ultimo report <span aria-hidden="true">→</span></Link></div>
     {children}<p className={styles.feedback} role="status" aria-live="polite">{error || (busy ? progress : "")}</p>
   </div>;
 }

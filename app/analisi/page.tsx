@@ -6,7 +6,7 @@ import { reportReading,reportText } from "../../lib/report-presentation";
 import { safeRead } from "../../lib/engine/safe";
 import { actionTitle } from "../data/action-plan";
 import { formatDate,formatDateTime,formatInt,formatPercent,formatDecimal } from "../../lib/format";
-import { ExportButton } from "../report/[id]/export-button";
+import { GeneratePdf } from "../components/generate-pdf";
 import styles from "../operazioni.module.css";
 export const dynamic="force-dynamic";
 export const metadata={title:"Report SEO/GEO | SolairSEO"};
@@ -19,7 +19,7 @@ export default async function Analysis({searchParams}:{searchParams:Promise<{id?
   const reading=measured&&data?.summary?reportReading(data.summary.current,data.summary.previous):null;
   const actions=(data?.opportunities??[]).filter(item=>["ctr","near_top10","technical"].includes(item.kind)&&typeof item.page==="string"&&typeof item.action==="string");
   return <OperationFrame title="Report SEO/GEO" intro="Come sta andando Solair, cosa significa e quali interventi conviene valutare. Una lettura riferita alle evidenze della rilevazione." current="/analisi">
-    <div className={styles.toolbar}><Link className={styles.back} href="/report">← Report e storico</Link>{report&&<ExportButton/>}</div>
+    <div className={styles.toolbar}><Link className={styles.back} href="/report">← Report e storico</Link>{report&&<GeneratePdf snapshotId={report.id} label="Genera il PDF di questa analisi"/>}</div>
     {!report?<p className={styles.notice}>Report non disponibile. Torna in Panoramica per generare una nuova analisi oppure consulta l’archivio.</p>:<>
       <div className={styles.meta}><span><strong>Report elaborato</strong> · {formatDateTime(new Date(report.validatedAt??report.createdAt))}</span>{data?.windows&&<span><strong>Periodo analizzato</strong> · {formatDate(data.windows.current.from)} – {formatDate(data.windows.current.to)}</span>}</div>
       {(report.status!=="complete"||params.partial==="1")&&<p className={styles.notice}>{report.status==="blocked"?"Le fonti non consentono un’analisi attendibile. Risultati e suggerimenti non vengono sostituiti con stime.":"La rilevazione è parziale: alcune fonti o verifiche non sono disponibili. Consulta i limiti prima di interpretare il report."}</p>}
