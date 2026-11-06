@@ -10,7 +10,7 @@ import { documentStatus, type ReportPayload } from "./model";
 
 const SITE_URL = "https://solairgroup.it", SITE_LABEL = "solairgroup.it";
 const C = {
-  forest: "#0D1B2E", green: "#2368A6", mint: "#E8F0F8", pale: "#F4F7FA", ink: "#111C2A", muted: "#5B6878", line: "#DCE3EB",
+  forest: "#16264A", green: "#2A6F66", mint: "#E6F1EF", pale: "#F3F7F6", ink: "#111C2A", muted: "#5B6878", line: "#DCE3EB",
   amber: "#E8A93B", amberDark: "#8F6410", amberTint: "#FFF5E1", blueTint: "#EAF1F8", blue: "#2F5F8F", white: "#FFFFFF", grey: "#EEF1EF",
 };
 let coverImage: Buffer | null | undefined;
@@ -138,7 +138,7 @@ export function renderReportPdf(payload: ReportPayload): Promise<Buffer> {
       doc.rect(0, 0, PW, 306).fill(C.forest);
       const photo = loadCover();
       doc.save(); doc.rect(0, 0, PW, 306).clip();
-      if (photo) doc.image(photo, 0, -150, { width: PW });
+      if (photo) doc.image(photo, 0, 0, { width: PW, height: 306 });
       doc.rect(0, 0, PW, 306).fill(doc.linearGradient(0, 0, 0, 306).stop(0, C.forest, 0.72).stop(0.45, C.forest, 0.42).stop(1, C.forest, 0.92));
       doc.rect(0, 0, PW, 306).fill(doc.linearGradient(0, 0, PW * 0.75, 0).stop(0, C.forest, 0.55).stop(1, C.forest, 0));
       doc.restore();
