@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import PDFDocument from "pdfkit";
 import { formatDate, formatDateTime, formatDecimal, formatInt, formatPercent } from "../format";
 import { formatPeriod } from "../comparison-periods";
@@ -8,9 +10,12 @@ import { documentStatus, type ReportPayload } from "./model";
 
 const SITE_URL = "https://solairgroup.it", SITE_LABEL = "solairgroup.it";
 const C = {
-  forest: "#0E2B20", green: "#1F7A4D", mint: "#E6F2EB", pale: "#F3F8F5", ink: "#14231B", muted: "#5E7167", line: "#DCE6DF",
+  forest: "#0D1B2E", green: "#2368A6", mint: "#E8F0F8", pale: "#F4F7FA", ink: "#111C2A", muted: "#5B6878", line: "#DCE3EB",
   amber: "#E8A93B", amberDark: "#8F6410", amberTint: "#FFF5E1", blueTint: "#EAF1F8", blue: "#2F5F8F", white: "#FFFFFF", grey: "#EEF1EF",
 };
+let coverImage: Buffer | null | undefined;
+/** Foto dell'hero di solairgroup.it; senza file il PDF usa un fondo pieno. */
+const loadCover = () => { if (coverImage === undefined) { try { coverImage = readFileSync(join(process.cwd(), "lib/report-documents/assets/cover.jpg")); } catch { coverImage = null; } } return coverImage; };
 const F = { r: "Helvetica", b: "Helvetica-Bold", i: "Helvetica-Oblique" } as const;
 const PW = 595.28, PH = 841.89, M = 46, W = PW - 2 * M, FOOT = PH - 64;
 const clean = (value: unknown) => String(value ?? "").replace(/[‐-―−]/g, "-").replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/→/g, " -> ").replace(/•/g, "-").replace(/ /g, " ");
@@ -79,7 +84,7 @@ export function renderReportPdf(payload: ReportPayload): Promise<Buffer> {
     function tile(x: number, yy: number, w: number, h: number, label: string, value: string, note?: string, tone: Tone = "flat", dark = false) {
       doc.roundedRect(x, yy, w, h, 9).fill(dark ? C.forest : C.pale);
       if (!dark) doc.roundedRect(x, yy, w, h, 9).lineWidth(0.6).strokeColor(C.line).stroke();
-      caps(label, x + 12, yy + 12, w - 24, dark ? "#9CC4AF" : C.muted, 7);
+      caps(label, x + 12, yy + 12, w - 24, dark ? "#B7C6D8" : C.muted, 7);
       put(value, x + 12, yy + 27, w - 24, 25, F.b, dark ? C.white : C.ink, { lineBreak: false });
       if (note) put(note, x + 12, yy + 59, w - 24, 8.2, F.b, dark ? C.amber : TONE[tone], { lineGap: 2 });
     }
@@ -131,21 +136,19 @@ export function renderReportPdf(payload: ReportPayload): Promise<Buffer> {
 
       // ===== Copertina ========================================================
       doc.rect(0, 0, PW, 306).fill(C.forest);
-      doc.save(); // motivo: pannelli fotovoltaici in trasparenza + sole
-      for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) {
-        const px = 338 + c * 62, py = 78 + r * 46; const o = 0.05 + (c + (3 - r) * 0.5) * 0.045;
-        doc.fillOpacity(Math.min(o, 0.3)).roundedRect(px, py, 56, 40, 4).fill("#4CC38A");
-        doc.fillOpacity(Math.min(o + 0.12, 0.45)).lineWidth(0.5).strokeColor("#C9F0DB");
-        [px + 14, px + 28, px + 42].forEach(lx => doc.moveTo(lx, py + 4).lineTo(lx, py + 36).stroke()); doc.moveTo(px + 4, py + 20).lineTo(px + 52, py + 20).stroke();
-      }
-      doc.fillOpacity(1).circle(PW - 58, 56, 22).fill(C.amber); doc.fillOpacity(0.25).circle(PW - 58, 56, 34).fill(C.amber);
+      const photo = loadCover();
+      doc.save(); doc.rect(0, 0, PW, 306).clip();
+      if (photo) doc.image(photo, 0, -150, { width: PW });
+      doc.rect(0, 0, PW, 306).fill(doc.linearGradient(0, 0, 0, 306).stop(0, C.forest, 0.72).stop(0.45, C.forest, 0.42).stop(1, C.forest, 0.92));
+      doc.rect(0, 0, PW, 306).fill(doc.linearGradient(0, 0, PW * 0.75, 0).stop(0, C.forest, 0.55).stop(1, C.forest, 0));
       doc.restore();
+      doc.rect(0, 303, PW, 3).fill(C.amber);
       wordmark(M, 40, 15, C.white);
       caps("Report SEO / GEO", M, 118, 320, C.amber, 9);
       put("Solair Group", M, 136, 330, 44, F.b, C.white, { lineBreak: false });
-      put("Risultati, presenza su Gemini\ne prossimi interventi", M, 192, 320, 15, F.r, "#CFE6D9", { lineGap: 4 });
+      put("Risultati, presenza su Gemini\ne prossimi interventi", M, 192, 320, 15, F.r, "#E3ECF5", { lineGap: 4 });
       put(SITE_LABEL, M, 244, 220, 12.5, F.b, C.amber, { link: SITE_URL, underline: true, lineBreak: false });
-      put(`Documento generato il ${formatDateTime(new Date(payload.generatedAt))}`, M, 274, 320, 8.5, F.r, "#9CC4AF", { lineBreak: false });
+      put(`Documento generato il ${formatDateTime(new Date(payload.generatedAt))}`, M, 274, 320, 8.5, F.r, "#B7C6D8", { lineBreak: false });
       pill(PW - M - 108, 271, complete ? "Rilevazione completa" : "Rilevazione parziale", complete ? C.forest : C.amberDark, complete ? C.amber : C.amberTint);
       y = 330;
 
@@ -180,7 +183,7 @@ export function renderReportPdf(payload: ReportPayload): Promise<Buffer> {
       if (geo) {
         ensure(78); doc.roundedRect(M, y, W, 66, 10).fill(C.forest);
         put(`${geo.nonBrandMentioned}/${geo.nonBrandComplete}`, M + 18, y + 16, 90, 30, F.b, C.amber, { lineBreak: false });
-        caps("Presenza su Gemini", M + 112, y + 15, 300, "#9CC4AF", 7);
+        caps("Presenza su Gemini", M + 112, y + 15, 300, "#B7C6D8", 7);
         put(`risposte senza nome aziendale che nominano Solair. Sulle domande dedicate al marchio: ${geo.brandMentioned}/${geo.brandComplete}.`, M + 112, y + 28, W - 130, 9.6, F.r, C.white, { lineGap: 2.5 });
         y += 66 + 14;
       }
