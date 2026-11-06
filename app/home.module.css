@@ -34,13 +34,13 @@
 }
 .hero > header { background: transparent; }
 .heroBody { position: relative; z-index: 1; width: var(--content); margin: 0 auto; padding: 48px 0 104px; }
-.eyebrow { margin: 0; color: #8fdba5; font-size: 14px; font-weight: 600; }
+.eyebrow { margin: 0; color: #F0B84C; font-size: 14px; font-weight: 600; }
 .hero h1 { margin: 24px 0 0; font-size: 72px; font-weight: 700; line-height: 1.06; }
 .lead { max-width: 620px; margin: 22px 0 0; color: #c6d1de; font-size: 20px; line-height: 1.6; }
 .heroActions { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 32px; }
 .primary, .secondary { display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-width: 250px; min-height: 64px; padding: 18px 30px; border: 1px solid transparent; border-radius: 12px; font-size: 17px; font-weight: 600; text-align: center; transition: background-color 150ms, border-color 150ms; }
-.home .primary { background: #5cc27a; color: #0b1320; box-shadow: 0 12px 32px #5cc27a47; }
-.home .primary:hover { background: #74d08f; }
+.home .primary { background: #F0B84C; color: #16264A; box-shadow: 0 12px 32px #F0B84C40; }
+.home .primary:hover { background: #F5C766; }
 .home .secondary { border-color: #ffffff66; background: #ffffff0f; color: #fff; }
 .home .secondary:hover { border-color: #ffffffa6; background: #ffffff1f; }
 
