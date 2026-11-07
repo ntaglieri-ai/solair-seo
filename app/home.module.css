@@ -174,7 +174,7 @@
 .metrics li:nth-child(4) { background: #fff4ee; border-bottom-right-radius: 16px; }
 .metrics li:nth-child(4) .metricLabel, .metrics li:nth-child(4) .metricLabel svg { color: #a05e42; }
 .metricValue { margin-top: 9px; }
-.serviceBand { background: #e8f5ed; border-top: 1px solid #d5e9dc; border-bottom: 1px solid #d5e9dc; scroll-margin-top: 20px; }
+.serviceBand { background: #e8f5ed; border-top: 1px solid #DCE3EB; border-bottom: 1px solid #DCE3EB; scroll-margin-top: 20px; }
 .serviceInner { display: grid; grid-template-columns: 1.15fr 1fr; align-items: center; gap: 72px; width: var(--content); margin: 0 auto; padding: 64px 0; }
 .serviceEyebrow { color: #39794e; font-size: 14px; font-weight: 600; }
 .serviceCopy h2 { max-width: 650px; margin: 18px 0 22px; color: #173d2b; font-size: 42px; font-weight: 700; line-height: 1.25; }
@@ -185,7 +185,7 @@
 .serviceButton svg { flex-shrink: 0; }
 .serviceDate { display: block; margin-top: 18px; color: #557861; font-size: 13px; }
 .planPreview { min-width: 0; padding: 32px; border: 1px solid #d3e6d9; border-radius: 8px; background: #fff; box-shadow: 0 20px 42px #28583b12; }
-.planPreviewHeading { display: flex; align-items: center; gap: 22px; padding-bottom: 26px; border-bottom: 1px solid #e0ebe4; }
+.planPreviewHeading { display: flex; align-items: center; gap: 22px; padding-bottom: 26px; border-bottom: 1px solid #DCE3EB; }
 .planNumber { flex-shrink: 0; color: #2c7c4c; font-family: var(--font-sora), sans-serif; font-size: 60px; font-weight: 600; line-height: 1; }
 .planPreviewHeading > div { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
 .planPreviewHeading strong { color: #214b33; font-size: 19px; font-weight: 600; }
@@ -196,7 +196,7 @@
 .qualityIcon { background: #E8F4F0; color: #338251; }
 .planAreas strong { color: #234634; font-size: 17px; font-weight: 600; }
 .planAreas p { margin: 5px 0 0; color: #657c6d; font-size: 14px; }
-.planFootnote { margin: 0; padding-top: 18px; border-top: 1px solid #e0ebe4; color: #718477; font-size: 13px; line-height: 1.7; }
+.planFootnote { margin: 0; padding-top: 18px; border-top: 1px solid #DCE3EB; color: #718477; font-size: 13px; line-height: 1.7; }
 .content > .system { margin-top: 40px; }
 
 @media (max-width: 960px) {

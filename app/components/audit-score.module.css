@@ -1,4 +1,4 @@
-.score { margin: 24px 0; padding: 24px 28px; border: 1px solid #d9e7de; border-radius: 18px; background: #f1f8f3; color: #1b4332; }
+.score { margin: 24px 0; padding: 24px 28px; border: 1px solid #DCE3EB; border-radius: 18px; background: #f1f8f3; color: #16264A; }
 .summary { display: flex; align-items: center; flex-wrap: wrap; gap: 18px 36px; }
 .label { display: block; font-size: 14px; font-weight: 600; }
 .summary strong { display: block; font-size: 34px; line-height: 1.5; }
@@ -8,7 +8,7 @@
 .summary a { margin-left: auto; color: #2A6F66; font-size: 14px; font-weight: 600; }
 .chart { display: block; width: 100%; max-height: 220px; margin: 24px 0; }
 .history { padding: 0; list-style: none; }
-.history li { display: flex; flex-wrap: wrap; gap: 10px 28px; padding: 14px 0; border-top: 1px solid #d9e7de; font-size: 14px; }
+.history li { display: flex; flex-wrap: wrap; gap: 10px 28px; padding: 14px 0; border-top: 1px solid #DCE3EB; font-size: 14px; }
 .history li span:last-child { color: #5B6878; overflow-wrap: anywhere; }
 .empty { padding: 20px; color: #5B6878; }
 @media(max-width:540px) { .score { padding:20px; } .summary a { margin-left:0; } }
