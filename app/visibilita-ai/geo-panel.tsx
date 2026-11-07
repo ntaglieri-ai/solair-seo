@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { Sparkles, TrendingUp, SearchCheck } from "lucide-react";
+import { Sparkles, SearchCheck } from "lucide-react";
 import { relatedGeoGaps } from "../../lib/geo/seo-context";
 import type { GeoAnswer } from "../../lib/geo/answer";
 import type { getGeoDashboard } from "../../lib/geo/read";
-import { comparableAnswers, SCAN_STATES, STOP_MESSAGES } from "../../lib/geo/comparison";
+import { SCAN_STATES, STOP_MESSAGES } from "../../lib/geo/comparison";
 import { citationHost, summarizeScan, suggestOpportunities } from "../../lib/geo/summary";
-import { MEASURE_NAME, getPromptSet } from "../../lib/geo/prompts";
+import { CURRENT_PROMPT_SET, EST_USD_PER_PROMPT, MEASURE_NAME, getPromptSet } from "../../lib/geo/prompts";
 import { formatDateTime } from "../../lib/format";
 import { GeoRunButton } from "./geo-controls";
 import styles from "./geo.module.css";
@@ -37,11 +37,11 @@ function AnswerDetails({ answer }: { answer: GeoAnswer }) {
 }
 
 export function GeoPanel({ data, editable, configured }: { data: Dashboard | null; editable: boolean; configured: boolean }) {
+  const planned = getPromptSet(data?.settings?.promptSetVersion ?? CURRENT_PROMPT_SET).prompts;
+  const brandCount = planned.filter(q => q.intent === "brand").length, openCount = planned.length - brandCount;
   const latest = data?.history[0];
   const answers = latest ? answersOf(latest) : [];
   const sample = latest ? summarizeScan(answers, latest.scan.plannedPrompts) : null;
-  const previous = latest?.scan.status === "done" ? data?.history.slice(1).find(entry => entry.scan.status === "done" && comparableAnswers(answers, answersOf(entry), latest.scan.plannedPrompts)) : null;
-  const before = previous ? summarizeScan(answersOf(previous), previous.scan.plannedPrompts) : null;
   const opportunities = suggestOpportunities(answers);
   const gaps = opportunities.filter(o => o.kind === "prompt_gap");
   const seoContext = latest?.scan.seoContext;
@@ -49,10 +49,10 @@ export function GeoPanel({ data, editable, configured }: { data: Dashboard | nul
   const settings = data?.settings;
   return <div className={styles.surface}>
     <section className={styles.intro} aria-labelledby="geo-title"><div><span className={styles.eyebrow}>Solair · Presenza nelle risposte AI</span><h2 id="geo-title">Quando cercano il fotovoltaico, trovano anche Solair?</h2><p>Verifichiamo come Gemini risponde a chi cerca installatori, servizi e configuratori in Italia. Scopri dove compare Solair, quali fonti vengono citate e quali temi meritano attenzione.</p>
-      {editable ? <GeoRunButton available={Boolean(settings?.enabled && configured)} running={latest?.scan.status === "running"} reserveUsd={(settings?.requestReserveMicrousd ?? 250000) / 1e6}/> : <p className={styles.note}>I risultati sono consultabili qui sotto. Accedi alla gestione per avviare una nuova analisi.</p>}
+      {editable ? <GeoRunButton questions={planned.length} estimateUsd={planned.length * EST_USD_PER_PROMPT} available={Boolean(settings?.enabled && configured)} running={latest?.scan.status === "running"}/> : <p className={styles.note}>I risultati sono consultabili qui sotto. Accedi alla gestione per avviare una nuova analisi.</p>}
       {!settings?.enabled && data && <p className={styles.note}>Raccolta disattivata. Puoi abilitarla nelle <Link href="/impostazioni#gemini">impostazioni AI</Link>.</p>}
       {!configured && <p className={styles.notice}>Collegamento Gemini da attivare nelle impostazioni del servizio. I risultati archiviati restano disponibili.</p>}
-    </div><aside><SearchCheck size={34} aria-hidden="true"/><h3>Una base concreta per decidere</h3><p>Otto domande senza il nome dell’azienda misurano la scoperta spontanea. Due domande su Solair verificano come viene descritta.</p><p className={styles.note}>{MEASURE_NAME}. Le risposte possono differire dall’app Gemini; questa misura non rappresenta ChatGPT o tutti i motori AI.</p></aside></section>
+    </div><aside><SearchCheck size={34} aria-hidden="true"/><h3>Una base concreta per decidere</h3><p>{openCount} domande senza il nome dell’azienda misurano la scoperta spontanea. {brandCount} domande su Solair verificano come viene descritta.</p><p className={styles.note}>{MEASURE_NAME}. Le risposte possono differire dall’app Gemini; questa misura non rappresenta ChatGPT o tutti i motori AI.</p></aside></section>
     {!data ? <p className={styles.notice}>Archivio Gemini temporaneamente non disponibile. Nessun dato è stato sostituito con valori dimostrativi.</p> : !latest ? <section className={styles.panel}><Sparkles size={28} aria-hidden="true"/><h2>Costruiamo il primo punto di confronto</h2><p>La prima analisi salverà risposte, fonti e presenza di Solair. Le analisi successive mostreranno come cambia il campione, usando le stesse domande.</p><p className={styles.note}>Le prove del pilota restano nell’archivio tecnico e non vengono presentate come una nuova rilevazione.</p></section> : <>
       <section className={styles.panel}><div className={styles.heading}><div><span className={styles.eyebrow}>Ultima rilevazione · {formatDateTime(new Date(latest.scan.startedAt))}</span><h2>{sample!.nonBrandComplete ? `${sample!.nonBrandMentioned} risposte su ${sample!.nonBrandComplete} nominano Solair` : "Presenza ancora da misurare"}</h2></div><span className={styles.tag}>{SCAN_STATES[latest.scan.status]}</span></div>
         <p>{sample!.nonBrandComplete ? sample!.nonBrandMentioned ? "Solair compare in una parte delle ricerche del campione. Le risposte permettono di capire per quali esigenze viene riconosciuta e quali temi restano da presidiare." : "Nelle risposte complete alle domande senza nome aziendale, Solair non viene menzionata. È un’indicazione su questo campione, utile per individuare i temi da approfondire." : "Le domande senza nome aziendale non hanno ancora prodotto risposte complete. Non possiamo dedurre che Solair sia assente."}</p>
@@ -65,7 +65,6 @@ export function GeoPanel({ data, editable, configured }: { data: Dashboard | nul
         {answers.some(a => a.citations.some(c => !citationHost(c))) && <p className={styles.notice}>Alcune fonti non sono state risolte: le citazioni riconosciute possono essere inferiori a quelle effettive. Le opportunità di assenza escludono le risposte con redirect Google irrisolti.</p>}
         {!!sample!.competitors.length && <p>Aziende seguite presenti nelle ricerche senza nome Solair: <strong>{sample!.competitors.map(c => `${c.name} (${c.prompts} risposte)`).join(" · ")}</strong>. È il confronto con le aziende configurate, non l’intero mercato.</p>}
       </section>
-      <section className={styles.panel}><TrendingUp size={28} aria-hidden="true"/><h2>Come evolve la presenza di Solair</h2>{before ? <p>Scoperta spontanea: <strong>{before.nonBrandMentioned}/{before.nonBrandComplete} → {sample!.nonBrandMentioned}/{sample!.nonBrandComplete}</strong> rispetto al {formatDateTime(new Date(previous!.scan.startedAt))}. Stesse domande, stesso modello e protocollo.</p> : <p>Il confronto si attiva con due analisi complete e compatibili. Domande, modello o protocollo diversi vengono tenuti separati.</p>}{previous && <p className={styles.note}><strong>Rilevazione attuale:</strong> {formatDateTime(new Date(latest.scan.startedAt))}<br/><strong>Rilevazione di confronto:</strong> {formatDateTime(new Date(previous.scan.startedAt))}</p>}<p className={styles.note}>Le risposte AI variano nel tempo: una variazione non dimostra, da sola, l’effetto di una modifica al sito.</p></section>
       {seoContext && <section className={styles.panel}><span className={styles.eyebrow}>SEO e Gemini · Una lettura congiunta</span><h2>Gli interventi già sostenuti dai dati del sito</h2><p>Queste proposte derivano dall’analisi SEO archiviata al {formatDateTime(new Date(seoContext.capturedAt))}{seoContext.windows ? `, con dati Google dal ${seoContext.windows.current.from} al ${seoContext.windows.current.to}` : ""}. Il contesto è salvato insieme a questa rilevazione Gemini.</p>
         {seoContext.opportunities.length ? <div className={styles.cards}>{seoContext.opportunities.filter(o => !/lavora-con-noi|carriere|careers/i.test(o.page)).slice(0, 3).map(opportunity => {
           const related = relatedGeoGaps(opportunity, answers);
