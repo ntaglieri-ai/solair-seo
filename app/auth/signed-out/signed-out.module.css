@@ -1,9 +1,0 @@
-.page { display: grid; min-height: 100dvh; place-items: center; padding: 24px; background: #0b1320; color: #e6ecf3; }
-.card { width: min(100%, 540px); padding: clamp(24px, 5vw, 44px); border: 1px solid #ffffff26; border-radius: 16px; background: #152333; }
-.brand { margin: 0 0 24px; color: #00bfff; font-weight: 700; }
-.card h1 { margin: 0 0 18px; color: #fff; font-size: clamp(26px, 4vw, 34px); line-height: 1.2; }
-.card p { line-height: 1.65; }
-.login { display: inline-flex; min-height: 48px; align-items: center; margin-top: 18px; padding: 10px 20px; border-radius: 8px; background: #00bfff; color: #0b1320; font-weight: 700; }
-.login:hover { background: #66d9ff; }
-.login:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
-.card .note { margin-top: 26px; font-size: 14px; color: #b5c8da; }

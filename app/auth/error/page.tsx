@@ -1,5 +1,10 @@
+import { AuthShell, authStyles } from "../auth-shell";
+
+export const metadata = { title: "Accesso non disponibile | Solair SEO" };
 export default function AuthError() {
-  return <main style={{ maxWidth: 640, margin: "80px auto", padding: 24 }}><h1>Accesso Solair SEO non disponibile</h1>
-    <p>Accedi con il tuo account CRM. Se l’accesso è negato, chiedi all’amministratore di verificare il permesso Solair SEO nel tuo gruppo o profilo personale.</p>
-    <a href="/auth/login">Riprova l’accesso tramite CRM</a></main>;
+  return <AuthShell title="Accesso non disponibile">
+    <p>Non siamo riusciti a completare l’accesso. Riprova con il tuo account CRM.</p>
+    <a className={authStyles.cta} href="/auth/login">Riprova l’accesso <span aria-hidden="true">→</span></a>
+    <p className={authStyles.note}>Se l’accesso risulta negato, chiedi all’amministratore di verificare il permesso Solair SEO nel tuo gruppo o profilo personale.</p>
+  </AuthShell>;
 }

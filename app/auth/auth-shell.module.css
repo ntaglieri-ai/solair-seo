@@ -1,0 +1,19 @@
+.page { position:relative; display:grid; min-height:100dvh; place-items:center; padding:24px; overflow:hidden; background:#0B1426; color:#fff; font-family:var(--font-plex), system-ui, sans-serif; }
+.photo { object-fit:cover; }
+.veil { position:absolute; inset:0; background:linear-gradient(115deg, #0b1426e6 0%, #16264Aa6 50%, #16264A59 100%); }
+.wrap { position:relative; z-index:1; display:grid; width:min(100%, 1120px); grid-template-columns:minmax(0,1.1fr) minmax(0,440px); align-items:center; gap:clamp(32px,6vw,96px); }
+.intro h1 { margin:18px 0 18px; font-family:var(--font-sora), system-ui, sans-serif; font-size:clamp(34px,5vw,60px); font-weight:700; line-height:1.08; letter-spacing:-.02em; }
+.intro p { max-width:520px; margin:0; color:#C6D1DE; font-size:clamp(16px,1.6vw,19px); line-height:1.65; }
+.eyebrow { color:#F0B84C; font-size:13px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; }
+.points { margin:30px 0 0; padding:0; list-style:none; display:grid; gap:12px; color:#E3EAF3; font-size:16px; }
+.points li { display:flex; align-items:center; gap:12px; }
+.points li::before { content:""; flex:none; width:8px; height:8px; border-radius:50%; background:#F0B84C; }
+.card { padding:clamp(26px,4vw,40px); border:1px solid #ffffff2e; border-radius:20px; background:#0f1b38b8; backdrop-filter:blur(18px); box-shadow:0 30px 80px #00000066; }
+.card h2 { margin:0 0 10px; font-family:var(--font-sora), system-ui, sans-serif; font-size:26px; line-height:1.2; }
+.card p { margin:0; color:#C6D1DE; font-size:16px; line-height:1.6; }
+.cta { display:flex; align-items:center; justify-content:center; gap:10px; min-height:54px; margin-top:26px; padding:14px 22px; border-radius:12px; background:#F0B84C; color:#16264A; font-size:17px; font-weight:700; box-shadow:0 12px 32px #F0B84C40; transition:background-color 150ms; }
+.cta:hover { background:#F5C766; }
+.cta:focus-visible { outline:2px solid #fff; outline-offset:4px; }
+.note { margin-top:20px !important; padding-top:18px; border-top:1px solid #ffffff22; color:#9FB0C6 !important; font-size:13.5px !important; }
+.brand { position:absolute; z-index:2; top:28px; left:max(24px, calc((100vw - 1120px) / 2)); }
+@media (max-width:860px) { .wrap { grid-template-columns:1fr; } .intro { display:none; } .brand { left:24px; } }
