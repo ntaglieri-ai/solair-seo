@@ -16,6 +16,7 @@ const C = {
 let coverImage: Buffer | null | undefined;
 /** Foto dell'hero di solairgroup.it; senza file il PDF usa un fondo pieno. */
 const loadCover = () => { if (coverImage === undefined) { try { coverImage = readFileSync(join(process.cwd(), "lib/report-documents/assets/cover.jpg")); } catch { coverImage = null; } } return coverImage; };
+const MARK_CYAN = "#00BFFF";
 const F = { r: "Helvetica", b: "Helvetica-Bold", i: "Helvetica-Oblique" } as const;
 const PW = 595.28, PH = 841.89, M = 46, W = PW - 2 * M, FOOT = PH - 64;
 const clean = (value: unknown) => String(value ?? "").replace(/[‐-―−]/g, "-").replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/→/g, " -> ").replace(/•/g, "-").replace(/ /g, " ");
@@ -48,13 +49,21 @@ export function renderReportPdf(payload: ReportPayload): Promise<Buffer> {
     };
     const caps = (s: string, x: number, yy: number, w: number, color = C.muted, size = 7.5) => put(s.toUpperCase(), x, yy, w, size, F.b, color, { characterSpacing: 0.7, lineBreak: false });
     const ensure = (h: number) => { if (y + h > FOOT) newPage(); };
-    const wordmark = (x: number, yy: number, size: number, color: string) => {
-      doc.roundedRect(x, yy + 1, size * 0.62, size * 0.62, 2).fill(C.amber);
-      put("SolairSEO", x + size * 0.62 + 6, yy - 1, 160, size, F.b, color, { lineBreak: false });
+    /** Monogramma MosTag Studio (M|T con barra e punto azzurri), disegnato come vettore dal logo originale. */
+    const mark = (x: number, yy: number, h: number, letters: string) => {
+      const k = h / 212, X = (v: number) => x + (v - 130) * k, Y = (v: number) => yy + (v - 65) * k;
+      const poly = (pts: number[][]) => doc.polygon(...pts.map(([px, py]): [number, number] => [X(px), Y(py)])).fill(letters);
+      doc.roundedRect(X(130), Y(75), 22 * k, 140 * k, 3 * k).fill(letters);
+      poly([[130, 75], [152, 75], [188, 160], [166, 160]]); poly([[166, 160], [188, 160], [224, 75], [202, 75]]);
+      doc.roundedRect(X(202), Y(75), 22 * k, 140 * k, 3 * k).fill(letters);
+      doc.roundedRect(X(258), Y(65), 5 * k, 170 * k, 2.5 * k).fill(MARK_CYAN);
+      doc.roundedRect(X(282), Y(75), 110 * k, 22 * k, 3 * k).fill(letters);
+      doc.roundedRect(X(326), Y(75), 22 * k, 140 * k, 3 * k).fill(letters);
+      doc.circle(X(408), Y(255), 22 * k).fill(MARK_CYAN);
     };
     function newPage() {
       doc.addPage();
-      wordmark(M, 30, 11, C.green);
+      mark(M, 27, 22, "#1A2230");
       put(`Solair Group  |  ${SITE_LABEL}`, M + 160, 31, W - 160, 8.5, F.r, C.muted, { align: "right", lineBreak: false });
       doc.moveTo(M, 52).lineTo(M + W, 52).lineWidth(0.6).strokeColor(C.line).stroke();
       y = 78;
@@ -143,7 +152,7 @@ export function renderReportPdf(payload: ReportPayload): Promise<Buffer> {
       doc.rect(0, 0, PW, 306).fill(doc.linearGradient(0, 0, PW * 0.75, 0).stop(0, C.forest, 0.55).stop(1, C.forest, 0));
       doc.restore();
       doc.rect(0, 303, PW, 3).fill(C.amber);
-      wordmark(M, 40, 15, C.white);
+      mark(M, 32, 38, C.white);
       caps("Report SEO / GEO", M, 118, 320, C.amber, 9);
       put("Solair Group", M, 136, 330, 44, F.b, C.white, { lineBreak: false });
       put("Risultati, presenza su Gemini\ne prossimi interventi", M, 192, 320, 15, F.r, "#E3ECF5", { lineGap: 4 });
