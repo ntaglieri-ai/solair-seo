@@ -17,6 +17,14 @@ const items = [
 ];
 
 /** Struttura da app: barra laterale blu a sinistra, contenuto a destra. */
+/** Barra in alto comune a tutte le pagine: dove sei e di quale sito. */
+export function Topbar({ title, children }: { title: string; children?: ReactNode }) {
+  return <div className={styles.top}><div className={styles.crumb}>{title}<small>Solair Group · {baselineAudit.domain}</small></div>{children}</div>;
+}
+export function StatusPill({ ok, children }: { ok: boolean; children: ReactNode }) {
+  return <span className={styles.pill} data-tone={ok ? undefined : "amber"}>{children}</span>;
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   if (pathname.startsWith("/auth")) return <>{children}</>;
@@ -39,7 +47,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div style={{ marginTop: 8 }}><Link href="/privacy">Privacy</Link></div>
         </div>
       </aside>
-      <div className={styles.main}>{children}</div>
+      <div className={styles.main}>{pathname !== "/" && <Topbar title={items.find(i => i.active(pathname))?.label ?? "Solair SEO"} />}{children}</div>
     </div>
   );
 }
