@@ -25,3 +25,13 @@ test('the PDF renders with Gemini answers, sources and typed opportunities',asyn
   payload.report.data.opportunities=[{id:'x',title:'Titolo',page:'/',priority:'high',interpretation:'perché',action:'azione',expectedOutcome:'atteso',evidence:{basis:'riscontro',publicSources:['https://solairgroup.it/cer: dettaglio']}}];
   const pdf=await renderReportPdf(payload);assert.ok(pages(pdf)>=4);
 });
+test('the PDF renders for start-up, monthly and update payloads',async()=>{
+  const period={from:'2026-10-07',to:'2026-11-03',days:28,archivedDays:28},compare={from:'2026-09-01',to:'2026-09-30',days:30,archivedDays:30};
+  const common={report:base().report};
+  for(const extra of [{kind:'startup',period,compare:null,totals:{current:totals(255,2307),previous:null}},
+    {kind:'monthly',period,compare,totals:{current:totals(255,2307),previous:totals(257,2391)},baseline:{from:'2026-08-10',to:'2026-09-06',clicks:121,days:28}},
+    {kind:'update',period:{...period,days:5,archivedDays:5},compare:null,totals:{current:totals(40,300),previous:null}}]){
+    const pdf=await renderReportPdf({...base(),...common,...extra});
+    assert.equal(pdf.subarray(0,5).toString(),'%PDF-');assert.ok(pages(pdf)>=3);
+  }
+});

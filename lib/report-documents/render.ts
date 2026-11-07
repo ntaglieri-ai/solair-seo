@@ -7,7 +7,6 @@ import { rankActions, reportReading, reportText, STABLE_CLICKS_BAND } from "../r
 import { summarizeScan, citationHost, SOURCE_CHECKS } from "../geo/summary";
 import type { GeoAnswer } from "../geo/answer";
 import { documentStatus, type ReportPayload } from "./model";
-import { monthLabel } from "./windows";
 
 const SITE_URL = "https://solairgroup.it", SITE_LABEL = "solairgroup.it";
 const C = {
@@ -156,7 +155,7 @@ export function renderReportPdf(payload: ReportPayload): Promise<Buffer> {
       doc.restore();
       doc.rect(0, 303, PW, 3).fill(C.amber);
       mark(M, 32, 38, C.white);
-      caps(kind === "startup" ? "Report Start-up  |  SEO / GEO" : kind === "monthly" && payload.period ? `Report mensile  |  ${monthLabel(payload.period.to)}` : "Aggiornamento  |  SEO / GEO", M, 118, 360, C.amber, 9);
+      caps("Report SEO / GEO", M, 118, 320, C.amber, 9);
       put("Solair Group", M, 136, 330, 44, F.b, C.white, { lineBreak: false });
       put("Risultati, presenza su Gemini\ne prossimi interventi", M, 192, 320, 15, F.r, "#E3ECF5", { lineGap: 4 });
       put(SITE_LABEL, M, 244, 220, 12.5, F.b, C.amber, { link: SITE_URL, underline: true, lineBreak: false });
@@ -193,15 +192,11 @@ export function renderReportPdf(payload: ReportPayload): Promise<Buffer> {
           const b = payload.baseline, bPerDay = b.clicks / Math.max(1, b.days), cPerDay = cur.clicks / Math.max(1, windows.current.archivedDays), d = relDelta(cPerDay, bPerDay), h = 46;
           ensure(h + 14); doc.roundedRect(M, y, W, h, 9).fill(C.amberTint);
           caps("Dall'avvio del servizio", M + 14, y + 11, 200, C.amberDark, 7);
-          put(`Clic organici al giorno: ${formatDecimal(bPerDay)} nel periodo di partenza (${formatDate(b.from)} - ${formatDate(b.to)}), ${formatDecimal(cPerDay)} in questo periodo (${d.text.replace(" · stabile", "")}). Il confronto è per media giornaliera perché i periodi hanno durata diversa.`, M + 14, y + 23, W - 28, 9.2, F.r, C.ink, { lineGap: 2.2 });
+          put(`Clic organici al giorno: ${formatDecimal(bPerDay)} nel periodo di partenza (${formatDate(b.from)} - ${formatDate(b.to)}), ${formatDecimal(cPerDay)} in questo periodo (${d.text.replace(" · stabile", "")}). Confronto per media giornaliera.`, M + 14, y + 23, W - 28, 9.2, F.r, C.ink, { lineGap: 2.2 });
           y += h + 14;
         }
-        const reading = kind === "startup"
-          ? { title: "Questo è il punto di partenza del servizio.", text: "Fotografa Google e le risposte di Gemini prima degli interventi. I report mensili useranno questi valori come riferimento: oggi non si legge alcuna crescita o calo." }
-          : kind === "update" || !prev
-            ? { title: "Aggiornamento sui giorni successivi all'ultimo report.", text: "Numeri del periodo indicato, senza giudizio su crescita o calo: su pochi giorni le variazioni sono normali oscillazioni. Il confronto avviene nei report mensili." }
-            : reportReading(cur, prev);
-        card({ tint: C.mint, bar: C.green, tag: [{ label: "Sintesi dei risultati", fg: C.green, bg: C.white }], title: reading.title, blocks: [{ text: reading.text }] });
+        const reading = prev ? reportReading(cur, prev) : null;
+        if (reading) card({ tint: C.mint, bar: C.green, tag: [{ label: "Sintesi dei risultati", fg: C.green, bg: C.white }], title: reading.title, blocks: [{ text: reading.text }] });
       } else {
         card({ tint: C.amberTint, bar: C.amber, title: "Risultati Google non misurabili", blocks: [{ text: "Le fonti non consentono un confronto attendibile. I valori mancanti non vengono sostituiti con zero o con stime." }] });
       }
@@ -296,7 +291,7 @@ export function renderReportPdf(payload: ReportPayload): Promise<Buffer> {
       newPage();
       chapter("04 / Fonti e metodo", "Come leggere questo report");
       sub("Search Console", 6);
-      para(windows ? `Proprietà ${SITE_LABEL}. Dati dal ${formatPeriod(windows.current)}${windows.previous ? `, confrontati con ${formatPeriod(windows.previous)}` : ", senza confronto con altri periodi"}. I totali provengono dalle evidenze archiviate dell'analisi SEO indicata.` : "Periodo Google non disponibile.", 9.8);
+      para(windows ? `Proprietà ${SITE_LABEL}. Dati dal ${formatPeriod(windows.current)}${windows.previous ? `, confrontati con ${formatPeriod(windows.previous)}` : ""}. I totali provengono dalle evidenze archiviate dell'analisi SEO indicata.` : "Periodo Google non disponibile.", 9.8);
       sub("Gemini e citazioni", 6);
       para(payload.geo ? `Campione di ${payload.geo.planned} domande. Sono contate soltanto risposte complete e citazioni native. I collegamenti non raggiunti o non risolti non confermano né smentiscono il contenuto della risposta. Le domande con nome Solair sono separate dalla scoperta spontanea.` : "Non sono presenti risposte Gemini nel documento. La presenza AI resta non misurata.", 9.8);
       const all = new Map<string, { prompts: Set<string>; url: string }>();
