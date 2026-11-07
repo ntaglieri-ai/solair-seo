@@ -1,7 +1,7 @@
 import { requireSeoPage } from "../lib/crm-auth";
-import Link from "next/link";
 import { baselineAudit } from "./data/audit-baseline";
-import { SiteHeader } from "./components/site-header";
+import { AppShell } from "./components/app-shell";
+import shell from "./components/app-shell.module.css";
 import { HeroPhoto } from "./components/hero-photo";
 import { fontVariables } from "./fonts";
 import { HomeDashboard } from "./components/home-dashboard";
@@ -13,10 +13,9 @@ export const dynamic = "force-dynamic";
 
 function Home() {
   return (
-    <main className={`${base.home} ${styles.home} ${fontVariables}`}>
-      <section className={base.hero} aria-labelledby="home-title">
+    <main className={`${base.home} ${styles.home} ${fontVariables}`}><AppShell current="/">
+      <section className={`${base.hero} ${shell.heroCompact}`} aria-labelledby="home-title">
         <HeroPhoto className={base.heroPhoto} />
-        <SiteHeader current="/" />
         <div className={base.heroBody}>
           <p className={base.eyebrow}>Solair Group · {baselineAudit.domain}</p>
           <h1 id="home-title">Visibilità su Google e AI</h1>
@@ -26,9 +25,8 @@ function Home() {
       </section>
       <div className={styles.content}>
         <HomeDashboard />
-        <footer className={styles.footer}><span>Solair Group · solairgroup.it</span><Link href="/privacy">Privacy</Link></footer>
       </div>
-    </main>
+    </AppShell></main>
   );
 }
 
