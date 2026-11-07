@@ -361,3 +361,20 @@ export async function getGscClicksBetween(
   `;
   return row;
 }
+
+/** Totali Search Console per un intervallo qualsiasi; `days` conta i giorni realmente archiviati. */
+export async function getGscTotalsBetween(siteId: string, from: string, to: string): Promise<GscTotals> {
+  const [row] = await getSql()<GscTotals[]>`
+    select coalesce(sum(clicks), 0)::int as clicks,
+           coalesce(sum(impressions), 0)::int as impressions,
+           coalesce(sum(clicks)::float / nullif(sum(impressions), 0), 0) as ctr,
+           coalesce(sum(position * impressions) / nullif(sum(impressions), 0), 0) as position,
+           count(*)::int as days
+    from seo.gsc_daily where site_id = ${siteId} and date between ${from} and ${to}`;
+  return row;
+}
+/** Ultimo giorno archiviato per la fonte. */
+export async function getGscLastDate(siteId: string): Promise<string | null> {
+  const [row] = await getSql()<{ last: string | null }[]>`select to_char(max(date), 'YYYY-MM-DD') as last from seo.gsc_daily where site_id = ${siteId}`;
+  return row?.last ?? null;
+}

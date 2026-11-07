@@ -85,7 +85,7 @@ export function GeoPanel({ data, editable, configured }: { data: Dashboard | nul
         {!!sourceOpportunities.length && <details><summary>Fonti ricorrenti da approfondire ({sourceOpportunities.length})</summary>{sourceOpportunities.map(o => <div className={styles.card} key={o.title}><h3>{o.title}</h3><p className={styles.note}>{o.evidence.join(" ")}</p><p>Valutare la pertinenza editoriale e le condizioni della fonte prima di proporre collaborazioni o presenza aziendale. Una citazione non giustifica automaticamente iscrizioni o acquisizione di link.</p></div>)}</details>}
         <p><Link href="/analisi">Confronta con risultati Google e interventi SEO →</Link></p>
       </section>
-      <details className={styles.panel}><summary>Risposte e fonti · Tutte le 10 domande</summary><p>Apri una domanda per leggere cosa ha risposto il motore e controllare le fonti. Le domande non misurate restano visibili.</p><div className={styles.cards}>{getPromptSet(latest.scan.promptSetVersion).prompts.map(prompt => {
+      <details className={styles.panel}><summary>Risposte e fonti · Tutte le domande</summary><p>Apri una domanda per leggere cosa ha risposto il motore e controllare le fonti. Le domande non misurate restano visibili.</p><div className={styles.cards}>{getPromptSet(latest.scan.promptSetVersion).prompts.map(prompt => {
         const answer = answers.find(a => a.promptId === prompt.id);
         return answer ? <AnswerDetails key={prompt.id} answer={answer}/> : <article className={styles.card} key={prompt.id}><span className={styles.tag}>Non misurata</span><h3>{prompt.text}</h3><p>Risposta non acquisita o richiesta interrotta. Questa domanda non viene conteggiata come un’assenza di Solair.</p></article>;
       })}</div></details>

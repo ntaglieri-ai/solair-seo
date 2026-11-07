@@ -4,24 +4,38 @@ import { getSql } from "../db";
 import { readReport } from "../report-read";
 import type { GeoAnswer } from "../geo/answer";
 import { renderReportPdf } from "./render";
-import { getGscClicksBetween } from "../engine/read";
-import { baselineDate } from "../../app/data/home";
+import { getGscLastDate, getGscTotalsBetween } from "../engine/read";
+import { daysIn, documentFileName, resolveWindow, type ReportKind, type WindowError } from "./windows";
 import { documentFingerprint, documentStatus, documentUrls, PDF_TEMPLATE_VERSION, UUID, type DocumentAnswer, type DocumentGeo, type ReportPayload } from "./model";
 const SITE = "solairgroup.it";
-const shiftDays = (date: string, days: number) => { const d = new Date(`${date}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + days); return d.toISOString().slice(0, 10); };
+export class ReportWindowError extends Error { constructor(readonly code: WindowError, readonly detail?: string) { super(code); } }
 
-/** Confronto con l'avvio del servizio: solo con 28 giorni archiviati per intero e senza sovrapposizione col periodo attuale. */
-async function captureBaseline(currentFrom: string | undefined) {
-  if (!currentFrom || baselineDate >= currentFrom) return null;
-  const from = shiftDays(baselineDate, -27);
-  const found = await getGscClicksBetween(SITE, from, baselineDate);
-  return found.days === 28 ? { from, to: baselineDate, clicks: found.clicks } : null;
+/** Fine del periodo coperto dall'ultimo documento di qualunque tipo: da lì parte l'aggiornamento on demand. */
+async function previousDocumentEnd() {
+  const [row] = await getSql()<{ end: string | null }[]>`select to_char(max(coalesce(period_to, (payload #>> '{report,data,windows,current,to}')::date)), 'YYYY-MM-DD') as end from seo.report_documents where site_id=${SITE}`;
+  return row?.end ?? null;
 }
-export type DocumentMeta = { id: string; snapshotId: string; geoScanId: string | null; status: "complete" | "partial"; trigger: "manual" | "scheduled"; createdAt: Date; from: string | null; to: string | null };
+/** Il primo documento in assoluto è il report Start-up; poi ogni richiesta manuale è un aggiornamento. */
+async function defaultKind(): Promise<ReportKind> {
+  const [row] = await getSql()<{ n: number }[]>`select count(*)::int as n from seo.report_documents where site_id=${SITE}`;
+  return row.n ? "update" : "startup";
+}
+/** Punto di partenza: periodo e clic del report Start-up, se esiste. */
+async function startupBaseline() {
+  const [row] = await getSql()<{ period: ReportPayload["period"]; totals: ReportPayload["totals"] }[]>`
+    select payload->'period' as period, payload->'totals' as totals from seo.report_documents where site_id=${SITE} and kind='startup' order by created_at limit 1`;
+  return row?.period && row.totals ? { from: row.period.from, to: row.period.to, clicks: row.totals.current.clicks, days: row.period.archivedDays } : null;
+}
+export type DocumentMeta = { id: string; snapshotId: string; geoScanId: string | null; status: "complete" | "partial"; trigger: "manual" | "scheduled"; kind: ReportKind; createdAt: Date; from: string | null; to: string | null };
 
-async function capturePayload(snapshotId?: string, geoScanId?: string, geoRefreshFailed = false, sourceRefreshFailed = false): Promise<ReportPayload | null> {
+async function capturePayload(kind: ReportKind, snapshotId?: string, geoScanId?: string, geoRefreshFailed = false, sourceRefreshFailed = false): Promise<ReportPayload | null> {
   const report = await readReport(snapshotId);
   if (!report) return null;
+  const resolved = resolveWindow({ kind, lastDate: await getGscLastDate(SITE), previousEnd: kind === "update" ? await previousDocumentEnd() : null });
+  if (!resolved.ok) throw new ReportWindowError(resolved.error, resolved.detail);
+  const measure = async (w: { from: string; to: string }) => { const totals = await getGscTotalsBetween(SITE, w.from, w.to); return { totals, window: { ...w, days: daysIn(w), archivedDays: totals.days } }; };
+  const current = await measure(resolved.current), previous = resolved.compare ? await measure(resolved.compare) : null;
+  if (!current.totals.days) throw new ReportWindowError("NO_DATA");
   const sql = getSql();
   const [geo] = await sql<{ id: string; status: string; model: string | null; protocol: string; planned: number; startedAt: Date }[]>`
     select id,status,model,prompt_set_version as protocol,planned_prompts as planned,started_at as "startedAt"
@@ -40,37 +54,45 @@ async function capturePayload(snapshotId?: string, geoScanId?: string, geoRefres
       citedSolair: row.result.citedSolair, competitorsMentioned: row.result.competitorsMentioned ?? [], reviewNotes: row.result.reviewNotes }] : []);
     documentGeo = { ...geo, startedAt: new Date(geo.startedAt).toISOString(), answers };
   }
-  const baseline = await captureBaseline(report.data.windows?.current.from).catch(() => null);
+  const baseline = kind === "monthly" ? await startupBaseline().catch(() => null) : null;
   return { version: PDF_TEMPLATE_VERSION, siteId: SITE, client: "Solair Group S.r.l.", generatedAt: new Date().toISOString(),
-    report: { id: report.id, status: report.status, createdAt: new Date(report.createdAt).toISOString(), data: report.data }, geo: documentGeo, geoRefreshFailed, sourceRefreshFailed, baseline };
+    report: { id: report.id, status: report.status, createdAt: new Date(report.createdAt).toISOString(), data: report.data }, geo: documentGeo, geoRefreshFailed, sourceRefreshFailed, baseline,
+    kind, period: current.window, compare: previous?.window ?? null, totals: { current: current.totals, previous: previous?.totals ?? null } };
 }
 
 /** Un solo generatore e un solo formato per il pulsante manuale e il Cron. Nessuna chiamata AI qui. */
-export async function generateReportDocument(options: { snapshotId?: string; geoScanId?: string; trigger: "manual" | "scheduled"; geoRefreshFailed?: boolean; sourceRefreshFailed?: boolean }) {
-  const payload = await capturePayload(options.snapshotId, options.geoScanId, options.geoRefreshFailed, options.sourceRefreshFailed);
+export async function generateReportDocument(options: { kind?: ReportKind; snapshotId?: string; geoScanId?: string; trigger: "manual" | "scheduled"; geoRefreshFailed?: boolean; sourceRefreshFailed?: boolean }) {
+  const kind = options.kind ?? await defaultKind(), payload = await capturePayload(kind, options.snapshotId, options.geoScanId, options.geoRefreshFailed, options.sourceRefreshFailed);
   if (!payload) return null;
   const sql = getSql(), fingerprint = documentFingerprint(payload);
   const [existing] = await sql<{ id: string }[]>`select id from seo.report_documents where site_id=${SITE} and fingerprint=${fingerprint}`;
-  if (existing) return { ...documentUrls(existing.id), reused: true };
+  if (existing) return { ...documentUrls(existing.id), reused: true, kind };
   const bytes = await renderReportPdf(payload);
   const sha256 = createHash("sha256").update(bytes).digest("hex");
-  const [saved] = await sql<{ id: string }[]>`insert into seo.report_documents(site_id,snapshot_id,geo_scan_id,trigger,status,fingerprint,template_version,payload,pdf,sha256)
-    values(${SITE},${payload.report.id},${payload.geo?.id ?? null},${options.trigger},${documentStatus(payload)},${fingerprint},${PDF_TEMPLATE_VERSION},${sql.json(payload as never)},${bytes},${sha256})
+  const [saved] = await sql<{ id: string }[]>`insert into seo.report_documents(site_id,snapshot_id,geo_scan_id,trigger,status,fingerprint,template_version,payload,pdf,sha256,kind,period_from,period_to)
+    values(${SITE},${payload.report.id},${payload.geo?.id ?? null},${options.trigger},${documentStatus(payload)},${fingerprint},${PDF_TEMPLATE_VERSION},${sql.json(payload as never)},${bytes},${sha256},${kind},${payload.period?.from ?? null},${payload.period?.to ?? null})
     on conflict(site_id,fingerprint) do update set fingerprint=excluded.fingerprint returning id`;
-  return { ...documentUrls(saved.id), reused: false };
+  return { ...documentUrls(saved.id), reused: false, kind };
 }
 export async function getDocumentArchive(limit = 20) {
-  return getSql()<DocumentMeta[]>`select id,snapshot_id as "snapshotId",geo_scan_id as "geoScanId",status,trigger,created_at as "createdAt",
-    payload #>> '{report,data,windows,current,from}' as "from",payload #>> '{report,data,windows,current,to}' as "to"
+  return getSql()<DocumentMeta[]>`select id,snapshot_id as "snapshotId",geo_scan_id as "geoScanId",status,trigger,kind,created_at as "createdAt",
+    coalesce(period_from::text,payload #>> '{report,data,windows,current,from}') as "from",coalesce(period_to::text,payload #>> '{report,data,windows,current,to}') as "to"
     from seo.report_documents where site_id=${SITE} order by created_at desc limit ${limit}`;
 }
 export async function getReportDocument(id: string, withPdf = false) {
   if (!UUID.test(id)) return null;
   const sql = getSql();
-  const [row] = await sql<{ id: string; payload: ReportPayload; status: "complete" | "partial"; trigger: string; sha256: string; createdAt: Date; pdf: Buffer | null }[]>`
-    select id,payload,status,trigger,sha256,created_at as "createdAt",${withPdf ? sql`pdf` : sql`null`} as pdf
+  const [row] = await sql<{ id: string; payload: ReportPayload; status: "complete" | "partial"; trigger: string; kind: ReportKind; periodFrom: string | null; periodTo: string | null; sha256: string; createdAt: Date; pdf: Buffer | null }[]>`
+    select id,payload,status,trigger,kind,to_char(period_from,'YYYY-MM-DD') as "periodFrom",to_char(period_to,'YYYY-MM-DD') as "periodTo",sha256,created_at as "createdAt",${withPdf ? sql`pdf` : sql`null`} as pdf
     from seo.report_documents where site_id=${SITE} and id=${id}`;
   return row ?? null;
+}
+/** Nome del file scaricato; se due documenti coprono lo stesso periodo il più recente prende un numero. */
+export async function getDocumentFileName(document: NonNullable<Awaited<ReturnType<typeof getReportDocument>>>) {
+  const period = document.periodFrom && document.periodTo ? { from: document.periodFrom, to: document.periodTo } : null;
+  const [{ n }] = await getSql()<{ n: number }[]>`select count(*)::int as n from seo.report_documents where site_id=${SITE} and kind=${document.kind}
+    and period_from is not distinct from ${document.periodFrom}::date and period_to is not distinct from ${document.periodTo}::date and created_at<=${document.createdAt}`;
+  return documentFileName(document.kind, document.createdAt, period, n);
 }
 export async function getLatestDocument() {
   const [row] = await getSql()<{ id: string }[]>`select id from seo.report_documents where site_id=${SITE} order by created_at desc limit 1`;

@@ -16,7 +16,6 @@ import { getAiChecks } from "../../lib/ai-collection";
 import { aiConfigured } from "../../lib/ai-provider";
 import { getEngineSettings } from "../../lib/engine/store";
 import { AiChecksPanel } from "./ai-checks-panel";
-import Link from "next/link";
 import { getGeoDashboard } from "../../lib/geo/read";
 import { geoConfigured } from "../../lib/geo/run-scan";
 import { GeoPanel } from "./geo-panel";
@@ -50,7 +49,6 @@ export default async function VisibilitaAi({ searchParams }: { searchParams: Pro
           {query["seo-partial"] === "1" && <p className={researchStyles.notice}>Alcune fonti SEO non sono state aggiornate durante questo avvio. La lettura congiunta indica la data del contesto effettivamente disponibile; verifica i dettagli nell’analisi SEO.</p>}
           <GeoPanel data={geo} editable={editable} configured={geoConfigured("gemini")}/>
           <details className={researchStyles.panel}><summary>Archivio tecnico e verifiche precedenti</summary>
-          <section className={researchStyles.panel}><h2>Pilota con ricerca web</h2><p>Il confronto tra Gemini e OpenAI usa dieci domande identiche e conserva risposte, citazioni e costi stimati. È separato dalle precedenti verifiche senza ricerca.</p><Link className={researchStyles.back} href="/visibilita-ai/confronto">Apri il confronto pilota →</Link></section>
           <OperatorAccess authenticated={editable} label="Gestione fonti"/>
           <AiChecksPanel batches={batches} configured={aiConfigured()} editable={editable} cadence={settings}/>
           <details className={researchStyles.panel}><summary>Verifiche manuali su altri motori</summary>
@@ -59,10 +57,8 @@ export default async function VisibilitaAi({ searchParams }: { searchParams: Pro
           {editable&&<details className={researchStyles.panel}><summary>Archivia una verifica AI</summary><ResearchForm kind="ai" today={new Date().toISOString().slice(0,10)}/></details>}
           {!observations?.length?<div className={researchStyles.empty}><h2>{observations?"Nessuna rilevazione ancora archiviata":"Archivio temporaneamente non disponibile"}</h2><p>La presenza di Solair nei motori AI resta non misurata. L’assenza di verifiche non è un risultato negativo.</p></div>:<>
             <section className={researchStyles.panel}><h2>Le risposte manuali raccolte</h2><div className={researchStyles.metrics}><span><strong>{observations.length}</strong>risposte archiviate</span><span><strong>{observations.filter(o=>o.mentionsBrand).length}</strong>menzionano Solair</span><span><strong>{observations.filter(o=>o.citesSite).length}</strong>riportano una fonte Solair</span></div><p className={researchStyles.note}>Conteggi del campione archiviato, fino alle ultime 200 verifiche; non sono un indice di visibilità generale. Una menzione include anche risposte critiche o negative. Le fonti sono dichiarate dall’operatore, non convalidate automaticamente dal motore.</p></section>
-            {observations.map((o,index)=>{
-              const previous=observations.slice(index+1).find(p=>p.engine===o.engine&&p.question===o.question&&p.context===o.context);
+            {observations.map(o=>{
               return <section className={researchStyles.panel} key={o.id}><h2>{o.engine} · {formatDate(o.date)}</h2><h3>{o.question}</h3><p className={researchStyles.note}>{o.context}</p><p><span className={researchStyles.tag}>{o.mentionsBrand?"Solair menzionata":"Solair non menzionata"}</span> <span className={researchStyles.tag}>{o.citesSite?"Fonte solairgroup.it riportata":"Fonte Solair non riportata"}</span></p>
-                {previous&&<p className={researchStyles.note}>Rilevazione attuale: {formatDate(o.date)} · rilevazione di confronto con stessa domanda e contesto: {formatDate(previous.date)} · {previous.mentionsBrand?"Solair menzionata":"Solair non menzionata"}. Il confronto riguarda soltanto queste due risposte.</p>}
                 <details><summary>Leggi risposta e fonti archiviate</summary><div className={researchStyles.answer}>{o.answer}</div>{o.evidenceUrl&&<p><a className={researchStyles.back} href={o.evidenceUrl} target="_blank" rel="noreferrer">Risposta condivisa ↗</a></p>}<ul className={researchStyles.sourceList}>{o.sources.map(url=><li key={url}><a href={url} target="_blank" rel="noreferrer">{url}</a></li>)}</ul></details></section>;
             })}
           </>}
