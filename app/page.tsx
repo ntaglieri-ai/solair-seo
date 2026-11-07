@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 function Home() {
   return (
-    <main className={`${base.home} ${styles.home} ${fontVariables}`}>
+    <main className={`${base.home} ${styles.home} ${fontVariables} ${home.screen}`}>
       <Topbar title="Panoramica"><SourcesPill /></Topbar>
       <div className={`${styles.content} ${home.page}`}>
         <h1 className={home.title}>Il servizio in un colpo d’occhio</h1>
