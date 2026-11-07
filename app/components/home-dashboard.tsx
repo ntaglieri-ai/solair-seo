@@ -63,7 +63,7 @@ export async function HomeDashboard() {
         <section className={styles.panel} aria-labelledby="act-title">
           <div className={styles.panelHead}><h2 id="act-title">Azioni per migliorare</h2><Link className={styles.more} href="/interventi">Tutte →</Link></div>
           {!actions.length ? <p className={styles.empty}>{report ? "L’ultima analisi non indica interventi prioritari. Non dimostra l’assenza di opportunità." : "Gli interventi consigliati compaiono con il primo report."}</p>
-            : <div className={styles.list}>{actions.slice(0, 4).map((a, i) => <div className={styles.act} key={a.id}><span className={styles.n}>{i + 1}</span><div><b>{reportText(a.title)}</b><span className={styles.p}>Pagina: {a.page}</span></div><span className={styles.pill} data-tone={a.priority === "high" ? "red" : "amber"}>{a.priority === "high" ? "Priorità alta" : "Priorità media"}</span></div>)}</div>}
+            : <div className={styles.list}>{actions.slice(0, 3).map((a, i) => <div className={styles.act} key={a.id}><span className={styles.n}>{i + 1}</span><div><b>{reportText(a.title)}</b><span className={styles.p}>Pagina: {a.page}</span></div><span className={styles.pill} data-tone={a.priority === "high" ? "red" : "amber"}>{a.priority === "high" ? "Priorità alta" : "Priorità media"}</span></div>)}</div>}
         </section>
         <section className={styles.panel} aria-labelledby="how-title">
           <div className={styles.panelHead}><h2 id="how-title">Come funziona il servizio</h2></div>
