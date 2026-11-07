@@ -1,6 +1,5 @@
 import { requireSeoPage } from "../lib/crm-auth";
 import { baselineAudit } from "./data/audit-baseline";
-import { AppShell } from "./components/app-shell";
 import shell from "./components/app-shell.module.css";
 import { HeroPhoto } from "./components/hero-photo";
 import { fontVariables } from "./fonts";
@@ -13,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 function Home() {
   return (
-    <main className={`${base.home} ${styles.home} ${fontVariables}`}><AppShell current="/">
+    <main className={`${base.home} ${styles.home} ${fontVariables}`}>
       <section className={`${base.hero} ${shell.heroCompact}`} aria-labelledby="home-title">
         <HeroPhoto className={base.heroPhoto} />
         <div className={base.heroBody}>
@@ -26,7 +25,7 @@ function Home() {
       <div className={styles.content}>
         <HomeDashboard />
       </div>
-    </AppShell></main>
+    </main>
   );
 }
 

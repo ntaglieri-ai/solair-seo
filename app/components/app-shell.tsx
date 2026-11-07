@@ -1,19 +1,25 @@
+"use client";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { FileText, History, LayoutDashboard, Settings2 } from "lucide-react";
+import { ClipboardCheck, FileText, History, LayoutDashboard, Settings2, Sparkles } from "lucide-react";
 import { baselineAudit } from "../data/audit-baseline";
 import header from "./site-header.module.css";
 import styles from "./app-shell.module.css";
 
 const items = [
-  { label: "Panoramica", href: "/", icon: LayoutDashboard },
-  { label: "Report", href: "/report/ultimo", icon: FileText },
-  { label: "Storico", href: "/report", icon: History },
-  { label: "Impostazioni", href: "/impostazioni", icon: Settings2 },
+  { label: "Panoramica", href: "/", icon: LayoutDashboard, active: (p: string) => p === "/" },
+  { label: "Report", href: "/report/ultimo", icon: FileText, active: (p: string) => p.startsWith("/report/") || p === "/analisi" },
+  { label: "Storico", href: "/report", icon: History, active: (p: string) => p === "/report" },
+  { label: "Visibilità AI", href: "/visibilita-ai", icon: Sparkles, active: (p: string) => p.startsWith("/visibilita-ai") },
+  { label: "Interventi", href: "/interventi", icon: ClipboardCheck, active: (p: string) => p.startsWith("/interventi") },
+  { label: "Impostazioni", href: "/impostazioni", icon: Settings2, active: (p: string) => p.startsWith("/impostazioni") },
 ];
 
 /** Struttura da app: barra laterale blu a sinistra, contenuto a destra. */
-export function AppShell({ current = "/", children }: { current?: string; children: ReactNode }) {
+export function AppShell({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  if (pathname.startsWith("/auth")) return <>{children}</>;
   return (
     <div className={styles.shell}>
       <aside className={styles.side} aria-label="Navigazione">
@@ -22,8 +28,8 @@ export function AppShell({ current = "/", children }: { current?: string; childr
           <span className={header.byline} aria-hidden="true">by Nando Taglieri</span>
         </Link>
         <nav className={styles.nav}>
-          {items.map(({ label, href, icon: Icon }) => (
-            <Link key={label} className={styles.link} href={href} aria-current={href === current ? "page" : undefined}><Icon size={18} aria-hidden="true" />{label}</Link>
+          {items.map(({ label, href, icon: Icon, active }) => (
+            <Link key={label} className={styles.link} href={href} aria-current={active(pathname) ? "page" : undefined}><Icon size={18} aria-hidden="true" />{label}</Link>
           ))}
         </nav>
         <div className={styles.foot}>

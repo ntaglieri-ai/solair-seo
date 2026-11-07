@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { AppShell } from "./components/app-shell";
 import { clientConfig, themeToCssVariables } from "../lib/client-config";
 
 export const metadata: Metadata = {
@@ -13,7 +14,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <style>{`:root { ${themeToCssVariables(clientConfig.theme)} }`}</style>
       </head>
-      <body>{children}</body>
+      <body><AppShell>{children}</AppShell></body>
     </html>
   );
 }
