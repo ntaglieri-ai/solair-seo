@@ -4,11 +4,12 @@ import {readFileSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import ts from 'typescript';
 const require=createRequire(import.meta.url),Module=require('node:module');
-const {NextRequest}=require('next/server');
+const {NextRequest,NextResponse}=require('next/server');
 const state={lease:true,recent:false,calls:[],releases:0,fail:false};
 const original=Module._load,extension=require.extensions['.ts'];
 require.extensions['.ts']=(module,file)=>module._compile(ts.transpileModule(readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,file);
 Module._load=function(id,...rest){
+  if(id.endsWith('/lib/crm-auth'))return {canWriteSeo:async()=>state.operator,requireSeoApi:async()=>state.denied?NextResponse.json({error:'CRM'},{status:state.denied}):null};
   if(id==='../../../lib/db')return {getSql:()=>async()=>state.recent?[{id:'11111111-1111-4111-8111-111111111111'}]:[]};
   if(id==='../../../lib/engine/store')return {acquireLease:async()=>state.lease?'lease':null,releaseLease:async()=>{state.releases++}};
   if(id==='../../../lib/public-collection')return {collectPublicSite:async(...args)=>{state.calls.push(args);if(state.fail)throw Error('hidden error');return {runId:'22222222-2222-4222-8222-222222222222',result:{complete:true}}}};
@@ -33,4 +34,13 @@ test('URL runs share the concurrency lease and reuse recent scans without collec
 test('a failed URL scan releases the lease and does not claim a successful new report',async()=>{
   reset();state.fail=true;const log=console.error;console.error=()=>{};
   try{const response=await POST(request()),result=await response.json();assert.equal(response.status,503);assert.equal(result.url,undefined);assert.equal(state.releases,1);assert.doesNotMatch(JSON.stringify(result),/hidden error/);}finally{console.error=log;}
+});
+
+test('CRM denial prevents any collection, including same-origin browser requests',async()=>{
+  reset();
+  for(const status of [401,403,503]){
+    state.denied=status;
+    assert.equal((await POST(request())).status,status);
+  }
+  assert.equal(state.calls.length,0);state.denied=0;
 });

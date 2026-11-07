@@ -1,8 +1,8 @@
+import { requireSeoApi, canWriteSeo } from "../../../lib/crm-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { getSql } from "../../../lib/db";
 import { getSite } from "../../../lib/engine/collect";
 import { runEngine } from "../../../lib/engine/run";
-import { OPERATOR_COOKIE, validOperatorToken } from "../../../lib/operator";
 import { getGeoSettings } from "../../../lib/geo/store";
 import { geoConfigured } from "../../../lib/geo/run-scan";
 import { getLastSnapshot } from "../../../lib/engine/store";
@@ -12,6 +12,9 @@ export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "no-store" };
 
 export async function POST(request: NextRequest) {
+  const denied = await requireSeoApi(request, true);
+  if (denied) return denied;
+
   if (request.headers.get("origin") !== request.nextUrl.origin) return NextResponse.json({error:"Richiesta non consentita."},{status:403,headers});
   if (Number(request.headers.get("content-length")) > 1000) return NextResponse.json({error:"Richiesta non valida."},{status:400,headers});
   let body;
@@ -33,7 +36,7 @@ export async function POST(request: NextRequest) {
       const snapshot=await getLastSnapshot(siteId);
       if(!snapshot)return NextResponse.json({error:"Analisi non disponibile. Controlla lo stato delle fonti."},{status:503,headers});
       const geo = await getGeoSettings(siteId).catch(() => null);
-      const geoAvailable = Boolean(geo?.enabled && geoConfigured(geo.engine) && validOperatorToken(request.cookies.get(OPERATOR_COOKIE)?.value, process.env.CRON_SECRET));
+      const geoAvailable = Boolean(geo?.enabled && geoConfigured(geo.engine) && await canWriteSeo());
       return NextResponse.json({ok:result.ok,partial:!result.ok,geoAvailable,snapshotId:snapshot.id,url:`/analisi?id=${snapshot.id}`,message:result.ok?null:"Alcune fonti non sono state aggiornate: il report ne indica i limiti."},{headers});
     }
     return NextResponse.json({ok:result.ok,partial:!result.ok,url:"/current-status",message:result.ok?null:"La raccolta è parziale. Controlla le date e lo stato delle fonti."},{headers});

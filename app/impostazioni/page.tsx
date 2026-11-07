@@ -1,3 +1,4 @@
+import { requireSeoPage } from "../../lib/crm-auth";
 import Link from "next/link";
 import { OperationFrame } from "../components/operation-frame";
 import { getEngineSettings,getLastSnapshot } from "../../lib/engine/store";
@@ -13,7 +14,7 @@ import { geoConfigured } from "../../lib/geo/run-scan";
 import { GeoSettingsForm } from "../visibilita-ai/geo-controls";
 export const dynamic="force-dynamic";
 export const metadata={title:"Impostazioni | SolairSEO"};
-export default async function Settings(){
+async function Settings(){
   const [settings,snapshot,editable,attempts]=await Promise.all([safeRead("impostazioni",()=>getEngineSettings("solairgroup.it")),safeRead("ultima analisi",()=>getLastSnapshot("solairgroup.it")),researchAccess(),safeRead("fonti collegate",()=>getLatestAttempts("solairgroup.it"))]);
   const geo = await safeRead("impostazioni Gemini", () => getGeoSettings("solairgroup.it"));
   return <OperationFrame title="Impostazioni" intro="Programmazione dei report e stato delle fonti usate per l’analisi di Solair." current="/impostazioni"><OperatorAccess authenticated={editable} label="Gestione impostazioni"/>
@@ -23,4 +24,9 @@ export default async function Settings(){
     <section className={styles.panel}><details><summary>Archivio e viste precedenti</summary><div className={styles.links}><Link href="/home2">Panoramica precedente →</Link><Link href="/report">Audit e documenti di riferimento →</Link></div></details>{editable&&<details><summary>Strumenti interni del servizio</summary><p className={styles.note}>L’organizzazione dei lavori resta separata dal report destinato al cliente.</p><Link className={styles.back} href="/interventi">Gestione interventi →</Link></details>}</section>
     <div className={styles.links}><Link href="/privacy">Privacy →</Link></div>
   </OperationFrame>;
+}
+
+export default async function AuthorizedPage(...args: Parameters<typeof Settings>) {
+  await requireSeoPage();
+  return Settings(...args);
 }

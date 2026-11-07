@@ -4,11 +4,12 @@ import {readFileSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import ts from 'typescript';
 const require=createRequire(import.meta.url),Module=require('node:module');
-const {NextRequest}=require('next/server');
+const {NextRequest,NextResponse}=require('next/server');
 const state={machine:false,operator:false,calls:[],result:{status:'complete',measured:4,expected:4},fail:false};
 const original=Module._load,extension=require.extensions['.ts'];
 require.extensions['.ts']=(module,file)=>module._compile(ts.transpileModule(readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,file);
 Module._load=function(id,...rest){
+  if(id.endsWith('/lib/crm-auth'))return {canWriteSeo:async()=>state.operator,requireSeoApi:async(req)=>!state.operator?NextResponse.json({error:'CRM'},{status:401}):req.headers.get('origin')!==new URL(req.url).origin?NextResponse.json({error:'Origin'},{status:403}):null};
   if(id.endsWith('/lib/engine/auth'))return {authorizedEngine:()=>state.machine};
   if(id==='../../../lib/operator')return {OPERATOR_COOKIE:'solair_operator',validOperatorToken:()=>state.operator};
   if(id.endsWith('/lib/ai-collection'))return {collectAiChecks:async(...args)=>{state.calls.push(args);if(state.fail)throw Error('secret-provider-message');return state.result;}};
@@ -21,7 +22,7 @@ const request=(body='{}',origin='https://solair.example')=>new NextRequest('http
 const reset=()=>Object.assign(state,{machine:false,operator:false,calls:[],result:{status:'complete',measured:4,expected:4},fail:false});
 test('AI collection is authenticated; browser mutations also require matching origin',async()=>{
   reset();assert.equal((await POST(request())).status,401);
-  state.operator=true;assert.equal((await POST(request('{}','https://foreign.example'))).status,401);assert.equal(state.calls.length,0);
+  state.operator=true;assert.equal((await POST(request('{}','https://foreign.example'))).status,403);assert.equal(state.calls.length,0);
   const response=await POST(request());assert.equal(response.status,200);assert.deepEqual(state.calls,[['solairgroup.it','manual']]);
   assert.equal(response.headers.get('cache-control'),'no-store');
 });

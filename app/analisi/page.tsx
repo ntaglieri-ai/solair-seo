@@ -1,3 +1,4 @@
+import { requireSeoPage } from "../../lib/crm-auth";
 import { ComparisonPeriods } from "../components/comparison-periods";
 import Link from "next/link";
 import { OperationFrame } from "../components/operation-frame";
@@ -11,7 +12,7 @@ import styles from "../operazioni.module.css";
 export const dynamic="force-dynamic";
 export const metadata={title:"Report SEO/GEO | SolairSEO"};
 
-export default async function Analysis({searchParams}:{searchParams:Promise<{id?:string;partial?:string}>}){
+async function Analysis({searchParams}:{searchParams:Promise<{id?:string;partial?:string}>}){
   const params=await searchParams;
   const report=await safeRead("report analisi",()=>readReport(params.id));
   const data=report?.data;
@@ -39,4 +40,9 @@ export default async function Analysis({searchParams}:{searchParams:Promise<{id?
     {report&&<div className={styles.links}><Link href={`/report/sito?id=${report.id}`}>Analisi del sito da URL →</Link></div>}
     <div className={styles.links}><Link href="/report">Tutti i report →</Link><Link href="/impostazioni">Frequenza dei report automatici →</Link></div>
   </OperationFrame>;
+}
+
+export default async function AuthorizedPage(...args: Parameters<typeof Analysis>) {
+  await requireSeoPage();
+  return Analysis(...args);
 }

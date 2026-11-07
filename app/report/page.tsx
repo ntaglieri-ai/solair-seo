@@ -1,3 +1,4 @@
+import { requireSeoPage } from "../../lib/crm-auth";
 import { getDocumentArchive } from "../../lib/report-documents/store";
 import { KIND_LABEL } from "../../lib/report-documents/windows";
 import { GeneratePdf } from "../components/generate-pdf";
@@ -12,7 +13,7 @@ import styles from "../operazioni.module.css";
 
 export const dynamic="force-dynamic";
 export const metadata={title:"Report e storico | SolairSEO"};
-export default async function Reports({searchParams}:{searchParams:Promise<{page?:string}>}){
+async function Reports({searchParams}:{searchParams:Promise<{page?:string}>}){
   const params=await searchParams;
   const [archive,documents]=await Promise.all([safeRead("archivio report",()=>readReportArchive(reportPage(params.page))),safeRead("PDF archiviati", () => getDocumentArchive())]);
   return <OperationFrame title="Report e storico" intro="Le analisi di Solair, raccolte in un unico archivio. Ogni report conserva risultati, interpretazione e suggerimenti riferiti al proprio periodo." current="/report">
@@ -30,4 +31,9 @@ export default async function Reports({searchParams}:{searchParams:Promise<{page
     <section className={styles.panel}><h2>Approfondimenti</h2><p className={styles.note}>Apri i dettagli quando vuoi verificare un dato o una fonte dell’analisi.</p><div className={styles.resourceGrid}><Link href="/current-status"><strong>Dati e statistiche</strong><span>Traffico da ricerca, pagine e configuratore</span></Link><Link href="/ricerca"><strong>Ricerca SEO</strong><span>Keyword, concorrenti e backlink disponibili</span></Link><Link href="/visibilita-ai"><strong>Verifiche AI</strong><span>Domande, risposte e citazioni documentate</span></Link></div></section>
     <section className={styles.panel}><details><summary>Audit e documenti di riferimento</summary><div className={styles.links}><Link href="/sezioni/executive-summary">Audit baseline →</Link><Link href="/sezioni/historical-comparison">Andamento e punteggi →</Link><Link href={currentReportUrl}>Documento storico del 6 settembre →</Link></div></details></section>
   </OperationFrame>;
+}
+
+export default async function AuthorizedPage(...args: Parameters<typeof Reports>) {
+  await requireSeoPage();
+  return Reports(...args);
 }

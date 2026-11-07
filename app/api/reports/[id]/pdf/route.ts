@@ -1,7 +1,11 @@
+import { requireSeoApi } from "../../../../../lib/crm-auth";
 import { getDocumentFileName, getReportDocument } from "../../../../../lib/report-documents/store";
 export const dynamic="force-dynamic";
 export const runtime="nodejs";
 export async function GET(_request:Request,{params}:{params:Promise<{id:string}>}){
+  const denied = await requireSeoApi(_request, false);
+  if (denied) return denied;
+
   try{
     const {id}=await params,document=await getReportDocument(id,true);
     if(!document?.pdf)return new Response("Report PDF non disponibile",{status:404,headers:{"Cache-Control":"no-store"}});

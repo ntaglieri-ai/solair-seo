@@ -1,3 +1,4 @@
+import { requireSeoPage } from "../../lib/crm-auth";
 import type { Metadata } from "next";
 import { SiteHeader } from "../components/site-header";
 import { fontVariables } from "../fonts";
@@ -25,7 +26,7 @@ export const metadata: Metadata = {
   title: `Visibilità AI · ${clientConfig.productName}`,
 };
 
-export default async function VisibilitaAi({ searchParams }: { searchParams: Promise<{ "seo-partial"?: string }> }) {
+async function VisibilitaAi({ searchParams }: { searchParams: Promise<{ "seo-partial"?: string }> }) {
   const query = await searchParams;
   const [observations,editable,batches,settings]=await Promise.all([safeRead("visibilità AI",()=>getObservations("solairgroup.it")),researchAccess(),safeRead("risposte AI",()=>getAiChecks("solairgroup.it")),safeRead("programmazione AI",()=>getEngineSettings("solairgroup.it"))]);
   const geo = await safeRead("analisi Gemini con ricerca web", () => getGeoDashboard("solairgroup.it"));
@@ -68,4 +69,9 @@ export default async function VisibilitaAi({ searchParams }: { searchParams: Pro
       </section>
     </main>
   );
+}
+
+export default async function AuthorizedPage(...args: Parameters<typeof VisibilitaAi>) {
+  await requireSeoPage();
+  return VisibilitaAi(...args);
 }

@@ -1,3 +1,4 @@
+import { requireSeoPage } from "../lib/crm-auth";
 import Link from "next/link";
 import { ReportRunProvider, HeroReportControls } from "./components/report-runner";
 import { HeroTrend } from "./components/hero-trend";
@@ -15,7 +16,7 @@ import styles from "./launch.module.css";
 
 export const dynamic = "force-dynamic";
 
-export default function Home() {
+function Home() {
   return (
     <ReportRunProvider><main className={`${base.home} ${styles.home} ${fontVariables}`}>
       <section className={base.hero} aria-labelledby="home-title">
@@ -36,4 +37,9 @@ export default function Home() {
       </div>
     </main></ReportRunProvider>
   );
+}
+
+export default async function AuthorizedPage(...args: Parameters<typeof Home>) {
+  await requireSeoPage();
+  return Home(...args);
 }

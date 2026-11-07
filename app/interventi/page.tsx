@@ -1,3 +1,4 @@
+import { requireSeoPage } from "../../lib/crm-auth";
 import Image from "next/image";
 import { cookies } from "next/headers";
 import Link from "next/link";
@@ -28,7 +29,7 @@ function readableText(text: string) {
   return text.replace(/\bpuo'/g, "può").replace(/\bpiu'/g, "più").replace(/\be'/g, "è").replace(/\bgia'/g, "già");
 }
 
-export default async function InterventionsPage() {
+async function InterventionsPage() {
   const siteId=baselineAudit.domain;
   const [plan,saved,cookieStore]=await Promise.all([readActionPlan(siteId),safeRead("checklist",()=>getWork(siteId)),cookies()]);
   const editable=validOperatorToken(cookieStore.get(OPERATOR_COOKIE)?.value,process.env.CRON_SECRET);
@@ -87,4 +88,9 @@ export default async function InterventionsPage() {
       </div>
     </main>
   );
+}
+
+export default async function AuthorizedPage(...args: Parameters<typeof InterventionsPage>) {
+  await requireSeoPage();
+  return InterventionsPage(...args);
 }

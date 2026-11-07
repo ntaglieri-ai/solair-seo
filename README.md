@@ -161,7 +161,7 @@ Statistiche, ricerca SEO, verifiche AI, baseline e documenti storici sono raggiu
 
 Il primo livello usa ora il motore `public-url-2`: estrae testi principali, titoli di sezione, domande visibili, collegamenti e contenuti incorporati. Segue anche link interni non elencati nella sitemap, con lo stesso limite, controllo del dominio e protezioni di rete del crawler. Salva documenti, provenienza e valutazione versionata in `seo.technical_batches`; non riscrive i batch storici.
 
-`POST /api/public-audit` raccoglie solo `https://solairgroup.it/`, senza richiedere account o chiamare GSC/GA4. Usa il lease del sito e riapre la stessa scansione entro cinque minuti. La UI in `/report/sito` apre il risultato con `?audit=<runId>`; senza parametri legge l’ultima raccolta pubblica. `?id=<snapshotId>` continua a leggere esclusivamente la fonte collegata al report dettagliato. Non c’è ancora un ingresso SaaS per domini arbitrari.
+`POST /api/public-audit` raccoglie solo `https://solairgroup.it/`, richiede il permesso CRM Solair SEO in scrittura e non chiama GSC/GA4. Usa il lease del sito e riapre la stessa scansione entro cinque minuti. La UI in `/report/sito` apre il risultato con `?audit=<runId>`; senza parametri legge l’ultima raccolta pubblica. `?id=<snapshotId>` continua a leggere esclusivamente la fonte collegata al report dettagliato. Non c’è ancora un ingresso SaaS per domini arbitrari.
 
 La valutazione separa riscontri documentati (ad esempio destinazioni di contatto con errore HTTP o cifre differenti sulla CER in pagine diverse) e opportunità editoriali nel campione. Le informazioni economiche sono confrontate come affermazioni del sito, non validate come agevolazioni o ritorni reali. Non vengono stimati traffico, keyword, ranking o citazioni AI; i tempi di download HTML non sono Core Web Vitals. Il report completo `rules-5` conserva anche questi rilievi, insieme alle proprie evidenze Google.
 
@@ -170,3 +170,7 @@ Da Report sono disponibili `/report/sito` (ultima raccolta pubblica) e `/report/
 Quando è richiesto uno snapshot dettagliato, la valutazione pubblica legge esclusivamente la scansione collegata attraverso `sourceRunIds.technical`; non la sostituisce con dati di un’altra data. Non usa metriche degli account né espone il vecchio punteggio euristico. Le scansioni salvano anche H1, tipi JSON-LD, parole HTML e collegamenti interni. Velocità nel browser/Core Web Vitals e citazioni AI restano esplicitamente non misurati.
 
 Il confronto legge esclusivamente il batch `sourceRunIds.evidence` dello stesso report e ne verifica il periodo; non ripiega su dati più recenti. Collega le pagine per percorso normalizzato, mostrando clic, impressioni e sessioni Google/organic attendibili. Righe assenti rimangono non rilevate, distinte dagli zeri restituiti dalla fonte. Osservazioni e performance non sono presentate come prova di causalità o come risultato prima/dopo un intervento. Le vecchie analisi prive di riferimenti alle fonti mostrano uno stato non disponibile. Le viste mantengono il pulsante di stampa/PDF esistente.
+
+## Accesso tramite CRM
+
+Pagine, API e PDF richiedono l’identità del CRM e il permesso autonomo Solair SEO. Il codice operatore precedente è disabilitato. Configurazione, livelli di accesso e procedura di rilascio: [Accesso CRM](docs/crm-access.md).

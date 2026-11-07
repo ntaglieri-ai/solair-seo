@@ -1,3 +1,4 @@
+import { requireSeoApi } from "../../../lib/crm-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { getSql } from "../../../lib/db";
 import { acquireLease, releaseLease } from "../../../lib/engine/store";
@@ -7,6 +8,9 @@ export const maxDuration = 300;
 export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "no-store" };
 export async function POST(request: NextRequest) {
+  const denied = await requireSeoApi(request, true);
+  if (denied) return denied;
+
   if (request.headers.get("origin") !== request.nextUrl.origin) return NextResponse.json({ error: "Richiesta non consentita." }, { status: 403, headers });
   if (Number(request.headers.get("content-length")) > 1000) return NextResponse.json({ error: "Richiesta non valida." }, { status: 400, headers });
   let raw;

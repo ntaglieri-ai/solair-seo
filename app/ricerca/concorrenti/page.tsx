@@ -1,3 +1,4 @@
+import { requireSeoPage } from "../../../lib/crm-auth";
 import Link from "next/link";
 import { ResearchShell } from "../shell";
 import { getMarket,researchAccess } from "../../../lib/research-store";
@@ -10,7 +11,7 @@ import styles from "../research.module.css";
 export const dynamic="force-dynamic";
 export const metadata={title:"Concorrenti | SolairSEO"};
 const topics=[{name:"Fotovoltaico",pattern:/fotovoltaic/i},{name:"Accumulo",pattern:/accumul|batteri/i},{name:"Configuratore",pattern:/configurator|calcol.*risparm/i},{name:"Imprese",pattern:/aziend|impres|industr/i}];
-export default async function Competitors(){
+async function Competitors(){
   const [market,inputs,editable]=await Promise.all([safeRead("concorrenti",()=>getMarket("solairgroup.it")),safeRead("pagine Solair",()=>getEngineInputs("solairgroup.it")),researchAccess()]);
   const scanned=(market?.batch?.data??[]).filter(scan=>market?.rivals.some(r=>r.enabled&&r.domain===scan.domain));
   const own=inputs?.technical;
@@ -28,4 +29,9 @@ export default async function Competitors(){
       <p className={styles.note}>Prima di proporre contenuti nuovi, confrontiamo queste evidenze con le ricerche reali di Solair. Un tema presente nel campione di un concorrente non diventa automaticamente un’attività da finanziare.</p><Link className={styles.back} href="/ricerca">Confronta le query di Solair →</Link>
     </>}
   </ResearchShell>;
+}
+
+export default async function AuthorizedPage(...args: Parameters<typeof Competitors>) {
+  await requireSeoPage();
+  return Competitors(...args);
 }

@@ -1,3 +1,4 @@
+import { requireSeoPage } from "../../lib/crm-auth";
 import Link from "next/link";
 import { OperationFrame } from "../components/operation-frame";
 import { PerformanceLive,AnalyticsLive } from "../sezioni/[id]/live-data";
@@ -8,7 +9,7 @@ import { formatDateTime } from "../../lib/format";
 import styles from "../operazioni.module.css";
 export const dynamic="force-dynamic";
 export const metadata={title:"Current Status | SolairSEO"};
-export default async function CurrentStatus({searchParams}:{searchParams:Promise<{partial?:string}>}){
+async function CurrentStatus({searchParams}:{searchParams:Promise<{partial?:string}>}){
   const [attempts,params]=await Promise.all([safeRead("current status",()=>getLatestAttempts("solairgroup.it")),searchParams]);
   return <OperationFrame title="Current Status" intro="I dati disponibili sul sito, con la data della raccolta e il periodo a cui si riferiscono." current="/current-status">
     {params.partial==="1"&&<p className={styles.notice}>L’aggiornamento è parziale. Per alcune fonti restano visibili i dati precedenti: controlla le date prima di confrontarli.</p>}
@@ -18,4 +19,9 @@ export default async function CurrentStatus({searchParams}:{searchParams:Promise
     <div className={styles.panel}><AnalyticsLive siteId="solairgroup.it"/></div>
     <div className={styles.links}><Link href="/analisi">Leggi l’ultima analisi →</Link><Link href="/ricerca">Approfondisci keyword e fonti →</Link></div>
   </OperationFrame>;
+}
+
+export default async function AuthorizedPage(...args: Parameters<typeof CurrentStatus>) {
+  await requireSeoPage();
+  return CurrentStatus(...args);
 }

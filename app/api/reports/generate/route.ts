@@ -1,3 +1,4 @@
+import { requireSeoApi } from "../../../../lib/crm-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { authorizedEngine } from "../../../../lib/engine/auth";
 import { generateReportDocument, ReportWindowError } from "../../../../lib/report-documents/store";
@@ -8,6 +9,9 @@ export const maxDuration=60;
 const headers={"Cache-Control":"no-store"};
 /** Esporta solo fonti già archiviate del sito fisso. Non avvia raccolte né consumi AI. */
 export async function POST(request:NextRequest){
+  const denied = authorizedEngine(request) ? null : await requireSeoApi(request, true);
+  if (denied) return denied;
+
   if(!authorizedEngine(request)&&request.headers.get("origin")!==request.nextUrl.origin)return NextResponse.json({error:"Richiesta non consentita."},{status:403,headers});
   let input:{kind?:"startup"|"monthly"|"update";snapshotId?:string;geoScanId?:string;geoRefreshFailed?:boolean;sourceRefreshFailed?:boolean};
   try{

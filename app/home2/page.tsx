@@ -1,3 +1,4 @@
+import { requireSeoPage } from "../../lib/crm-auth";
 import Link from "next/link";
 import { ComparisonPeriods } from "../components/comparison-periods";
 import { comparisonPeriods, formatPeriod } from "../../lib/comparison-periods";
@@ -47,7 +48,7 @@ async function readOverview() {
   return { gsc, ga4, plan:{...plan,actions:[...pending.values()]}, attempts, ai };
 }
 
-export default async function Home() {
+async function Home() {
   const siteId = baselineAudit.domain;
   const { gsc, ga4, plan, attempts, ai } = await readOverview();
   const periodEnd = gsc?.lastDate ?? ga4?.lastDate;
@@ -163,4 +164,9 @@ export default async function Home() {
       </div>
     </main>
   );
+}
+
+export default async function AuthorizedPage(...args: Parameters<typeof Home>) {
+  await requireSeoPage();
+  return Home(...args);
 }

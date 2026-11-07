@@ -1,11 +1,14 @@
+import { requireSeoApi, canWriteSeo } from "../../../../lib/crm-auth";
 import { NextRequest, NextResponse } from "next/server";
-import { OPERATOR_COOKIE, validOperatorToken } from "../../../../lib/operator";
 import { parseGeoSettings } from "../../../../lib/geo/settings";
 import { saveGeoSettings } from "../../../../lib/geo/store";
 export const dynamic = "force-dynamic";
 export async function PATCH(request: NextRequest) {
+  const denied = await requireSeoApi(request, true);
+  if (denied) return denied;
+
   const headers = { "Cache-Control": "no-store" };
-  if (request.headers.get("origin") !== request.nextUrl.origin || !validOperatorToken(request.cookies.get(OPERATOR_COOKIE)?.value, process.env.CRON_SECRET))
+  if (request.headers.get("origin") !== request.nextUrl.origin || !await canWriteSeo())
     return NextResponse.json({ error: "Accedi alla gestione per salvare le impostazioni." }, { status: 401, headers });
   let input;
   try {

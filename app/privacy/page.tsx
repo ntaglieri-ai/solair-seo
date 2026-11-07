@@ -1,9 +1,10 @@
+import { requireSeoPage } from "../../lib/crm-auth";
 import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Privacy e dati Google | MosTag Audit Suite" };
 
-export default function PrivacyPage() {
+function PrivacyPage() {
   return (
     <main className="dashboard section-page">
       <header className="detail-hero">
@@ -39,4 +40,9 @@ export default function PrivacyPage() {
       </section>
     </main>
   );
+}
+
+export default async function AuthorizedPage(...args: Parameters<typeof PrivacyPage>) {
+  await requireSeoPage();
+  return PrivacyPage(...args);
 }

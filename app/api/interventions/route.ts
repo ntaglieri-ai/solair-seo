@@ -1,11 +1,14 @@
+import { requireSeoApi, canWriteSeo } from "../../../lib/crm-auth";
 import { NextRequest, NextResponse } from "next/server";
-import { OPERATOR_COOKIE, validOperatorToken } from "../../../lib/operator";
 import { getWork, saveWork, captureMeasurement } from "../../../lib/interventions-store";
 import { newWorkItem, transitionWork, workIdentity } from "../../../lib/interventions";
 import { readActionPlan } from "../../data/read-action-plan";
 
 export async function PATCH(req:NextRequest) {
-  if(req.headers.get("origin")!==req.nextUrl.origin || !validOperatorToken(req.cookies.get(OPERATOR_COOKIE)?.value,process.env.CRON_SECRET))
+  const denied = await requireSeoApi(req, true);
+  if (denied) return denied;
+
+  if(req.headers.get("origin")!==req.nextUrl.origin || !await canWriteSeo())
     return NextResponse.json({error:"Accedi alla gestione interventi per modificare il piano."},{status:401});
   let body;try{body=await req.json();}catch{return NextResponse.json({error:"Richiesta non valida."},{status:400});}
   if(typeof body?.actionId!=="string" || body.actionId.length>1000) return NextResponse.json({error:"Intervento non valido."},{status:400});

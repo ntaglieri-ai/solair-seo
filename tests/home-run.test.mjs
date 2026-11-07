@@ -4,11 +4,12 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import ts from 'typescript';
 const require=createRequire(import.meta.url),Module=require('node:module');
-const {NextRequest}=require('next/server');
+const {NextRequest,NextResponse}=require('next/server');
 const state={slot:true,calls:[],result:{ok:true,steps:{}},snapshot:{id:'11111111-1111-4111-8111-111111111111'},throw:false,operator:false,geoEnabled:true,geoConfigured:true};
 const originalLoad=Module._load,previousExtension=require.extensions['.ts'];
 require.extensions['.ts']=(module,file)=>module._compile(ts.transpileModule(readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,file);
 Module._load=function(id,...rest){
+  if(id.endsWith('/lib/crm-auth'))return {canWriteSeo:async()=>state.operator,requireSeoApi:async()=>state.denied?NextResponse.json({error:'CRM'},{status:state.denied}):null};
   if(id==='../../../lib/operator')return {OPERATOR_COOKIE:'solair_operator',validOperatorToken:()=>state.operator};
   if(id==='../../../lib/geo/store')return {getGeoSettings:async()=>({enabled:state.geoEnabled,engine:'gemini'})};
   if(id==='../../../lib/geo/run-scan')return {geoConfigured:()=>state.geoConfigured};
@@ -74,4 +75,13 @@ test('home offers the paid Gemini continuation only to authenticated operators w
   state.operator=true;assert.equal((await (await POST(request({mode:'analysis'}))).json()).geoAvailable,true);
   state.geoEnabled=false;assert.equal((await (await POST(request({mode:'analysis'}))).json()).geoAvailable,false);
   state.geoEnabled=true;state.geoConfigured=false;assert.equal((await (await POST(request({mode:'analysis'}))).json()).geoAvailable,false);
+});
+
+test('CRM denial prevents any collection, including same-origin browser requests',async()=>{
+  reset();
+  for(const status of [401,403,503]){
+    state.denied=status;
+    assert.equal((await POST(request({mode:"analysis"}))).status,status);
+  }
+  assert.equal(state.calls.length,0);state.denied=0;
 });

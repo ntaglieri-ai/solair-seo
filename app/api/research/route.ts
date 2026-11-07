@@ -1,10 +1,13 @@
+import { requireSeoApi, canWriteSeo } from "../../../lib/crm-auth";
 import { NextRequest,NextResponse } from "next/server";
 import { createHash } from "node:crypto";
-import { OPERATOR_COOKIE,validOperatorToken } from "../../../lib/operator";
 import { getSql } from "../../../lib/db";
 import { backlinkRows,normalizeQuery,publicUrl,siteHost,validDate,validateObservation } from "../../../lib/free-research";
 export async function POST(req:NextRequest){
-  if(req.headers.get("origin")!==req.nextUrl.origin||!validOperatorToken(req.cookies.get(OPERATOR_COOKIE)?.value,process.env.CRON_SECRET))return NextResponse.json({error:"Accedi come operatore per aggiornare queste fonti."},{status:401});
+  const denied = await requireSeoApi(req, true);
+  if (denied) return denied;
+
+  if(req.headers.get("origin")!==req.nextUrl.origin||!await canWriteSeo())return NextResponse.json({error:"Accedi come operatore per aggiornare queste fonti."},{status:401});
   if(Number(req.headers.get("content-length"))>1_100_000)return NextResponse.json({error:"File troppo grande."},{status:413});
   const sql=getSql(),site="solairgroup.it";
   try{

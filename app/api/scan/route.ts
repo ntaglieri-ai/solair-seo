@@ -1,3 +1,4 @@
+import { requireSeoApi } from "../../../lib/crm-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { fetchPageHtml, scanOnPage } from "../../../lib/onpage-scan";
 import { scanGeo } from "../../../lib/geo-scan";
@@ -18,6 +19,9 @@ export const maxDuration = 30;
  * Override esplicito proprietà GSC: GET /api/scan?url=...&property=sc-domain:esempio.it
  */
 export async function GET(request: NextRequest) {
+  const denied = await requireSeoApi(request, true);
+  if (denied) return denied;
+
   const url = request.nextUrl.searchParams.get("url");
   const propertyOverride = request.nextUrl.searchParams.get("property");
 

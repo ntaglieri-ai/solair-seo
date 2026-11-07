@@ -1,14 +1,17 @@
+import { requireSeoApi, canWriteSeo } from "../../../lib/crm-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { collectAiChecks } from "../../../lib/ai-collection";
 import { authorizedEngine } from "../../../lib/engine/auth";
-import { OPERATOR_COOKIE, validOperatorToken } from "../../../lib/operator";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 180;
 const headers = { "Cache-Control": "no-store" };
 export async function POST(request: NextRequest) {
+  const denied = authorizedEngine(request) ? null : await requireSeoApi(request, true);
+  if (denied) return denied;
+
   const machine = authorizedEngine(request);
-  const operator = validOperatorToken(request.cookies.get(OPERATOR_COOKIE)?.value, process.env.CRON_SECRET);
+  const operator = await canWriteSeo();
   if (!machine && (!operator || request.headers.get("origin") !== request.nextUrl.origin)) return NextResponse.json({ error: "Accedi alla gestione fonti per avviare la verifica AI." }, { status: 401, headers });
   try {
     if (Number(request.headers.get("content-length")) > 1000) throw new Error();

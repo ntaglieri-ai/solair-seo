@@ -1,3 +1,4 @@
+import { requireSeoPage } from "../../../lib/crm-auth";
 import { ResearchShell } from "../shell";
 import { getBacklinks,researchAccess } from "../../../lib/research-store";
 import { safeRead } from "../../../lib/engine/safe";
@@ -9,7 +10,7 @@ import { LinkTable } from "./link-table";
 import styles from "../research.module.css";
 export const dynamic="force-dynamic";
 export const metadata={title:"Backlink | SolairSEO"};
-export default async function Backlinks(){
+async function Backlinks(){
   const [data,editable]=await Promise.all([safeRead("backlink",()=>getBacklinks("solairgroup.it")),researchAccess()]);
   const latest=data?.[0],previous=data?.[1];const changes=backlinkChanges(latest?.data??[],previous?.data??null);
   return <ResearchShell current="/ricerca/backlink" title="I collegamenti verso Solair." intro="Link esterni documentati da Search Console, conservati per data. Un archivio verificabile, senza stime di autorevolezza inventate.">
@@ -22,4 +23,9 @@ export default async function Backlinks(){
     </>}
     <details className={styles.panel}><summary>Come leggere questi dati</summary><p className={styles.note}>I link non equivalgono a raccomandazioni né a un punteggio di autorità. Google mostra un campione di collegamenti conosciuti e ne consente l’esportazione. <a href="https://support.google.com/webmasters/answer/9049606?hl=it" target="_blank" rel="noreferrer">Documentazione Google ↗</a></p></details>
   </ResearchShell>;
+}
+
+export default async function AuthorizedPage(...args: Parameters<typeof Backlinks>) {
+  await requireSeoPage();
+  return Backlinks(...args);
 }

@@ -1,6 +1,6 @@
+import { requireSeoApi, canWriteSeo } from "../../../../lib/crm-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { authorizedEngine } from "../../../../lib/engine/auth";
-import { OPERATOR_COOKIE, validOperatorToken } from "../../../../lib/operator";
 import { runGeoScan } from "../../../../lib/geo/run-scan";
 
 export const dynamic = "force-dynamic";
@@ -9,8 +9,11 @@ const headers = { "Cache-Control": "no-store" };
 
 /** Avvio manuale della scansione di livello 2: solo operatore (stessa origine) o motore con CRON_SECRET. */
 export async function POST(request: NextRequest) {
+  const denied = authorizedEngine(request) ? null : await requireSeoApi(request, true);
+  if (denied) return denied;
+
   const machine = authorizedEngine(request);
-  const operator = validOperatorToken(request.cookies.get(OPERATOR_COOKIE)?.value, process.env.CRON_SECRET);
+  const operator = await canWriteSeo();
   if (!machine && (!operator || request.headers.get("origin") !== request.nextUrl.origin)) {
     return NextResponse.json({ error: "Accedi alla gestione per avviare la scansione." }, { status: 401, headers });
   }

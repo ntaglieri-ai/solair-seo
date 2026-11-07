@@ -7,8 +7,8 @@ export type Rival={domain:string;name:string;reason:string;enabled:boolean};
 export type RivalScan={domain:string;name:string;pages:CrawlPage[];limitations:string[];complete:boolean;scannedAt:string};
 export type Observation={id:string;engine:string;question:string;context:string;date:string;answer:string;evidenceUrl:string|null;sources:string[];mentionsBrand:boolean;citesSite:boolean};
 export async function researchAccess(){
-  const {cookies}=await import("next/headers");const {OPERATOR_COOKIE,validOperatorToken}=await import("./operator");
-  return validOperatorToken((await cookies()).get(OPERATOR_COOKIE)?.value,process.env.CRON_SECRET);
+  const { canWriteSeo } = await import("./crm-auth");
+  return canWriteSeo();
 }
 export async function getKeywords(siteId:string){
   const sql=getSql();const [batches,watch]=await Promise.all([

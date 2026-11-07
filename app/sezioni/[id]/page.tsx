@@ -1,3 +1,4 @@
+import { requireSeoPage } from "../../../lib/crm-auth";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { baselineAudit, type AuditArea } from "../../data/audit-baseline";
@@ -280,7 +281,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function SectionPage({
+async function SectionPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -329,4 +330,9 @@ export default async function SectionPage({
   }
 
   notFound();
+}
+
+export default async function AuthorizedPage(...args: Parameters<typeof SectionPage>) {
+  await requireSeoPage();
+  return SectionPage(...args);
 }

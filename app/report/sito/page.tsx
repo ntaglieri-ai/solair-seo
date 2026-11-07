@@ -1,3 +1,4 @@
+import { requireSeoPage } from "../../../lib/crm-auth";
 import Link from "next/link";
 import { OperationFrame } from "../../components/operation-frame";
 import { ExportButton } from "../[id]/export-button";
@@ -15,7 +16,7 @@ function Sources({ items }: { items: AuditEvidence[] }) {
   return <details><summary>Su quali elementi si basa</summary>{items.map((item, index) => <div className={styles.sourceEvidence} key={`${item.url}:${index}`}><a href={item.url} target="_blank" rel="noreferrer">{item.url}</a><p>{item.detail}</p></div>)}</details>;
 }
 
-export default async function PublicSiteReport({ searchParams }: { searchParams: Promise<{ id?: string; audit?: string }> }) {
+async function PublicSiteReport({ searchParams }: { searchParams: Promise<{ id?: string; audit?: string }> }) {
   const { id, audit } = await searchParams;
   const report = id ? await safeRead("riferimento report pubblico", () => readReport(id)) : null;
   const batch = id
@@ -35,4 +36,9 @@ export default async function PublicSiteReport({ searchParams }: { searchParams:
       <section className={styles.panel}><details><summary>Copertura, metodo e misure tecniche</summary><p>Metodo {analysis.version}. L’analisi legge contenuti pubblici e collegamenti; non consulta account Google, dati di traffico o risposte di servizi AI. Le letture editoriali sono ipotesi motivate dai riscontri, non una verifica esaustiva della qualità.</p><ul>{[...analysis.limits, ...batch!.data.limitations].map((note, index) => <li key={index}>{note}</li>)}</ul>{batch!.data.pages.map((page, index) => <article className={styles.recommendation} key={`${page.url}:${index}`}><h3>{page.url}</h3><p>HTTP {page.status ?? "non rilevato"} · {page.content ? `${formatInt(page.content.words)} parole HTML` : "contenuto non rilevato"}</p>{page.download && <p>Download HTML dal server di raccolta: {formatInt(page.download.milliseconds)} ms · {formatInt(page.download.bytes)} byte. Non è una misura di caricamento nel browser.</p>}<p><strong>Titolo:</strong> {page.title || "Non rilevato"}<br /><strong>Descrizione:</strong> {page.description || "Non rilevata"}</p>{page.profile?.frames.length ? <p>Contenuti incorporati: {page.profile.frames.join(", ")}. Il funzionamento dei percorsi incorporati non è verificato da questa lettura HTML.</p> : null}</article>)}<p>Velocità nel browser, Core Web Vitals, volumi delle ricerche, posizionamenti, backlink e citazioni nelle risposte AI non sono misurati da questa raccolta.</p><p>Riferimento metodologico: <a href="https://developers.google.com/search/docs/appearance/ai-features">indicazioni Google su contenuti e funzionalità AI</a>. I dati strutturati non sono un requisito speciale o una garanzia di citazione.</p></details></section>
     </>}
   </OperationFrame>;
+}
+
+export default async function AuthorizedPage(...args: Parameters<typeof PublicSiteReport>) {
+  await requireSeoPage();
+  return PublicSiteReport(...args);
 }

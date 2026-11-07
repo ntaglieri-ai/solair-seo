@@ -1,3 +1,4 @@
+import { requireSeoPage } from "../../lib/crm-auth";
 import { ComparisonPeriods } from "../components/comparison-periods";
 import { ResearchShell } from "./shell";
 import { getKeywords,researchAccess } from "../../lib/research-store";
@@ -12,7 +13,7 @@ import Link from "next/link";
 import styles from "./research.module.css";
 export const dynamic="force-dynamic";
 export const metadata={title:"Keyword | SolairSEO"};
-export default async function Keywords(){
+async function Keywords(){
   const [data,editable]=await Promise.all([safeRead("ricerca keyword",()=>getKeywords("solairgroup.it")),researchAccess()]);
   const evidence=data?.latest?.data;const rows=evidence?keywordRows(evidence,data!.watched):[];
   return <ResearchShell current="/ricerca" title="Le ricerche che portano a Solair." intro="Query, clic e posizione media misurati da Google. Un punto di partenza concreto per scegliere quali pagine migliorare.">
@@ -26,4 +27,9 @@ export default async function Keywords(){
       <Link className={styles.back} href="/interventi">Consulta gli interventi proposti →</Link>
     </section>}
   </ResearchShell>;
+}
+
+export default async function AuthorizedPage(...args: Parameters<typeof Keywords>) {
+  await requireSeoPage();
+  return Keywords(...args);
 }
