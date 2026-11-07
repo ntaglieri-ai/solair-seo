@@ -8,6 +8,6 @@ export async function HeroActions() {
   const docs = await safeRead("hero ultimo report", () => getDocumentArchive(1));
   return <div className={base.heroActions}>
     <Link className={base.primary} href={docs?.length ? "/report/ultimo" : "/report"}>{docs?.length ? "Apri l’ultimo report" : "Vai ai report"}<span aria-hidden="true">↗</span></Link>
-    <Link className={base.secondary} href="#google">Vedi i risultati<span aria-hidden="true">↓</span></Link>
+    <Link className={base.secondary} href="#stato">Vedi i risultati<span aria-hidden="true">↓</span></Link>
   </div>;
 }

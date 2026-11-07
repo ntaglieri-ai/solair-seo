@@ -1,0 +1,38 @@
+.dash { --navy:#16264A; --teal:#2A6F66; --line:#E3E8F0; --muted:#6B7891; --ink:#16264A; position:relative; z-index:2; margin-top:calc(-1 * var(--overlap)); font-family:inherit; }
+.cards { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; }
+.card { display:flex; flex-direction:column; padding:20px; border:1px solid var(--line); border-radius:14px; background:#fff; box-shadow:0 10px 30px #16264a1a; color:var(--ink); }
+.lab { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:26px; color:var(--muted); font-size:12px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; }
+.big { margin:10px 0 2px; font-size:38px; font-weight:700; letter-spacing:-.03em; line-height:1.1; font-variant-numeric:tabular-nums; }
+.big small { margin-left:4px; color:var(--muted); font-size:16px; font-weight:600; letter-spacing:0; }
+.kind { margin:12px 0 2px; font-size:28px; font-weight:700; letter-spacing:-.02em; }
+.cap { margin:0; color:var(--muted); font-size:13.5px; line-height:1.5; }
+.spark { display:flex; align-items:flex-end; gap:3px; height:34px; margin-top:auto; padding-top:14px; box-sizing:content-box; }
+.spark i { flex:1; border-radius:2px; background:#CFE3DC; }
+.spark i:last-child { background:var(--teal); }
+.pill { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:99px; background:#E8F4F0; color:#1F6B5E; font-size:11px; font-weight:700; letter-spacing:.03em; text-transform:uppercase; white-space:nowrap; }
+.pill::before { content:""; width:7px; height:7px; border-radius:50%; background:#2A9D83; }
+.pill[data-tone="amber"] { background:#FFF3DC; color:#8F6410; } .pill[data-tone="amber"]::before { background:#E0A21E; }
+.pill[data-tone="red"] { background:#FDECEA; color:#A3361F; } .pill[data-tone="red"]::before { background:#D4492F; }
+.pill[data-tone="grey"] { background:#EEF1F6; color:#55627A; } .pill[data-tone="grey"]::before { background:#97A3B8; }
+.btns { display:flex; flex-wrap:wrap; gap:8px; margin-top:auto; padding-top:16px; }
+.btn { display:inline-flex; align-items:center; padding:9px 14px; border:1px solid #D5DCE8; border-radius:9px; background:#fff; color:var(--navy); font-size:13px; font-weight:600; transition:border-color 150ms; }
+.btn:hover { border-color:var(--teal); }
+.btn[data-primary] { border-color:var(--navy); background:var(--navy); color:#fff; }
+.lower { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); gap:16px; margin-top:16px; }
+.panel { padding:22px 24px; border:1px solid var(--line); border-radius:14px; background:#fff; box-shadow:0 1px 2px #16264a0a; color:var(--ink); }
+.panelHead { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:6px; }
+.panelHead h2 { margin:0; font-size:16px; font-weight:700; }
+.more { color:var(--teal); font-size:13px; font-weight:600; }
+.act { display:grid; grid-template-columns:28px minmax(0,1fr) auto; align-items:center; gap:14px; padding:14px 0; border-top:1px solid #EDF0F5; }
+.act:first-of-type { border-top:0; }
+.n { display:grid; place-items:center; width:26px; height:26px; border-radius:8px; background:#EEF3F8; font-size:12px; font-weight:700; }
+.act b { display:block; font-size:14.5px; line-height:1.4; } .act span.p { color:var(--muted); font-size:12.5px; }
+.empty { margin:10px 0 0; color:var(--muted); font-size:14px; line-height:1.6; }
+.step { display:grid; grid-template-columns:22px minmax(0,1fr); gap:12px; padding:10px 0; }
+.dot { width:12px; height:12px; margin-top:4px; border-radius:50%; background:#2A9D83; }
+.dot[data-off] { border:2px solid #C5CEDD; background:#fff; }
+.step b { display:block; font-size:14px; } .step span { color:var(--muted); font-size:13px; line-height:1.45; }
+.src { display:flex; justify-content:space-between; padding:9px 0; border-top:1px solid #EDF0F5; font-size:13.5px; }
+.src b { font-weight:600; color:#1F6B5E; } .src b[data-off] { color:#8A94A8; }
+@media (max-width:1100px) { .cards { grid-template-columns:repeat(2,minmax(0,1fr)); } .lower { grid-template-columns:1fr; } }
+@media (max-width:560px) { .cards { grid-template-columns:1fr; } }

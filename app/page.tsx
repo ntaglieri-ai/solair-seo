@@ -3,12 +3,8 @@ import { baselineAudit } from "./data/audit-baseline";
 import { SiteHeader } from "./components/site-header";
 import { HeroPhoto } from "./components/hero-photo";
 import { fontVariables } from "./fonts";
-import { HomeNow } from "./components/home-now";
-import { HomeAi } from "./components/home-ai";
-import { HomeFunctions } from "./components/home-functions";
+import { HomeDashboard } from "./components/home-dashboard";
 import { HeroActions } from "./components/hero-actions";
-import { HomeActions } from "./components/home-actions";
-import overview from "./components/overview.module.css";
 import base from "./home.module.css";
 import styles from "./launch.module.css";
 
@@ -28,10 +24,7 @@ export default function Home() {
         </div>
       </section>
       <div className={styles.content}>
-        <HomeNow />
-        <HomeAi />
-        <div className={overview.panel}><HomeActions /></div>
-        <HomeFunctions />
+        <HomeDashboard />
         <footer className={styles.footer}><span>Solair Group · solairgroup.it</span><Link href="/privacy">Privacy</Link></footer>
       </div>
     </main>
