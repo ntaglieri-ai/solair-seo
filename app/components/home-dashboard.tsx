@@ -21,7 +21,7 @@ export async function HomeDashboard() {
     readHomePerformance(siteId), safeRead("home Gemini", () => readHomeGemini(siteId)),
     safeRead("home report", () => getDocumentArchive(30)), safeRead("home interventi", () => readReport()),
   ]);
-  const { gsc, ga4 } = perf;
+  const { gsc } = perf;
   let weeks = (await safeRead("home settimane", () => getGscWeekly(siteId, 14))) ?? [];
   while (weeks.length && weeks[0].clicks === 0 && weeks[0].impressions === 0) weeks = weeks.slice(1);
   if (gsc?.lastDate && new Date(`${gsc.lastDate}T12:00:00Z`).getUTCDay() !== 0) weeks = weeks.slice(0, -1);
@@ -70,9 +70,6 @@ export async function HomeDashboard() {
           <div className={styles.step}><span className={styles.dot} data-off={hasStartup ? undefined : ""} /><div><b>Start-up{hasStartup ? " · fatto" : ""}</b><span>Punto di partenza: Google e Gemini prima degli interventi</span></div></div>
           <div className={styles.step}><span className={styles.dot} data-off="" /><div><b>Report mensile · dal {formatDate(nextMonthly())}</b><span>Automatico, con il confronto sul mese precedente</span></div></div>
           <div className={styles.step}><span className={styles.dot} data-off="" /><div><b>Aggiornamento · quando serve</b><span>Fotografia dall’ultimo report a oggi</span></div></div>
-          <div className={styles.srcs}>
-            {([["Search Console", !!gsc?.lastDate], ["Analytics", !!ga4?.lastDate], ["Gemini", !!gemini?.settings?.enabled]] as const).map(([name, on]) => <div className={styles.src} key={name}><span>{name}</span><b data-off={on ? undefined : ""}>{on ? "Collegato" : "Non attivo"}</b></div>)}
-          </div>
         </section>
       </div>
     </section>
