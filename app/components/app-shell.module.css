@@ -37,3 +37,6 @@
 .pill::before { content:""; width:7px; height:7px; border-radius:50%; background:#2A9D83; }
 .pill[data-tone="amber"] { background:#FFF3DC; color:#8F6410; } .pill[data-tone="amber"]::before { background:#E0A21E; }
 @media (max-width:900px) { .top { padding:0 16px; min-height:56px; } .crumb small { display:none; } }
+.footLinks { display:flex; align-items:center; gap:16px; margin-top:12px; }
+.footLinks form { margin:0; }
+.footLinks a, .footLinks .out { font-size:13px; }

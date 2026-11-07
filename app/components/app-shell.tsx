@@ -25,7 +25,7 @@ export function StatusPill({ ok, children }: { ok: boolean; children: ReactNode 
   return <span className={styles.pill} data-tone={ok ? undefined : "amber"}>{children}</span>;
 }
 
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({ children, dataDate = null }: { children: ReactNode; dataDate?: string | null }) {
   const pathname = usePathname();
   if (pathname.startsWith("/auth")) return <>{children}</>;
   return (
@@ -42,9 +42,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         </nav>
         <div className={styles.foot}>
           <b>{baselineAudit.domain}</b>
-          Solair Group
-          <form action="/auth/logout" method="post"><button className={styles.out} type="submit">Esci</button></form>
-          <div style={{ marginTop: 8 }}><Link href="/privacy">Privacy</Link></div>
+          {dataDate ? `Dati Search Console al ${dataDate}` : "Solair Group"}
+          <div className={styles.footLinks}>
+            <form action="/auth/logout" method="post"><button className={styles.out} type="submit">Esci</button></form>
+            <Link href="/privacy">Privacy</Link>
+          </div>
         </div>
       </aside>
       <div className={styles.main}>{pathname !== "/" && <Topbar title={items.find(i => i.active(pathname))?.label ?? "Solair SEO"} />}{children}</div>
