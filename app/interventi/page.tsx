@@ -2,7 +2,7 @@ import { requireSeoPage } from "../../lib/crm-auth";
 import Image from "next/image";
 import { cookies } from "next/headers";
 import Link from "next/link";
-import { ArrowLeft, ArrowUpRight, Check, Search, ShieldCheck } from "lucide-react";
+import { ArrowUpRight, Check, Search, ShieldCheck } from "lucide-react";
 import { baselineAudit } from "../data/audit-baseline";
 import { actionTitle, pageLabel } from "../data/action-plan";
 import { readActionPlan } from "../data/read-action-plan";
@@ -39,7 +39,6 @@ async function InterventionsPage() {
     <main className={`${styles.page} ${fontVariables}`}>
       <SiteHeader compact current="/interventi" />
       <div className={styles.content}>
-        <Link className={styles.homeLink} href="/"><ArrowLeft size={18} aria-hidden="true" />Home</Link>
         <header className={styles.heading}>
           <div>
             <p className={styles.eyebrow}>Il prossimo passo</p>

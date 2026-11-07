@@ -1,9 +1,9 @@
-.overview{display:grid;grid-template-columns:1.3fr 1fr;border:1px solid #d5e4dc;border-radius:24px;overflow:hidden;background:white;box-shadow:0 20px 50px #17382b0a;margin:24px 0 32px}
+.overview{display:grid;grid-template-columns:1.3fr 1fr;border:1px solid #DCE3EB;border-radius:24px;overflow:hidden;background:white;box-shadow:0 20px 50px #17382b0a;margin:24px 0 32px}
 .intro{padding:36px;background:linear-gradient(135deg,#edf8f0,#fff)}
 .intro h2{font-size:clamp(26px,3vw,36px);line-height:1.25;margin:14px 0 20px;color:#183e2e}
 .intro p,.method p{font-size:17px;line-height:1.75;color:#4d685c;max-width:65ch}
 .eyebrow{font-size:13px;font-weight:700;color:#267246;letter-spacing:.06em;text-transform:uppercase}
-.method{padding:36px;background:#edf3fa;border-left:1px solid #d5e4dc}
+.method{padding:36px;background:#edf3fa;border-left:1px solid #DCE3EB}
 .method h3{font-size:21px;color:#284c6b;margin:0 0 20px}
 .method p{font-size:15px}
 .batchHeading{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px}
@@ -17,4 +17,4 @@
 .answerCard{padding:24px 0;border-top:1px solid #dce8df;overflow-wrap:anywhere}
 .answerCard h3{font-size:19px!important;line-height:1.55;margin-top:0!important}
 .answerCard details{margin:18px 0 0}
-@media(max-width:800px){.overview{grid-template-columns:1fr}.method{border-left:0;border-top:1px solid #d5e4dc}.intro,.method{padding:26px}.metrics{grid-template-columns:1fr}.metrics strong{font-size:32px}}
+@media(max-width:800px){.overview{grid-template-columns:1fr}.method{border-left:0;border-top:1px solid #DCE3EB}.intro,.method{padding:26px}.metrics{grid-template-columns:1fr}.metrics strong{font-size:32px}}

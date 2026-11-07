@@ -1,5 +1,5 @@
 :root {
-  --background: #f4f6f5;
+  --background: #F3F7F6;
   --foreground: #172033;
   --muted: #69778a;
   --panel: #ffffff;
@@ -384,7 +384,7 @@ h1 {
   flex: 0 0 auto;
   border: 1px solid rgba(24, 183, 106, 0.35);
   border-radius: 999px;
-  background: #eaf8f1;
+  background: #E8F4F0;
   padding: 8px 11px;
   color: var(--accent-dark);
   font-size: 13px;
@@ -537,7 +537,7 @@ h1 {
 }
 
 .report-page {
-  background: #f4f6f5;
+  background: #F3F7F6;
 }
 
 .report-header {
@@ -770,7 +770,7 @@ h1 {
 .open-badge {
   margin-left: auto;
   border-color: rgba(24, 183, 106, 0.35);
-  background: #eaf8f1;
+  background: #E8F4F0;
   color: var(--accent-dark);
 }
 
@@ -820,7 +820,7 @@ h1 {
 
 .status-attivo {
   border-color: rgba(24, 183, 106, 0.35);
-  background: #eaf8f1;
+  background: #E8F4F0;
   color: var(--accent-dark);
 }
 
@@ -874,7 +874,7 @@ h1 {
 
 .performance-status-ok {
   border-color: rgba(24, 183, 106, 0.35);
-  background: #eaf8f1;
+  background: #E8F4F0;
   color: var(--accent-dark);
 }
 

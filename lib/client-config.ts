@@ -30,14 +30,14 @@ export type ClientConfig = {
 };
 
 const defaultTheme: ThemeConfig = {
-  background: "#f4f6f5",
-  foreground: "#172033",
-  muted: "#69778a",
+  background: "#F4F6FA",
+  foreground: "#16264A",
+  muted: "#6B7891",
   panel: "#ffffff",
-  panelSoft: "#eef4f1",
-  border: "#dce3e8",
-  accent: "#18b76a",
-  accentDark: "#0e7f4b",
+  panelSoft: "#F3F7F6",
+  border: "#E3E8F0",
+  accent: "#2A6F66",
+  accentDark: "#16264A",
   warning: "#b87a0d",
   blue: "#315f9f",
   inkSoft: "#233146",
