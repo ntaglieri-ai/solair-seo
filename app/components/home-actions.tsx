@@ -15,7 +15,7 @@ export async function HomeActions() {
         <div><h2 id="actions-title">Cosa fare ora</h2><p>Dall’ultima analisi · nessuna modifica è applicata in automatico</p></div>
         <Link className={styles.link} href="/interventi">Tutti gli interventi <ArrowUpRight size={17} aria-hidden="true" /></Link>
       </header>
-      {!items.length ? <p className={styles.empty}>{report ? "L’ultima analisi non indica interventi prioritari. Non dimostra l’assenza di opportunità." : "Genera un report per vedere gli interventi consigliati."}</p>
+      {!items.length ? <p className={styles.empty}>{report ? "L’ultima analisi non indica interventi prioritari. Non dimostra l’assenza di opportunità." : "Gli interventi consigliati compaiono con il primo report."}</p>
         : <ol className={styles.actions}>{items.map((a, i) => (
           <li key={a.id}><span className={styles.ordinal}>{i + 1}</span>
             <div><strong>{reportText(a.title)}</strong><span>{a.page}</span></div>
