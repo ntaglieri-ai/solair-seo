@@ -182,3 +182,22 @@
   .compact { --content: calc(100% - 32px); }
   .compact .topnav { right: 16px; }
 }
+
+.logoutForm { margin: 0; }
+.logoutButton {
+  min-height: 44px;
+  padding: 9px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+.logoutButton:hover { background: rgba(255, 255, 255, 0.1); }
+.logoutButton:focus-visible { outline: 2px solid #00bfff; outline-offset: 3px; }
+.compact .logoutButton { width: 100%; margin: 6px 0; text-align: left; }
+@media (max-width: 899px) {
+  .logoutForm { margin-top: 14px; }
+  .logoutButton { width: 100%; text-align: left; }
+}

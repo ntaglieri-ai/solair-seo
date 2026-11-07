@@ -17,6 +17,7 @@ Module._load = function(id, ...rest) {
 const auth = require('../lib/crm-auth.ts');
 const oauth = require('../lib/crm-oauth.ts');
 const { GET: callback } = require('../app/auth/callback/route.ts');
+const { POST: logout } = require('../app/auth/logout/route.ts');
 Module._load = original;
 if (extension) require.extensions['.ts'] = extension; else delete require.extensions['.ts'];
 const request = (origin = 'https://seo.example') => new Request('https://seo.example/api/home-run', { headers: { origin } });
@@ -90,5 +91,24 @@ test('OAuth callback binds state to the initiating browser and exchanges only ma
   } finally {
     globalThis.fetch = oldFetch;
     for (const key of ['CRM_SUPABASE_URL','CRM_OAUTH_CLIENT_ID','SOLAIR_SEO_URL','CRM_URL']) { if (oldEnv[key] === undefined) delete process.env[key]; else process.env[key] = oldEnv[key]; }
+  }
+});
+
+test('logout clears app and pending OAuth sessions and stays signed out without an automatic login', async () => {
+  const request = origin => new NextRequest('https://seo.example/auth/logout', {
+    method: 'POST', headers: { ...(origin ? { origin } : {}), cookie: 'solair_seo_session=jwt; solair_operator=legacy; solair_seo_oauth=pending' },
+  });
+  for (const origin of [null, 'https://foreign.example']) {
+    const denied = await logout(request(origin));
+    assert.equal(denied.status, 403); assert.equal(denied.headers.has('set-cookie'), false);
+  }
+  const response = await logout(request('https://seo.example'));
+  assert.equal(response.status, 303);
+  assert.equal(response.headers.get('location'), 'https://seo.example/auth/signed-out');
+  assert.equal(response.headers.get('cache-control'), 'no-store');
+  for (const [name,path] of [['solair_seo_session','/'],['solair_operator','/'],['solair_seo_oauth','/auth']]) {
+    assert.equal(response.cookies.get(name)?.value, '');
+    assert.equal(response.cookies.get(name)?.maxAge, 0);
+    assert.equal(response.cookies.get(name)?.path, path);
   }
 });

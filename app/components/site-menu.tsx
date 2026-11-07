@@ -79,6 +79,9 @@ export function SiteMenu({
         >
           {domain}
         </a>
+        <form className={styles.logoutForm} action="/auth/logout" method="post">
+          <button className={styles.logoutButton} type="submit" aria-label="Esci da Solair SEO">Esci</button>
+        </form>
       </nav>
     </div>
   );
