@@ -22,7 +22,7 @@ function toneOf(score: number | null) {
 }
 
 type ActionPriority = "alta" | "media" | "bassa";
-type ActionCandidate = { priority: ActionPriority; title: string; meta: string; body?: string; href: string };
+type ActionCandidate = { priority: ActionPriority; title: string; meta: string; body?: string; href: string; kicker: string };
 const PRIORITY_TONE: Record<ActionPriority, "red" | "amber" | "grey"> = { alta: "red", media: "amber", bassa: "grey" };
 const PRIORITY_RANK: Record<ActionPriority, number> = { alta: 0, media: 1, bassa: 2 };
 
@@ -64,9 +64,8 @@ export async function HomeDashboard() {
   const techPillar = visibility.pillars.find((p) => p.key === "tech")!;
   const seoDetail = gsc?.lastDate ? `${seoPillar.detail} · ${formatInt(gsc.current.clicks)} clic da Google (28 giorni)` : seoPillar.detail;
 
-  // Un'unica azione "in evidenza" dà l'impressione di aver già fatto la triage, ma con più interventi reali
-  // (SEO + eventuale gap sulla Visibilità AI) mostrarne una sola e basta non è onesto sulla quantità di lavoro:
-  // qui mescoliamo i due mondi in un'unica classifica per priorità e teniamo visibili anche i prossimi 2.
+  // SEO e Visibilità AI sono due fonti di lavoro diverse: ridurle a un'unica azione nascondeva l'altra.
+  // Qui restano due azioni in evidenza, una per fonte (quando c'è materiale), più le prossime 2 SEO sotto.
   const geoTone = toneOf(geoPillar.score);
   const geoAction = visibility.geoAction;
   const seoCandidates: ActionCandidate[] = actions.map((a) => ({
@@ -75,6 +74,7 @@ export async function HomeDashboard() {
     meta: `Pagina: ${a.page}`,
     body: a.expectedOutcome ? reportText(a.expectedOutcome) : undefined,
     href: "/interventi",
+    kicker: "SEO su Google",
   }));
   const geoCandidate: ActionCandidate | null = geoAction
     ? {
@@ -83,14 +83,15 @@ export async function HomeDashboard() {
         meta: "Ambito: Visibilità AI",
         body: geoAction.evidence.length ? reportText(geoAction.evidence.join(" ")) : undefined,
         href: "/visibilita-ai",
+        kicker: "Visibilità AI",
       }
     : null;
-  const candidates = (geoCandidate ? [...seoCandidates, geoCandidate] : seoCandidates).sort(
-    (a, b) => PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority]
-  );
-  const [spotlight, ...rest] = candidates;
-  const nextActions = rest.slice(0, 2);
-  const remainingActions = candidates.length - 1 - nextActions.length;
+  const seoSorted = [...seoCandidates].sort((a, b) => PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority]);
+  const seoSpotlight = seoSorted[0] ?? null;
+  const spotlights = [seoSpotlight, geoCandidate].filter((c): c is ActionCandidate => !!c);
+  const seoRest = seoSorted.slice(1);
+  const nextActions = seoRest.slice(0, 2);
+  const remainingActions = seoRest.length - nextActions.length;
 
   return (
     <section id="stato" className={styles.dash} aria-label="Stato del servizio">
@@ -136,17 +137,22 @@ export async function HomeDashboard() {
 
       <div className={styles.lower}>
         <section className={styles.panel} aria-labelledby="act-title">
-          <div className={styles.panelHead}><h2 id="act-title">La prossima azione</h2></div>
-          {!spotlight ? (
+          <div className={styles.panelHead}><h2 id="act-title">Le prossime azioni</h2></div>
+          {!spotlights.length ? (
             <p className={styles.empty}>{report ? "L’ultima analisi non indica interventi prioritari. Non dimostra l’assenza di opportunità." : "L’azione prioritaria comparirà con il primo report."}</p>
           ) : (
             <div className={styles.actionStack}>
-              <div className={styles.topAction}>
-                <span className={styles.pill} data-tone={PRIORITY_TONE[spotlight.priority]}>Priorità {spotlight.priority}</span>
-                <h3>{spotlight.title}</h3>
-                <span className={styles.p}>{spotlight.meta}</span>
-                {spotlight.body && <p className={styles.impact}>{spotlight.body}</p>}
-                <Link className={styles.more} href={spotlight.href}>Dettagli →</Link>
+              <div className={styles.spotlightGrid}>
+                {spotlights.map((s, i) => (
+                  <div className={styles.topAction} key={i}>
+                    <span className={styles.kicker}>{s.kicker}</span>
+                    <span className={styles.pill} data-tone={PRIORITY_TONE[s.priority]}>Priorità {s.priority}</span>
+                    <h3>{s.title}</h3>
+                    <span className={styles.p}>{s.meta}</span>
+                    {s.body && <p className={styles.impact}>{s.body}</p>}
+                    <Link className={styles.more} href={s.href}>Dettagli →</Link>
+                  </div>
+                ))}
               </div>
               {!!nextActions.length && (
                 <ul className={styles.nextList}>
@@ -167,7 +173,7 @@ export async function HomeDashboard() {
         <section className={styles.panel} aria-labelledby="how-title">
           <div className={styles.panelHead}><h2 id="how-title">Come funziona il servizio</h2></div>
           <div className={styles.step}><span className={styles.dot} /><div><b>Raccogliamo i dati</b><span>Search Console, Analytics e risposte di Gemini, in automatico ogni giorno</span></div></div>
-          <div className={styles.step}><span className={styles.dot} data-off={hasStartup ? undefined : ""} /><div><b>Analizziamo e assegniamo un punteggio{hasStartup ? " · fatto" : ""}</b><span>È da qui che nascono il punteggio e l’azione prioritaria qui sopra</span></div></div>
+          <div className={styles.step}><span className={styles.dot} data-off={hasStartup ? undefined : ""} /><div><b>Analizziamo e assegniamo un punteggio{hasStartup ? " · fatto" : ""}</b><span>È da qui che nascono il punteggio e le azioni qui sopra</span></div></div>
           <div className={styles.step}><span className={styles.dot} data-off="" /><div><b>Tu decidi, MosTag esegue</b><span>Report automatico ogni mese (prossimo: {formatDate(next)}); le azioni approvate le implementiamo noi</span></div></div>
         </section>
       </div>
