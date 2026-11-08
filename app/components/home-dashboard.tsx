@@ -119,9 +119,9 @@ export async function HomeDashboard() {
         </section>
         <section className={styles.panel} aria-labelledby="how-title">
           <div className={styles.panelHead}><h2 id="how-title">Come funziona il servizio</h2></div>
-          <div className={styles.step}><span className={styles.dot} data-off={hasStartup ? undefined : ""} /><div><b>Start-up{hasStartup ? " · fatto" : ""}</b><span>Punto di partenza: Google e Gemini prima degli interventi</span></div></div>
-          <div className={styles.step}><span className={styles.dot} data-off="" /><div><b>Report mensile · dal {formatDate(next)}</b><span>Automatico, con il confronto sul mese precedente</span></div></div>
-          <div className={styles.step}><span className={styles.dot} data-off="" /><div><b>Aggiornamento · quando serve</b><span>Fotografia dall’ultimo report a oggi</span></div></div>
+          <div className={styles.step}><span className={styles.dot} /><div><b>Raccogliamo i dati</b><span>Search Console, Analytics e risposte di Gemini, in automatico ogni giorno</span></div></div>
+          <div className={styles.step}><span className={styles.dot} data-off={hasStartup ? undefined : ""} /><div><b>Analizziamo e assegniamo un punteggio{hasStartup ? " · fatto" : ""}</b><span>È da qui che nascono il punteggio e l’azione prioritaria qui sopra</span></div></div>
+          <div className={styles.step}><span className={styles.dot} data-off="" /><div><b>Tu decidi, MosTag esegue</b><span>Report automatico ogni mese (prossimo: {formatDate(next)}); le azioni approvate le implementiamo noi</span></div></div>
         </section>
       </div>
     </section>

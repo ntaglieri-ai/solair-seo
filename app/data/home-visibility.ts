@@ -4,6 +4,7 @@ import { getAuditTrend } from "../../lib/service-read";
 import { getGeoDashboard } from "../../lib/geo/read";
 import { summarizeScan } from "../../lib/geo/summary";
 import { safeRead } from "../../lib/engine/safe";
+import { formatDate } from "../../lib/format";
 import type { GeoAnswer } from "../../lib/geo/answer";
 
 export type PillarKey = "seo" | "geo" | "tech";
@@ -64,7 +65,7 @@ export async function readHomeVisibility(siteId: string): Promise<Visibility> {
       label: "SEO su Google",
       score: seoScore,
       delta: seoDelta,
-      detail: auditTrend?.latest ? `Ultimo audit: ${auditTrend.latest.date}` : "In attesa del primo audit SEO.",
+      detail: auditTrend?.latest ? `Ultimo audit: ${formatDate(auditTrend.latest.date)}` : "In attesa del primo audit SEO.",
       date: auditTrend?.latest?.date ?? null,
       href: "/sezioni/historical-comparison#history-score",
     },
