@@ -2,10 +2,11 @@ import "server-only";
 import { getOnPageHistory } from "../../lib/engine/read";
 import { getAuditTrend } from "../../lib/service-read";
 import { getGeoDashboard } from "../../lib/geo/read";
-import { summarizeScan } from "../../lib/geo/summary";
+import { summarizeScan, suggestOpportunities } from "../../lib/geo/summary";
 import { safeRead } from "../../lib/engine/safe";
 import { formatDate } from "../../lib/format";
 import type { GeoAnswer } from "../../lib/geo/answer";
+import type { Opportunity as GeoOpportunity } from "../../lib/geo/summary";
 
 export type PillarKey = "seo" | "geo" | "tech";
 
@@ -28,6 +29,8 @@ export type Visibility = {
   /** True se non tutti e tre i pilastri hanno un punteggio. */
   partial: boolean;
   pillars: Pillar[];
+  /** Opportunità più rilevante trovata nell'ultima scansione Gemini completata, null se non calcolabile. */
+  geoAction: GeoOpportunity | null;
 };
 
 function geoScoreOf(entry: { scan: { status: string }; requests: { result: GeoAnswer | null }[] } | undefined) {
@@ -55,6 +58,13 @@ export async function readHomeVisibility(siteId: string): Promise<Visibility> {
   );
   const geo = geoScoreOf(completedScans[0]);
   const geoPrev = geoScoreOf(completedScans[1]);
+
+  const latestAnswers = completedScans[0]
+    ? completedScans[0].requests.map((r) => r.result).filter((r): r is GeoAnswer => !!r)
+    : [];
+  const geoOpportunities = latestAnswers.length ? suggestOpportunities(latestAnswers) : [];
+  // Una domanda specifica a cui Solair non risponde è più leggibile, in home, di un dominio citato: se c'è la preferiamo.
+  const geoAction = geoOpportunities.find((o) => o.kind === "prompt_gap") ?? geoOpportunities[0] ?? null;
 
   const seoScore = auditTrend?.latest?.score ?? null;
   const seoDelta = auditTrend?.difference ?? null;
@@ -102,5 +112,5 @@ export async function readHomeVisibility(siteId: string): Promise<Visibility> {
     ? Math.round(availableDeltas.reduce((s, p) => s + p.delta, 0) / availableDeltas.length)
     : null;
 
-  return { score, delta, partial: available.length > 0 && available.length < 3, pillars };
+  return { score, delta, partial: available.length > 0 && available.length < 3, pillars, geoAction };
 }

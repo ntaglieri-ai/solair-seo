@@ -60,6 +60,12 @@ export async function HomeDashboard() {
   const techPillar = visibility.pillars.find((p) => p.key === "tech")!;
   const seoDetail = gsc?.lastDate ? `${seoPillar.detail} · ${formatInt(gsc.current.clicks)} clic da Google (28 giorni)` : seoPillar.detail;
 
+  // Se la Visibilità AI è il pilastro più in difficoltà, l'azione da mostrare in evidenza viene da lì: non ha senso
+  // proporre un intervento SEO secondario quando Solair non compare affatto nelle risposte di Gemini.
+  const geoTone = toneOf(geoPillar.score);
+  const geoAction = visibility.geoAction;
+  const geoIsSpotlight = (geoTone === "red" && !!geoAction) || (!top && !!geoAction);
+
   return (
     <section id="stato" className={styles.dash} aria-label="Stato del servizio">
       <div className={styles.hero}>
@@ -104,8 +110,22 @@ export async function HomeDashboard() {
 
       <div className={styles.lower}>
         <section className={styles.panel} aria-labelledby="act-title">
-          <div className={styles.panelHead}><h2 id="act-title">La prossima azione</h2>{actions.length > 1 && <Link className={styles.more} href="/interventi">Tutte le {actions.length} →</Link>}</div>
-          {!top ? (
+          <div className={styles.panelHead}>
+            <h2 id="act-title">La prossima azione</h2>
+            {geoIsSpotlight ? (
+              <Link className={styles.more} href="/visibilita-ai">Vedi la rilevazione →</Link>
+            ) : (
+              actions.length > 1 && <Link className={styles.more} href="/interventi">Tutte le {actions.length} →</Link>
+            )}
+          </div>
+          {geoIsSpotlight ? (
+            <div className={styles.topAction}>
+              <span className={styles.pill} data-tone={geoTone === "red" ? "red" : "amber"}>{geoTone === "red" ? "Priorità alta" : "Priorità media"}</span>
+              <h3>{reportText(geoAction!.title)}</h3>
+              <span className={styles.p}>Ambito: Visibilità AI</span>
+              {!!geoAction!.evidence.length && <p className={styles.impact}>{reportText(geoAction!.evidence.join(" "))}</p>}
+            </div>
+          ) : !top ? (
             <p className={styles.empty}>{report ? "L’ultima analisi non indica interventi prioritari. Non dimostra l’assenza di opportunità." : "L’azione prioritaria comparirà con il primo report."}</p>
           ) : (
             <div className={styles.topAction}>
