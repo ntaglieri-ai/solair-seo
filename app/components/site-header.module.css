@@ -32,10 +32,10 @@
 
 /* Wordmark MosTag Studio: Arial Black, lettere iniziali e punto in azzurro. */
 .brand { flex-direction: column; align-items: flex-start; gap: 3px; }
-.wordmark { display: flex; align-items: baseline; color: #fff; font-family: "Arial Black", Arial, sans-serif; font-size: 30px; font-weight: 900; line-height: 1; letter-spacing: -0.5px; }
+.wordmark { display: flex; align-items: baseline; color: #fff; font-family: "Arial Black", Arial, sans-serif; font-size: 33px; font-weight: 900; line-height: 1; letter-spacing: -0.5px; }
 .wordmark i { color: #00bfff; font-style: normal; }
 .dot { display: inline-block; flex-shrink: 0; width: 7px; height: 7px; margin: 0 0 3px 2px; border-radius: 50%; background: #00bfff; }
-.byline { padding-left: 1px; color: #a0b4c8; font-size: 12px; letter-spacing: 0.3px; }
+.byline { padding-left: 1px; color: #a0b4c8; font-size: 13px; letter-spacing: 0.3px; }
 @media (max-width: 540px) { .wordmark { font-size: 25px; } .dot { width: 6px; height: 6px; } }
 
 .menu {
@@ -50,7 +50,7 @@
   display: flex;
   align-items: center;
   gap: 30px;
-  font-size: 15px;
+  font-size: 16.5px;
 }
 
 .topnav a {
@@ -73,10 +73,10 @@
 }
 
 .topnav .domainBadge {
-  padding: 9px 16px;
+  padding: 10px 18px;
   border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 999px;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .topnav .domainBadge:hover {
@@ -185,13 +185,14 @@
 
 .logoutForm { margin: 0; }
 .logoutButton {
-  min-height: 44px;
-  padding: 9px 16px;
+  min-height: 46px;
+  padding: 10px 18px;
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 8px;
   background: transparent;
   color: #fff;
   font: inherit;
+  font-size: 15px;
   cursor: pointer;
 }
 .logoutButton:hover { background: rgba(255, 255, 255, 0.1); }

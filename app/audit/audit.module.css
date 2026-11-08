@@ -24,7 +24,7 @@
 
 .scores span {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 800;
   text-transform: uppercase;
 }
@@ -33,31 +33,31 @@
   display: block;
   margin-top: 6px;
   color: var(--ink-soft);
-  font-size: 40px;
+  font-size: 46px;
   line-height: 1.1;
 }
 
 .scores small {
   margin-left: 2px;
   color: var(--muted);
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
 }
 
 .scores p {
   margin-top: 4px;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 /* Dentro .report-row le regole globali per span e strong vanno riportate allo stile del controllo */
 :global(.report-row) .checkLabel {
   margin-top: 0;
-  font-size: 16px;
+  font-size: 17px;
 }
 
 :global(.report-row) .points {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   text-transform: none;
   white-space: nowrap;
@@ -65,7 +65,7 @@
 
 :global(.report-row) .pill {
   justify-self: start;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   text-transform: none;
 }

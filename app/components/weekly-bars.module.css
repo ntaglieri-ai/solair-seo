@@ -14,7 +14,7 @@
   flex-direction: column;
   justify-content: space-between;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
   text-align: right;
   transform: translateY(-0.5em);
@@ -97,7 +97,7 @@
   background: var(--panel);
   box-shadow: 0 8px 24px rgba(14, 22, 36, 0.12);
   color: var(--foreground);
-  font-size: 13px;
+  font-size: 14px;
   pointer-events: none;
 }
 
@@ -111,7 +111,7 @@
   margin-top: 8px;
   padding-left: calc(10px + 3ch);
   color: var(--muted);
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .srOnly {
