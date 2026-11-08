@@ -38,7 +38,7 @@ async function Analysis({searchParams}:{searchParams:Promise<{id?:string;partial
       </section>
     </>}
     {report&&<div className={styles.links}><Link href={`/report/sito?id=${report.id}`}>Analisi del sito da URL →</Link></div>}
-    <div className={styles.links}><Link href="/report">Tutti i report →</Link><Link href="/impostazioni">Frequenza dei report automatici →</Link></div>
+    <div className={styles.links}><Link href="/report">Tutti i report →</Link></div>
   </OperationFrame>;
 }
 

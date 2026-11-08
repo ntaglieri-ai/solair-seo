@@ -9,6 +9,7 @@ test('CRM settings signatures bind method, path, body and expiry', () => {
   const headers = new Headers({ 'x-crm-time': String(now), 'x-crm-signature': signature });
   assert.equal(validSettingsSignature(headers, 'PATCH', body, secret, now), true);
   assert.equal(validSettingsSignature(headers, 'GET', body, secret, now), false);
+  assert.equal(validSettingsSignature(headers, 'PATCH', body, secret, now, '/api/crm-reports/another-report'), false);
   assert.equal(validSettingsSignature(headers, 'PATCH', body + ' ', secret, now), false);
   assert.equal(validSettingsSignature(headers, 'PATCH', body, secret, now + 30001), false);
   assert.equal(validSettingsSignature(headers, 'PATCH', body, secret, now - 30001), false);
