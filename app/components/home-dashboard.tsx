@@ -21,6 +21,11 @@ function toneOf(score: number | null) {
   return "red" as const;
 }
 
+type ActionPriority = "alta" | "media" | "bassa";
+type ActionCandidate = { priority: ActionPriority; title: string; meta: string; body?: string; href: string };
+const PRIORITY_TONE: Record<ActionPriority, "red" | "amber" | "grey"> = { alta: "red", media: "amber", bassa: "grey" };
+const PRIORITY_RANK: Record<ActionPriority, number> = { alta: 0, media: 1, bassa: 2 };
+
 function PillarCard({ pillar, detail }: { pillar: Pillar; detail?: string }) {
   const tone = toneOf(pillar.score);
   return (
@@ -51,7 +56,6 @@ export async function HomeDashboard() {
   const last = docs?.[0];
   const hasStartup = !!docs?.some((d) => d.kind === "startup");
   const actions = rankActions((report?.data.opportunities ?? []).filter((a) => typeof a.action === "string" && typeof a.page === "string"));
-  const top = actions[0];
   const next = nextMonthly();
   const days = daysUntil(next);
 
@@ -60,11 +64,33 @@ export async function HomeDashboard() {
   const techPillar = visibility.pillars.find((p) => p.key === "tech")!;
   const seoDetail = gsc?.lastDate ? `${seoPillar.detail} · ${formatInt(gsc.current.clicks)} clic da Google (28 giorni)` : seoPillar.detail;
 
-  // Se la Visibilità AI è il pilastro più in difficoltà, l'azione da mostrare in evidenza viene da lì: non ha senso
-  // proporre un intervento SEO secondario quando Solair non compare affatto nelle risposte di Gemini.
+  // Un'unica azione "in evidenza" dà l'impressione di aver già fatto la triage, ma con più interventi reali
+  // (SEO + eventuale gap sulla Visibilità AI) mostrarne una sola e basta non è onesto sulla quantità di lavoro:
+  // qui mescoliamo i due mondi in un'unica classifica per priorità e teniamo visibili anche i prossimi 2.
   const geoTone = toneOf(geoPillar.score);
   const geoAction = visibility.geoAction;
-  const geoIsSpotlight = (geoTone === "red" && !!geoAction) || (!top && !!geoAction);
+  const seoCandidates: ActionCandidate[] = actions.map((a) => ({
+    priority: a.priority === "high" ? "alta" : "media",
+    title: reportText(a.title),
+    meta: `Pagina: ${a.page}`,
+    body: a.expectedOutcome ? reportText(a.expectedOutcome) : undefined,
+    href: "/interventi",
+  }));
+  const geoCandidate: ActionCandidate | null = geoAction
+    ? {
+        priority: geoTone === "red" ? "alta" : geoTone === "amber" ? "media" : "bassa",
+        title: reportText(geoAction.title),
+        meta: "Ambito: Visibilità AI",
+        body: geoAction.evidence.length ? reportText(geoAction.evidence.join(" ")) : undefined,
+        href: "/visibilita-ai",
+      }
+    : null;
+  const candidates = (geoCandidate ? [...seoCandidates, geoCandidate] : seoCandidates).sort(
+    (a, b) => PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority]
+  );
+  const [spotlight, ...rest] = candidates;
+  const nextActions = rest.slice(0, 2);
+  const remainingActions = candidates.length - 1 - nextActions.length;
 
   return (
     <section id="stato" className={styles.dash} aria-label="Stato del servizio">
@@ -110,30 +136,31 @@ export async function HomeDashboard() {
 
       <div className={styles.lower}>
         <section className={styles.panel} aria-labelledby="act-title">
-          <div className={styles.panelHead}>
-            <h2 id="act-title">La prossima azione</h2>
-            {geoIsSpotlight ? (
-              <Link className={styles.more} href="/visibilita-ai">Vedi la rilevazione →</Link>
-            ) : (
-              actions.length > 1 && <Link className={styles.more} href="/interventi">Tutte le {actions.length} →</Link>
-            )}
-          </div>
-          {geoIsSpotlight ? (
-            <div className={styles.topAction}>
-              <span className={styles.pill} data-tone={geoTone === "red" ? "red" : "amber"}>{geoTone === "red" ? "Priorità alta" : "Priorità media"}</span>
-              <h3>{reportText(geoAction!.title)}</h3>
-              <span className={styles.p}>Ambito: Visibilità AI</span>
-              {!!geoAction!.evidence.length && <p className={styles.impact}>{reportText(geoAction!.evidence.join(" "))}</p>}
-            </div>
-          ) : !top ? (
+          <div className={styles.panelHead}><h2 id="act-title">La prossima azione</h2></div>
+          {!spotlight ? (
             <p className={styles.empty}>{report ? "L’ultima analisi non indica interventi prioritari. Non dimostra l’assenza di opportunità." : "L’azione prioritaria comparirà con il primo report."}</p>
           ) : (
-            <div className={styles.topAction}>
-              <span className={styles.pill} data-tone={top.priority === "high" ? "red" : "amber"}>{top.priority === "high" ? "Priorità alta" : "Priorità media"}</span>
-              <h3>{reportText(top.title)}</h3>
-              <span className={styles.p}>Pagina: {top.page}</span>
-              {top.expectedOutcome && <p className={styles.impact}>{reportText(top.expectedOutcome)}</p>}
-              {actions.length === 1 && <Link className={styles.more} href="/interventi">Dettagli →</Link>}
+            <div className={styles.actionStack}>
+              <div className={styles.topAction}>
+                <span className={styles.pill} data-tone={PRIORITY_TONE[spotlight.priority]}>Priorità {spotlight.priority}</span>
+                <h3>{spotlight.title}</h3>
+                <span className={styles.p}>{spotlight.meta}</span>
+                {spotlight.body && <p className={styles.impact}>{spotlight.body}</p>}
+                <Link className={styles.more} href={spotlight.href}>Dettagli →</Link>
+              </div>
+              {!!nextActions.length && (
+                <ul className={styles.nextList}>
+                  {nextActions.map((a, i) => (
+                    <li className={styles.nextItem} key={i}>
+                      <span className={styles.miniDot} data-tone={PRIORITY_TONE[a.priority]} />
+                      <Link href={a.href}>{a.title}</Link>
+                    </li>
+                  ))}
+                  {remainingActions > 0 && (
+                    <li className={styles.nextMore}><Link href="/interventi">+{remainingActions} altre nel report →</Link></li>
+                  )}
+                </ul>
+              )}
             </div>
           )}
         </section>
