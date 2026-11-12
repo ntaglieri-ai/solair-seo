@@ -225,26 +225,21 @@ export async function getGscWeekly(siteId: string, weeks = 26): Promise<GscPerio
 }
 
 /** Totali Search Console per mese, dal primo all'ultimo mese con dati. */
+/**
+ * Solo i mesi con almeno un giorno archiviato: niente mesi a zero generati
+ * per riempire i buchi, che leggerebbero come "zero clic" mesi in cui la
+ * raccolta semplicemente non era ancora attiva.
+ */
 export async function getGscMonthly(siteId: string): Promise<GscPeriod[]> {
   return getSql()<GscPeriod[]>`
-    with bounds as (
-      select date_trunc('month', min(date))::date as first_month,
-             date_trunc('month', max(date))::date as last_month
-      from seo.gsc_daily where site_id = ${siteId}
-    ),
-    months as (
-      select generate_series(first_month, last_month, interval '1 month')::date as start
-      from bounds where first_month is not null
-    )
-    select to_char(m.start, 'YYYY-MM-DD') as start,
-           coalesce(sum(d.clicks), 0)::int as clicks,
-           coalesce(sum(d.impressions), 0)::int as impressions,
-           sum(d.position * d.impressions) / nullif(sum(d.impressions), 0) as position
-    from months m
-    left join seo.gsc_daily d
-      on d.site_id = ${siteId} and date_trunc('month', d.date) = m.start
-    group by m.start
-    order by m.start
+    select to_char(date_trunc('month', date), 'YYYY-MM-DD') as start,
+           sum(clicks)::int as clicks,
+           sum(impressions)::int as impressions,
+           sum(position * impressions) / nullif(sum(impressions), 0) as position
+    from seo.gsc_daily
+    where site_id = ${siteId}
+    group by date_trunc('month', date)
+    order by 1
   `;
 }
 

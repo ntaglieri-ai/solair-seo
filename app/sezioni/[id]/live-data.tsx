@@ -19,6 +19,7 @@ import {
   type RunSummary,
 } from "../../../lib/engine/read";
 import { safeRead } from "../../../lib/engine/safe";
+import { explainOnPage } from "../../../lib/onpage-explain";
 import {
   formatDate,
   formatDateTime,
@@ -432,24 +433,31 @@ async function TechHealth({ siteId }: { siteId: string }) {
             Analisi di {new URL(latest.url).hostname} · {formatDateTime(latest.scannedAt)} · Punteggio {latest.score}/100
           </p>
 
-          <h3 className={styles.subhead}>Rilievi</h3>
-          {latest.deductions.length === 0 ? (
-            <p className={styles.note}>Nessuna criticità rilevata sull&apos;ultima scansione.</p>
-          ) : (
-            <ul className={styles.issueList}>
-              {latest.deductions.map((d) => (
-                <li key={d}>{d}</li>
-              ))}
-            </ul>
-          )}
+          <h3 className={styles.subhead}>Da sistemare</h3>
+          {(() => {
+            const notes = explainOnPage(latest.data);
+            return notes.length === 0 ? (
+              <p className={styles.note}>Nessuna criticità rilevata sull&apos;ultima scansione.</p>
+            ) : (
+              <ul className={styles.issueList}>
+                {notes.map((d) => (
+                  <li key={d}>{d}</li>
+                ))}
+              </ul>
+            );
+          })()}
 
-          <h3 className={styles.subhead}>Dettaglio on-page</h3>
+          <h3 className={styles.subhead}>Cosa c&apos;è sulla pagina</h3>
           <ul className={styles.issueList}>
-            <li>Title ({latest.data.titleLength} caratteri): {latest.data.title || "assente"}</li>
-            <li>Meta description ({latest.data.metaDescriptionLength} caratteri): {latest.data.metaDescription || "assente"}</li>
-            <li>Canonical: {latest.data.canonical || "assente"}</li>
-            <li>H1: {latest.data.h1.join(", ") || "assente"}</li>
-            <li>Immagini senza alt: {latest.data.imagesWithoutAlt.length}</li>
+            <li>Titolo (title): {latest.data.title || "assente"}</li>
+            <li>Descrizione (meta description): {latest.data.metaDescription || "assente"}</li>
+            <li>Indirizzo ufficiale (canonical): {latest.data.canonical || "assente"}</li>
+            <li>Titolo principale (H1): {latest.data.h1.join(", ") || "assente"}</li>
+            <li>
+              {latest.data.imagesWithoutAlt.length === 1
+                ? "1 immagine priva di testo alternativo"
+                : `${latest.data.imagesWithoutAlt.length} immagini prive di testo alternativo`}
+            </li>
             <li>Link interni: {latest.data.internalLinks} · esterni: {latest.data.externalLinks}</li>
             <li>Dati strutturati (schema.org): {latest.data.schemaTypes.join(", ") || "assenti"}</li>
           </ul>
