@@ -202,8 +202,8 @@ function HistoryDetail() {
             <span className="badge">Dati SEO e audit datati</span>
           </div>
           <p className="hero-copy">
-            Andamento di Search Console mese per mese, score delle analisi e registro di tutte le
-            rilevazioni archiviate.
+            Salute tecnica dell&apos;ultima scansione, andamento di Search Console mese per mese,
+            punteggio degli audit e registro di tutte le rilevazioni archiviate.
           </p>
         </div>
       </section>

@@ -1,5 +1,6 @@
 import "server-only";
 import { getSql } from "../db";
+import type { OnPageData } from "../onpage-scan";
 
 /** Punto unico di lettura dei dati archiviati, usato dalle pagine. */
 
@@ -170,6 +171,21 @@ export async function getOnPageHistory(siteId: string, limit = 20): Promise<OnPa
     order by r.started_at desc
     limit ${limit}
   `;
+}
+
+export type OnPageDetail = OnPageResult & { data: OnPageData };
+
+/** Ultima analisi on-page con il dettaglio completo (title, meta, canonical, schema…), non solo i rilievi. */
+export async function getLatestOnPageDetail(siteId: string): Promise<OnPageDetail | null> {
+  const [row] = await getSql()<OnPageDetail[]>`
+    select r.id as "runId", r.kind, r.started_at as "scannedAt", s.url, s.score, s.deductions, s.data
+    from seo.onpage_scans s
+    join seo.runs r on r.id = s.run_id
+    where r.site_id = ${siteId} and r.status = 'ok'
+    order by r.started_at desc
+    limit 1
+  `;
+  return row ?? null;
 }
 
 export type GscPeriod = {

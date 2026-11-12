@@ -182,11 +182,22 @@
   line-height: 1.5;
 }
 
+.subhead {
+  margin: 20px 0 10px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.subhead:first-of-type {
+  margin-top: 4px;
+}
+
 .issueList {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin: 14px 0 0;
+  margin: 0;
   padding-left: 20px;
   font-size: 15px;
   line-height: 1.5;

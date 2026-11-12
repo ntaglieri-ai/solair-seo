@@ -10,11 +10,11 @@ import {
   getGscTop,
   getGscTotals,
   getGscWeekly,
-  getOnPageHistory,
+  getLatestOnPageDetail,
   getRecentRuns,
   getLatestAttempts,
   type GscTopRow,
-  type OnPageResult,
+  type OnPageDetail,
   type RunKind,
   type RunSummary,
 } from "../../../lib/engine/read";
@@ -364,33 +364,40 @@ export async function HistoryLive({
         {monthly.length === 0 ? (
           <div className={styles.empty}>Nessun dato Search Console archiviato.</div>
         ) : (
-          <div className={`${styles.panel} ${styles.tableWrap}`}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th scope="col">Mese</th>
-                  <th scope="col">Clic</th>
-                  <th scope="col">Impressioni</th>
-                  <th scope="col">Posizione media</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[...monthly].reverse().map((month) => (
-                  <tr key={month.start}>
-                    <td>
-                      {new Date(`${month.start}T12:00:00Z`).toLocaleDateString("it-IT", {
-                        month: "long",
-                        year: "numeric",
-                      })}
-                    </td>
-                    <td>{formatInt(month.clicks)}</td>
-                    <td>{formatInt(month.impressions)}</td>
-                    <td>{month.position === null ? "—" : formatDecimal(month.position)}</td>
+          <>
+            {monthly.length < 3 && (
+              <p className={styles.note}>
+                Raccolta appena avviata: il confronto mese per mese diventa leggibile con più mesi archiviati.
+              </p>
+            )}
+            <div className={`${styles.panel} ${styles.tableWrap}`}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th scope="col">Mese</th>
+                    <th scope="col">Clic</th>
+                    <th scope="col">Impressioni</th>
+                    <th scope="col">Posizione media</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {[...monthly].reverse().map((month) => (
+                    <tr key={month.start}>
+                      <td>
+                        {new Date(`${month.start}T12:00:00Z`).toLocaleDateString("it-IT", {
+                          month: "long",
+                          year: "numeric",
+                        })}
+                      </td>
+                      <td>{formatInt(month.clicks)}</td>
+                      <td>{formatInt(month.impressions)}</td>
+                      <td>{month.position === null ? "—" : formatDecimal(month.position)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </section>
 
@@ -407,10 +414,9 @@ export async function HistoryLive({
   );
 }
 
-/** Ultima scansione on-page archiviata: le criticità concrete dietro il punteggio "Salute tecnica" in home. */
+/** Ultima scansione on-page archiviata: i rilievi e il dettaglio concreti dietro il punteggio "Salute tecnica" in home. */
 async function TechHealth({ siteId }: { siteId: string }) {
-  const history = await safeRead("salute tecnica", () => getOnPageHistory(siteId, 1));
-  const latest: OnPageResult | undefined = history?.[0];
+  const latest: OnPageDetail | null = await safeRead("salute tecnica", () => getLatestOnPageDetail(siteId)) ?? null;
 
   return (
     <section className={styles.block} aria-labelledby="history-tech">
@@ -423,12 +429,12 @@ async function TechHealth({ siteId }: { siteId: string }) {
       ) : (
         <div className={styles.panel}>
           <p className={styles.note}>
-            {shortPath(latest.url)} · {formatDateTime(latest.scannedAt)} · Punteggio {latest.score}/100
+            Analisi di {new URL(latest.url).hostname} · {formatDateTime(latest.scannedAt)} · Punteggio {latest.score}/100
           </p>
+
+          <h3 className={styles.subhead}>Rilievi</h3>
           {latest.deductions.length === 0 ? (
-            <p className={styles.note} style={{ marginTop: 8 }}>
-              Nessuna criticità rilevata sull&apos;ultima scansione.
-            </p>
+            <p className={styles.note}>Nessuna criticità rilevata sull&apos;ultima scansione.</p>
           ) : (
             <ul className={styles.issueList}>
               {latest.deductions.map((d) => (
@@ -436,6 +442,17 @@ async function TechHealth({ siteId }: { siteId: string }) {
               ))}
             </ul>
           )}
+
+          <h3 className={styles.subhead}>Dettaglio on-page</h3>
+          <ul className={styles.issueList}>
+            <li>Title ({latest.data.titleLength} caratteri): {latest.data.title || "assente"}</li>
+            <li>Meta description ({latest.data.metaDescriptionLength} caratteri): {latest.data.metaDescription || "assente"}</li>
+            <li>Canonical: {latest.data.canonical || "assente"}</li>
+            <li>H1: {latest.data.h1.join(", ") || "assente"}</li>
+            <li>Immagini senza alt: {latest.data.imagesWithoutAlt.length}</li>
+            <li>Link interni: {latest.data.internalLinks} · esterni: {latest.data.externalLinks}</li>
+            <li>Dati strutturati (schema.org): {latest.data.schemaTypes.join(", ") || "assenti"}</li>
+          </ul>
         </div>
       )}
     </section>
