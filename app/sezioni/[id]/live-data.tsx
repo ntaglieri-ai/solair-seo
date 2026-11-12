@@ -2,7 +2,7 @@ import { ComparisonPeriods } from "../../components/comparison-periods";
 import { comparisonPeriods, formatPeriod } from "../../../lib/comparison-periods";
 import { WeeklyBars } from "../../components/weekly-bars";
 import { hasComparableCoverage } from "../../data/home-overview";
-import { getConfigurator } from "../../../lib/service-read";
+import { getAuditTrend, getConfigurator } from "../../../lib/service-read";
 import { AuditScore } from "../../components/audit-score";
 import {
   getGa4Totals,
@@ -141,17 +141,22 @@ function TopTable({
 /** Performance: numeri veri di Search Console. */
 export async function PerformanceLive({ siteId }: { siteId: string }) {
   const data = await safeRead("performance", async () => {
-    const [totals, weekly, queries, pages] = await Promise.all([
+    const [totals, weekly, queries, pages, trend] = await Promise.all([
       getGscTotals(siteId, 28),
       getGscWeekly(siteId, 26),
       getGscTop(siteId, "query", 10),
       getGscTop(siteId, "page", 10),
+      getAuditTrend(siteId),
     ]);
-    return { totals, weekly, queries, pages };
+    return { totals, weekly, queries, pages, serviceStartDate: trend.serviceStartDate };
   });
 
   if (!data) return <Unavailable />;
-  const { totals, weekly, queries, pages } = data;
+  const { totals, queries, pages, serviceStartDate } = data;
+  // Le settimane prima dell'avvio del servizio sono riempite a zero per continuità del grafico:
+  // non sono la nostra raccolta, non le mostriamo come se lo fossero.
+  const weekly = serviceStartDate ? data.weekly.filter((w) => w.start >= serviceStartDate) : data.weekly;
+  const weeklyTrimmed = weekly.length < data.weekly.length;
   if (!totals.lastDate) {
     return (
       <div className={styles.empty}>
@@ -209,19 +214,23 @@ export async function PerformanceLive({ siteId }: { siteId: string }) {
       <section className={styles.block} aria-labelledby="gsc-weekly">
         <div className={styles.heading}>
           <h2 id="gsc-weekly">Clic per settimana</h2>
-          <span>Ultime 26 settimane</span>
+          <span>{weeklyTrimmed ? "Dall'avvio del servizio" : "Ultime 26 settimane"}</span>
         </div>
-        <div className={styles.panel}>
-          <WeeklyBars
-            valueLabel="clic"
-            points={weekly.map((week) => ({
-              start: week.start,
-              label: `Settimana del ${formatShortDate(week.start)}`,
-              value: week.clicks,
-              detail: `${formatInt(week.impressions)} impressioni`,
-            }))}
-          />
-        </div>
+        {weekly.length === 0 ? (
+          <div className={styles.empty}>Servizio appena avviato: il grafico comparirà con le prime settimane raccolte.</div>
+        ) : (
+          <div className={styles.panel}>
+            <WeeklyBars
+              valueLabel="clic"
+              points={weekly.map((week) => ({
+                start: week.start,
+                label: `Settimana del ${formatShortDate(week.start)}`,
+                value: week.clicks,
+                detail: `${formatInt(week.impressions)} impressioni`,
+              }))}
+            />
+          </div>
+        )}
       </section>
 
       <section className={styles.block} aria-labelledby="gsc-top">
@@ -343,15 +352,18 @@ export async function HistoryLive({
   siteId: string;
 }) {
   const data = await safeRead("storico", async () => {
-    const [monthly, runs] = await Promise.all([
+    const [monthly, runs, trend] = await Promise.all([
       getGscMonthly(siteId),
       getRecentRuns(siteId, 20),
+      getAuditTrend(siteId),
     ]);
-    return { monthly, runs };
+    return { monthly, runs, serviceStartDate: trend.serviceStartDate };
   });
 
   if (!data) return <Unavailable />;
-  const { monthly, runs } = data;
+  const { runs, serviceStartDate } = data;
+  // Prima dell'avvio del servizio sono dati storici del sito, non della nostra raccolta: non li mostriamo come se fossero i nostri.
+  const monthly = serviceStartDate ? data.monthly.filter((m) => m.start.slice(0, 7) >= serviceStartDate.slice(0, 7)) : data.monthly;
 
   return (
     <>

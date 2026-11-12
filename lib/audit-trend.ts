@@ -8,7 +8,14 @@ export function auditTrend(rows: AuditScore[]) {
   const latest = visible.at(-1) ?? null;
   const comparable = latest ? visible.filter((row) => row.methodology === latest.methodology) : [];
   const previous = comparable.at(-2);
-  return { latest, points: comparable, serviceStarted: !!start, difference: latest && previous ? latest.score - previous.score : null };
+  return {
+    latest,
+    points: comparable,
+    serviceStarted: !!start,
+    /** Data (YYYY-MM-DD) da cui il servizio è attivo, null se non ancora registrata. */
+    serviceStartDate: start?.date ?? null,
+    difference: latest && previous ? latest.score - previous.score : null,
+  };
 }
 
 export function validateAudit(value: unknown, today: string) {
