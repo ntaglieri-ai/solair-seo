@@ -1,8 +1,12 @@
-# Report PDF manuali e automatici
+# Generazione dei report
 
-Dalla home, **Genera Report** aggiorna le fonti Google e analizza il sito. Quando l'operatore è autenticato e Gemini è abilitato, prosegue con la scansione Gemini già prevista e soggetta ai budget esistenti. Infine crea il PDF e apre il documento archiviato. Se l'aggiornamento Gemini fallisce, il documento è parziale e mostra le date delle evidenze disponibili.
+Il menu **Report** apre `/report`: la stessa pagina contiene **Nuovo report** e **Report precedenti**. Anche **Genera report** in Panoramica porta al modulo di questa pagina, senza avviare operazioni al caricamento.
 
-Da **Report e storico**, **Genera PDF dai risultati disponibili** esporta le ultime evidenze archiviate senza ulteriori richieste ai provider. Dall'analisi SEO si può esportare uno specifico snapshot storico. **Consulta ultimo report** nella hero apre l'ultimo documento PDF.
+Scegliere **Report iniziale (Start-up)** per una fotografia degli ultimi 28 giorni disponibili, anche quando esistono documenti di prova. **Aggiornamento** copre i giorni successivi all’ultimo documento e richiede almeno tre giorni nuovi. La scelta viene trasmessa esplicitamente al generatore PDF.
+
+Premere **Genera report** aggiorna le fonti Google, analizza il sito, raccoglie Gemini se abilitato e infine archivia il PDF. Lo stato di avanzamento rimane visibile e il pulsante è disabilitato durante la generazione. Gli errori delle fonti vengono conservati come limiti del documento. La generazione richiede il permesso CRM di scrittura; chi ha sola lettura può aprire e scaricare i documenti.
+
+Il download apre sempre il file archiviato. I dettagli delle analisi e le fonti sono raccolti in sezioni espandibili; la stampa di uno snapshot specifico rimane disponibile nel suo approfondimento.
 
 La programmazione si configura in **Impostazioni**, attivando i report automatici e scegliendo l'intervallo da 1 a 90 giorni. Il dispatcher `/api/cron/reports` è protetto da `CRON_SECRET` e gira ogni giorno alle 06:15 UTC, dopo i dispatcher delle raccolte. Rispetta l'intervallo scelto, il blocco per sito e un'eventuale scansione Gemini in corso. Non avvia chiamate AI: Gemini mantiene la propria cadenza e il proprio budget. Se resta manuale, nei PDF automatici compare la data dell'ultima rilevazione Gemini disponibile.
 

@@ -133,7 +133,7 @@ export async function HomeDashboard() {
             <strong>Da generare<small>report Start-up</small></strong>
           )}
           <span className={styles.cap}>{last ? `Ultimo: ${KIND_LABEL[last.kind]} · ${formatDate(last.createdAt)}` : "Il primo report non è ancora disponibile."}</span>
-          <div className={styles.btns}>{last ? <Link className={styles.btn} data-primary href="/report/ultimo">Apri l’ultimo</Link> : <Link className={styles.btn} href="/report">Vai ai report</Link>}</div>
+          <div className={styles.btns}>{last ? <Link className={styles.btn} data-primary href="/report/ultimo">Apri l’ultimo</Link> : <Link className={styles.btn} href="/report#nuovo-report">Genera report</Link>}</div>
         </div>
       </div>
 

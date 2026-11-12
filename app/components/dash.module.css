@@ -2,6 +2,10 @@
 .page { display:flex; flex-direction:column; flex:1; min-height:0; width:min(1680px, calc(100% - clamp(40px, 5vw, 96px))); margin:0 auto; padding:clamp(8px,1.4vh,22px) 0; }
 .title { margin:0 0 clamp(1px,.3vh,5px); color:#16264A; font-size:clamp(19px,2.8vh,36px); letter-spacing:-.02em; line-height:1.15; }
 .subtitle { margin:0 0 clamp(6px,1.2vh,18px); color:#6B7891; font-size:clamp(12.5px,1.6vh,20px); }
+.pageHeading { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px; }
+.pageHeading .subtitle { margin-bottom:0; }
+.generateLink { flex:none; padding:12px 20px; border-radius:10px; background:#2A6F66; color:#fff; font-size:16px; font-weight:600; }
+.generateLink:focus-visible { outline:2px solid #3277aa; outline-offset:4px; }
 .dash { --navy:#16264A; --teal:#2A6F66; --line:#E3E8F0; --muted:#6B7891; --ink:#16264A; display:flex; flex-direction:column; flex:1; min-height:0; gap:clamp(8px,1.4vh,20px); font-family:inherit; color:var(--ink); }
 
 /* Punteggio di visibilità: la cosa che un cliente porta al suo socio senza capire nulla di tecnico. */

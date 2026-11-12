@@ -23,7 +23,7 @@ export async function POST(request:NextRequest){
   }catch{return NextResponse.json({error:"Riferimenti del report non validi."},{status:400,headers});}
   try{
     const result=await generateReportDocument({...input,trigger:"manual"});
-    return result?NextResponse.json(result,{headers}):NextResponse.json({error:"Analisi non disponibile. Genera prima il report dalla home."},{status:404,headers});
+    return result?NextResponse.json(result,{headers}):NextResponse.json({error:"Analisi non disponibile. Vai in Report e premi “Genera report” per aggiornare le fonti."},{status:404,headers});
   }catch(error){
     if(error instanceof ReportWindowError){
       const messages={NO_DATA:"Non ci sono ancora dati Search Console archiviati per questo periodo.",NEEDS_STARTUP:"Genera prima il report Start-up: l’aggiornamento parte dal suo periodo.",TOO_FEW_DAYS:"Dal report precedente ci sono meno di 3 giorni di dati nuovi. Search Console arriva con circa 3 giorni di ritardo: riprova tra qualche giorno."};

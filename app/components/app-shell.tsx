@@ -2,15 +2,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { ClipboardCheck, FileText, History, LayoutDashboard, Settings2, Sparkles } from "lucide-react";
+import { ClipboardCheck, FileText, LayoutDashboard, Settings2, Sparkles } from "lucide-react";
 import { baselineAudit } from "../data/audit-baseline";
 import header from "./site-header.module.css";
 import styles from "./app-shell.module.css";
 
 const items = [
   { label: "Panoramica", href: "/", icon: LayoutDashboard, active: (p: string) => p === "/" },
-  { label: "Report", href: "/report/ultimo", icon: FileText, active: (p: string) => p.startsWith("/report/") || p === "/analisi" },
-  { label: "Storico", href: "/report", icon: History, active: (p: string) => p === "/report" },
+  { label: "Report", href: "/report", icon: FileText, active: (p: string) => p === "/report" || p.startsWith("/report/") || p === "/analisi" },
   { label: "Visibilità AI", href: "/visibilita-ai", icon: Sparkles, active: (p: string) => p.startsWith("/visibilita-ai") },
   { label: "Interventi", href: "/interventi", icon: ClipboardCheck, active: (p: string) => p.startsWith("/interventi") },
   { label: "Impostazioni", href: "/impostazioni", icon: Settings2, active: (p: string) => p.startsWith("/impostazioni") },

@@ -1,4 +1,5 @@
 import { requireSeoPage } from "../lib/crm-auth";
+import Link from "next/link";
 import { Topbar } from "./components/app-shell";
 import { fontVariables } from "./fonts";
 import { HomeDashboard } from "./components/home-dashboard";
@@ -14,8 +15,11 @@ function Home() {
     <main className={`${base.home} ${styles.home} ${fontVariables} ${home.screen}`}>
       <Topbar title="Panoramica"><SourcesPill /></Topbar>
       <div className={`${styles.content} ${home.page}`}>
-        <h1 className={home.title}>Il servizio in un colpo d’occhio</h1>
-        <p className={home.subtitle}>Cosa stiamo misurando per Solair, cosa è pronto e cosa fare adesso.</p>
+        <div className={home.pageHeading}>
+          <div><h1 className={home.title}>Il servizio in un colpo d’occhio</h1>
+          <p className={home.subtitle}>Cosa stiamo misurando per Solair, cosa è pronto e cosa fare adesso.</p></div>
+          <Link className={home.generateLink} href="/report#nuovo-report">Genera report →</Link>
+        </div>
         <HomeDashboard />
       </div>
     </main>
