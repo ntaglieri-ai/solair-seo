@@ -5,6 +5,7 @@ import { readReport } from "../report-read";
 import type { GeoAnswer } from "../geo/answer";
 import { renderReportPdf } from "./render";
 import { getGscLastDate, getGscTotalsBetween } from "../engine/read";
+import { getEngineSettings } from "../engine/store";
 import { daysIn, documentFileName, resolveWindow, type ReportKind, type WindowError } from "./windows";
 import { documentFingerprint, documentStatus, documentUrls, PDF_TEMPLATE_VERSION, UUID, type DocumentAnswer, type DocumentGeo, type ReportPayload } from "./model";
 const SITE = "solairgroup.it";
@@ -31,7 +32,8 @@ export type DocumentMeta = { id: string; snapshotId: string; geoScanId: string |
 async function capturePayload(kind: ReportKind, snapshotId?: string, geoScanId?: string, geoRefreshFailed = false, sourceRefreshFailed = false): Promise<ReportPayload | null> {
   const report = await readReport(snapshotId);
   if (!report) return null;
-  const resolved = resolveWindow({ kind, lastDate: await getGscLastDate(SITE), previousEnd: kind === "update" ? await previousDocumentEnd() : null });
+  const periodicDays = kind === "monthly" ? (await getEngineSettings(SITE)).analysisDays : undefined;
+  const resolved = resolveWindow({ kind, lastDate: await getGscLastDate(SITE), previousEnd: kind === "update" ? await previousDocumentEnd() : null, periodicDays });
   if (!resolved.ok) throw new ReportWindowError(resolved.error, resolved.detail);
   const measure = async (w: { from: string; to: string }) => { const totals = await getGscTotalsBetween(SITE, w.from, w.to); return { totals, window: { ...w, days: daysIn(w), archivedDays: totals.days } }; };
   const current = await measure(resolved.current), previous = resolved.compare ? await measure(resolved.compare) : null;

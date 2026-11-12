@@ -7,10 +7,10 @@ import { readReport } from "../../lib/report-read";
 import { rankActions, reportText } from "../../lib/report-presentation";
 import { getDocumentArchive } from "../../lib/report-documents/store";
 import { KIND_LABEL } from "../../lib/report-documents/windows";
+import { getEngineSettings } from "../../lib/engine/store";
 import { formatDate, formatInt } from "../../lib/format";
 import styles from "./dash.module.css";
 
-const nextMonthly = (now = new Date()) => new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + (now.getUTCDate() >= 4 ? 1 : 0), 4, 12));
 const daysUntil = (date: Date, now = new Date()) => Math.max(0, Math.round((date.getTime() - now.getTime()) / 86_400_000));
 
 /** Tono del pallino/percentuale in base al punteggio: verde ≥80, ambra ≥50, rosso sotto, grigio se non misurato. */
@@ -46,18 +46,22 @@ function PillarCard({ pillar, detail }: { pillar: Pillar; detail?: string }) {
 /** Vista sul servizio: un punteggio unico in cima, i tre pilastri che lo compongono, un'unica azione da fare adesso. */
 export async function HomeDashboard() {
   const siteId = baselineAudit.domain;
-  const [perf, visibility, docs, report] = await Promise.all([
+  const [perf, visibility, docs, report, settings] = await Promise.all([
     readHomePerformance(siteId),
     readHomeVisibility(siteId),
     safeRead("home report", () => getDocumentArchive(30)),
     safeRead("home interventi", () => readReport()),
+    safeRead("home cadenza report", () => getEngineSettings(siteId)),
   ]);
   const { gsc } = perf;
   const last = docs?.[0];
   const hasStartup = !!docs?.some((d) => d.kind === "startup");
   const actions = rankActions((report?.data.opportunities ?? []).filter((a) => typeof a.action === "string" && typeof a.page === "string"));
-  const next = nextMonthly();
-  const days = daysUntil(next);
+  // Cadenza reale impostata dal cliente (non più un mese fisso): conta dall'ultimo report periodico, o dallo Start-up se non ce n'è ancora uno.
+  const lastPeriodic = docs?.find((d) => d.kind === "monthly") ?? docs?.find((d) => d.kind === "startup") ?? null;
+  const reportIntervalDays = settings?.analysisDays ?? 30;
+  const next = lastPeriodic ? new Date(lastPeriodic.createdAt.getTime() + reportIntervalDays * 86_400_000) : null;
+  const days = next ? daysUntil(next) : null;
 
   const seoPillar = visibility.pillars.find((p) => p.key === "seo")!;
   const geoPillar = visibility.pillars.find((p) => p.key === "geo")!;
@@ -123,7 +127,11 @@ export async function HomeDashboard() {
         </div>
         <div className={styles.heroNext}>
           <span className={styles.heroLab}>Prossimo report</span>
-          <strong>{formatDate(next)}<small>tra {days} {days === 1 ? "giorno" : "giorni"}</small></strong>
+          {next && days !== null ? (
+            <strong>{formatDate(next)}<small>tra {days} {days === 1 ? "giorno" : "giorni"}</small></strong>
+          ) : (
+            <strong>Da generare<small>report Start-up</small></strong>
+          )}
           <span className={styles.cap}>{last ? `Ultimo: ${KIND_LABEL[last.kind]} · ${formatDate(last.createdAt)}` : "Il primo report non è ancora disponibile."}</span>
           <div className={styles.btns}>{last ? <Link className={styles.btn} data-primary href="/report/ultimo">Apri l’ultimo</Link> : <Link className={styles.btn} href="/report">Vai ai report</Link>}</div>
         </div>
@@ -174,7 +182,7 @@ export async function HomeDashboard() {
           <div className={styles.panelHead}><h2 id="how-title">Come funziona il servizio</h2></div>
           <div className={styles.step}><span className={styles.dot} /><div><b>Raccogliamo i dati</b><span>Search Console, Analytics e risposte di Gemini, in automatico ogni giorno</span></div></div>
           <div className={styles.step}><span className={styles.dot} data-off={hasStartup ? undefined : ""} /><div><b>Analizziamo e assegniamo un punteggio{hasStartup ? " · fatto" : ""}</b><span>È da qui che nascono il punteggio e le azioni qui sopra</span></div></div>
-          <div className={styles.step}><span className={styles.dot} data-off="" /><div><b>Tu decidi, MosTag esegue</b><span>Report automatico ogni mese (prossimo: {formatDate(next)}); le azioni approvate le implementiamo noi</span></div></div>
+          <div className={styles.step}><span className={styles.dot} data-off="" /><div><b>Tu decidi, MosTag esegue</b><span>Report automatico ogni {reportIntervalDays} giorni{next ? ` (prossimo: ${formatDate(next)})` : ""}; le azioni approvate le implementiamo noi</span></div></div>
         </section>
       </div>
     </section>
