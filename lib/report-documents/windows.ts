@@ -41,9 +41,9 @@ export const monthLabel = (day: string) => `${MONTHS[Number(day.slice(5, 7)) - 1
 /** Nome del file scaricato: leggibile per il cliente, senza codici interni. `nth` distingue più documenti identici. */
 export function documentFileName(kind: ReportKind, createdAt: Date, period: Window | null, nth = 1) {
   const suffix = nth > 1 ? `-${nth}` : "";
-  if (kind === "monthly" && period) return `Solair-Report-Mensile-${period.to.slice(0, 7)}${suffix}.pdf`;
+  if (kind === "monthly" && period) return `Solair-Report-Periodico-${period.from}_${period.to}${suffix}.pdf`;
   if (kind === "startup") return `Solair-Report-Startup-${createdAt.toISOString().slice(0, 10)}${suffix}.pdf`;
   if (period) return `Solair-Aggiornamento-${period.from}_${period.to}${suffix}.pdf`;
   return `Solair-Aggiornamento-${createdAt.toISOString().slice(0, 10)}${suffix}.pdf`;
 }
-export const KIND_LABEL: Record<ReportKind, string> = { startup: "Start-up", monthly: "Mensile", update: "Aggiornamento" };
+export const KIND_LABEL: Record<ReportKind, string> = { startup: "Start-up", monthly: "Periodico", update: "Aggiornamento" };

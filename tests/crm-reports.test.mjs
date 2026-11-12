@@ -12,7 +12,7 @@ const original = Module._load, extension = require.extensions['.ts'];
 require.extensions['.ts'] = (module, file) => module._compile(ts.transpileModule(readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText, file);
 Module._load = function(id, ...rest) {
   if (id.endsWith('/lib/db')) return { getSql: () => async (_strings, ...values) => { state.queries++; state.values = values; return state.rows; } };
-  if (id.endsWith('/lib/report-documents/store')) return { getReportDocument: async () => { state.documents++; return state.document; }, getDocumentFileName: async () => 'Solair-Report-Mensile-2026-10.pdf' };
+  if (id.endsWith('/lib/report-documents/store')) return { getReportDocument: async () => { state.documents++; return state.document; }, getDocumentFileName: async () => 'Solair-Report-Periodico-2026-10-01_2026-10-31.pdf' };
   return original.call(this, id, ...rest);
 };
 const { GET: list } = require('../app/api/crm-reports/route.ts');
@@ -51,13 +51,13 @@ test('the CRM archive and PDF are inaccessible without a valid machine signature
     const response = await list(signed(`/api/crm-reports?scheduledSince=${encodeURIComponent(since)}`));
     assert.equal(response.status, 200);
     const { reports } = await response.json();
-    assert.match(reports[0].label, /Report mensile.*01\/10\/2026/);
+    assert.match(reports[0].label, /Report periodico.*01\/10\/2026/);
     assert.ok(state.values.includes(since));
     assert.equal((await list(signed('/api/crm-reports?scheduledSince=invalid'))).status, 400);
     state.document = { pdf: Buffer.from('%PDF-1.7 mock') };
     const file = await pdf(signed('/api/crm-reports/aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa'), { params });
     assert.equal(file.status, 200);
-    assert.equal(file.headers.get('x-report-filename'), 'Solair-Report-Mensile-2026-10.pdf');
+    assert.equal(file.headers.get('x-report-filename'), 'Solair-Report-Periodico-2026-10-01_2026-10-31.pdf');
     assert.equal(file.headers.get('content-type'), 'application/pdf');
     assert.equal(await file.text(), '%PDF-1.7 mock');
     state.document = null;

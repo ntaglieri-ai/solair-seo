@@ -14,7 +14,7 @@ export async function GET(request: Request) {
         and (${since}::timestamptz is null or (trigger='scheduled' and created_at>=${since}::timestamptz))
       order by created_at desc limit ${since ? 501 : 50}`;
     if (rows.length > 500) throw new Error("Troppi report da elaborare.");
-    const kinds: Record<string, string> = { startup: "Report iniziale", monthly: "Report mensile", update: "Aggiornamento SEO" };
+    const kinds: Record<string, string> = { startup: "Report iniziale", monthly: "Report periodico", update: "Aggiornamento SEO" };
     const date = (value: string | Date) => new Intl.DateTimeFormat("it-IT", { timeZone: "Europe/Rome" }).format(new Date(value));
     return Response.json({ reports: rows.map(row => ({
       id: row.id, trigger: row.trigger, createdAt: new Date(row.createdAt).toISOString(),
