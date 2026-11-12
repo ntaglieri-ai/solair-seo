@@ -57,6 +57,15 @@ test('every data page and interactive API is guarded; only credential-protected 
   for (const file of files('app/api').filter(f => f.endsWith('/route.ts'))) {
     if (file === 'app/api/operator/route.ts') continue;
     const source = readFileSync(file, 'utf8');
+    if (file === 'app/api/crm-settings/route.ts') {
+      assert.match(source, /if\s*\(!validSettingsSignature\(request.headers, "GET", "", process.env.SOLAIR_SEO_SETTINGS_SECRET\)\)/, file);
+      assert.match(source, /if\s*\(!validSettingsSignature\(request.headers, "PATCH", body, process.env.SOLAIR_SEO_SETTINGS_SECRET\)\)/, file);
+      continue;
+    }
+    if (file === 'app/api/crm-reports/route.ts' || file === 'app/api/crm-reports/[id]/route.ts') {
+      assert.match(source, /if\s*\(!validCrmReportSignature\(request\)\)/, file);
+      continue;
+    }
     if (/\/cron\/|\/engine\/route|\/audit-scores\/route/.test(file)) assert.match(source, /if\s*\(!authorizedEngine/, file);
     else assert.match(source, /await requireSeoApi\(/, file);
   }
