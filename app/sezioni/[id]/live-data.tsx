@@ -10,9 +10,11 @@ import {
   getGscTop,
   getGscTotals,
   getGscWeekly,
+  getOnPageHistory,
   getRecentRuns,
   getLatestAttempts,
   type GscTopRow,
+  type OnPageResult,
   type RunKind,
   type RunSummary,
 } from "../../../lib/engine/read";
@@ -352,6 +354,8 @@ export async function HistoryLive({
 
   return (
     <>
+      <TechHealth siteId={siteId} />
+
       <section className={styles.block} aria-labelledby="history-monthly">
         <div className={styles.heading}>
           <h2 id="history-monthly">Search Console mese per mese</h2>
@@ -400,6 +404,41 @@ export async function HistoryLive({
 
       <RunLog runs={runs} title="Registro rilevazioni" subtitle={`Ultime ${runs.length}`} id="history-runs" />
     </>
+  );
+}
+
+/** Ultima scansione on-page archiviata: le criticità concrete dietro il punteggio "Salute tecnica" in home. */
+async function TechHealth({ siteId }: { siteId: string }) {
+  const history = await safeRead("salute tecnica", () => getOnPageHistory(siteId, 1));
+  const latest: OnPageResult | undefined = history?.[0];
+
+  return (
+    <section className={styles.block} aria-labelledby="history-tech">
+      <div className={styles.heading}>
+        <h2 id="history-tech">Salute tecnica</h2>
+        <span>Ultima scansione on-page</span>
+      </div>
+      {!latest ? (
+        <div className={styles.empty}>Nessuna scansione on-page ancora archiviata.</div>
+      ) : (
+        <div className={styles.panel}>
+          <p className={styles.note}>
+            {shortPath(latest.url)} · {formatDateTime(latest.scannedAt)} · Punteggio {latest.score}/100
+          </p>
+          {latest.deductions.length === 0 ? (
+            <p className={styles.note} style={{ marginTop: 8 }}>
+              Nessuna criticità rilevata sull&apos;ultima scansione.
+            </p>
+          ) : (
+            <ul className={styles.issueList}>
+              {latest.deductions.map((d) => (
+                <li key={d}>{d}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </section>
   );
 }
 

@@ -101,7 +101,7 @@ export async function readHomeVisibility(siteId: string): Promise<Visibility> {
           : `${tech.deductions.length} ${tech.deductions.length === 1 ? "criticità rilevata" : "criticità rilevate"} sull'ultima scansione on-page.`
         : "Nessuna scansione on-page ancora archiviata.",
       date: tech ? tech.scannedAt.toISOString().slice(0, 10) : null,
-      href: "/sezioni/historical-comparison",
+      href: "/sezioni/historical-comparison#history-tech",
     },
   ];
 
