@@ -14,4 +14,15 @@ Manuale e automatico usano `generateReportDocument` e lo stesso formato. La chia
 
 Le migrazioni 014 e 015 archiviano in Postgres il PDF, il contenuto congelato, l'hash SHA-256 e lo stato della sola programmazione PDF. Una generazione manuale non rimanda la prossima automatica. Un errore di generazione non avanza la scadenza; il dispatcher ritenta alla successiva esecuzione. Le date delle fonti restano distinte dalla data di generazione del documento.
 
-Il download restituisce il file archiviato, senza ricalcolarlo. I documenti non vengono inviati per email: sono consultabili e scaricabili dall'app, con gli stessi confini di accesso già presenti. Non vengono introdotti account multi-cliente o nuovi servizi a pagamento.
+Il download restituisce il file archiviato, senza ricalcolarlo. La generazione manuale non invia email: l’invio si avvia con il comando separato nella pagina del documento. I report programmati possono essere inviati dal CRM, solo quando l’invio automatico è abilitato nelle impostazioni. Non vengono introdotti account multi-cliente o nuovi servizi a pagamento.
+
+
+## Salvataggio automatico Nextcloud
+
+Ogni nuovo PDF, manuale o programmato, viene salvato nella cartella configurata in CRM Settings → AI Features → SolairSEO (attualmente `Solair/Report-SolairSEO`). Il generatore usa il bridge firmato `/api/auth/seo/archive`, che accetta esclusivamente l’identificativo di un report e non può inviare email o scegliere una destinazione diversa. La cartella vuota disattiva l’archiviazione.
+
+La migrazione `20261113072840_report_nextcloud_archive.sql` aggiunge una coda privata: un trigger inserisce la richiesta nella stessa transazione del PDF. Il primo tentativo avviene durante la generazione; gli errori restano in coda, con lease a scadenza e fino a due ritentativi per esecuzione del cron giornaliero. Il caricamento è idempotente: accetta lo stesso PDF già presente, senza sovrascrivere un file diverso. Nessun recupero massivo dei documenti precedenti.
+
+La pagina del documento mostra il percorso solo dopo conferma del salvataggio; in caso di errore mostra lo stato in attesa e permette un nuovo tentativo manuale. Il PDF resta consultabile anche quando Nextcloud è temporaneamente indisponibile.
+
+Le email manuali e automatiche usano il nome **Solair WebSite SEO Report** e il mittente tecnico `no-reply@solairgroup.it`, sul dominio SES già verificato. Il testo invita a non rispondere; l’indirizzo resta visibile nei dettagli del messaggio. Il blocco delle risposte dipende dalla configurazione del server di posta in ingresso e non è garantito dal mittente no-reply.

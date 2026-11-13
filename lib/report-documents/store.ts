@@ -4,6 +4,7 @@ import { getSql } from "../db";
 import { readReport } from "../report-read";
 import type { GeoAnswer } from "../geo/answer";
 import { renderReportPdf } from "./render";
+import { archiveReportDocument } from "./archive";
 import { getGscLastDate, getGscTotalsBetween } from "../engine/read";
 import { getEngineSettings } from "../engine/store";
 import { daysIn, documentFileName, resolveWindow, type ReportKind, type WindowError } from "./windows";
@@ -68,13 +69,13 @@ export async function generateReportDocument(options: { kind?: ReportKind; snaps
   if (!payload) return null;
   const sql = getSql(), fingerprint = documentFingerprint(payload);
   const [existing] = await sql<{ id: string }[]>`select id from seo.report_documents where site_id=${SITE} and fingerprint=${fingerprint}`;
-  if (existing) return { ...documentUrls(existing.id), reused: true, kind };
+  if (existing) return { ...documentUrls(existing.id), reused: true, kind, archive: await archiveReportDocument(existing.id) };
   const bytes = await renderReportPdf(payload);
   const sha256 = createHash("sha256").update(bytes).digest("hex");
   const [saved] = await sql<{ id: string }[]>`insert into seo.report_documents(site_id,snapshot_id,geo_scan_id,trigger,status,fingerprint,template_version,payload,pdf,sha256,kind,period_from,period_to)
     values(${SITE},${payload.report.id},${payload.geo?.id ?? null},${options.trigger},${documentStatus(payload)},${fingerprint},${PDF_TEMPLATE_VERSION},${sql.json(payload as never)},${bytes},${sha256},${kind},${payload.period?.from ?? null},${payload.period?.to ?? null})
     on conflict(site_id,fingerprint) do update set fingerprint=excluded.fingerprint returning id`;
-  return { ...documentUrls(saved.id), reused: false, kind };
+  return { ...documentUrls(saved.id), reused: false, kind, archive: await archiveReportDocument(saved.id) };
 }
 export async function getDocumentArchive(limit = 20) {
   return getSql()<DocumentMeta[]>`select id,snapshot_id as "snapshotId",geo_scan_id as "geoScanId",status,trigger,kind,created_at as "createdAt",
