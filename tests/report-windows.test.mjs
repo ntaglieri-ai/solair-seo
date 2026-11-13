@@ -15,9 +15,10 @@ test('monthly (periodic) falls back to a 30-day cadence when none is given', () 
   assert.deepEqual(r.current, { from: '2026-10-07', to: '2026-11-05' });
   assert.deepEqual(r.compare, { from: '2026-09-07', to: '2026-10-06' });
 });
-test('update starts the day after the previous document and needs at least three days', () => {
-  assert.deepEqual(resolveWindow({ kind: 'update', lastDate: '2026-11-12', previousEnd: '2026-11-05' }), { ok: true, current: { from: '2026-11-06', to: '2026-11-12' }, compare: null });
-  assert.equal(resolveWindow({ kind: 'update', lastDate: '2026-11-07', previousEnd: '2026-11-05' }).error, 'TOO_FEW_DAYS');
+test('manual updates remain available with few new days; comparisons require three days', () => {
+  assert.deepEqual(resolveWindow({ kind: 'update', lastDate: '2026-11-12', previousEnd: '2026-11-05' }), { ok: true, current: { from: '2026-11-06', to: '2026-11-12' }, compare: { from: '2026-10-30', to: '2026-11-05' } });
+  assert.equal(resolveWindow({ kind: 'update', lastDate: '2026-11-07', previousEnd: '2026-11-05' }).compare, null);
+  assert.deepEqual(resolveWindow({ kind: 'update', lastDate: '2026-11-05', previousEnd: '2026-11-05' }).current, { from: '2026-11-05', to: '2026-11-05' });
   assert.equal(resolveWindow({ kind: 'update', lastDate: '2026-11-12', previousEnd: null }).error, 'NEEDS_STARTUP');
   assert.equal(resolveWindow({ kind: 'update', lastDate: null, previousEnd: null }).error, 'NO_DATA');
   assert.equal(daysIn({ from: '2026-11-06', to: '2026-11-12' }), 7);

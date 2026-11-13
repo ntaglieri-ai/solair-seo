@@ -5,7 +5,7 @@ import { summarizeScan } from "../geo/summary";
 import type { GscTotals } from "../engine/read";
 import type { ReportMetrics } from "./metrics";
 import type { ReportKind, Window } from "./windows";
-export const PDF_TEMPLATE_VERSION = "solair-report-pdf-v4";
+export const PDF_TEMPLATE_VERSION = "solair-report-pdf-v5";
 export const UUID = /^[\da-f]{8}(-[\da-f]{4}){3}-[\da-f]{12}$/i;
 export type DocumentAnswer = Omit<GeoAnswer, "estimatedUsd" | "searches" | "searchQueries" | "inputTokens" | "outputTokens">;
 export type DocumentGeo = { id: string; status: string; model: string | null; protocol: string; planned: number; startedAt: string; answers: DocumentAnswer[] };

@@ -44,7 +44,7 @@ export function ReportGenerator({ hasReports }: { hasReports: boolean }) {
     </div>
     <p id="report-kind-description" className={styles.note}>{kind === "startup"
       ? "Fotografia iniziale degli ultimi 28 giorni disponibili, prima degli interventi. Puoi crearla anche se ci sono report di prova."
-      : "Risultati successivi all’ultimo report. Servono almeno 3 giorni di dati nuovi."}</p>
+      : "Risultati successivi all’ultimo report, oppure ultimi dati disponibili se non ci sono novità. La sezione confronto è sempre presente; i confronti richiedono almeno 3 giorni nuovi."}</p>
     {busy && <p className={styles.note}>L’operazione può richiedere alcuni minuti. Lascia aperta questa pagina.</p>}
     <p role="status" aria-live="polite" className={error ? styles.error : styles.note}>{error || (busy ? progress : "")}</p>
   </div>;

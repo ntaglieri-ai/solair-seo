@@ -2,7 +2,7 @@
 
 Il menu **Report** apre `/report`: la stessa pagina contiene **Nuovo report** e **Report precedenti**. Anche **Genera report** in Panoramica porta al modulo di questa pagina, senza avviare operazioni al caricamento.
 
-Scegliere **Report iniziale (Start-up)** per una fotografia degli ultimi 28 giorni disponibili, anche quando esistono documenti di prova. **Aggiornamento** copre i giorni successivi all’ultimo documento e richiede almeno tre giorni nuovi. La scelta viene trasmessa esplicitamente al generatore PDF.
+Scegliere **Report iniziale (Start-up)** per una fotografia degli ultimi 28 giorni disponibili, anche quando esistono documenti di prova. **Aggiornamento** copre i giorni successivi all’ultimo documento ; con meno di tre giorni nuovi mostra gli ultimi dati disponibili senza confronto. La scelta viene trasmessa esplicitamente al generatore PDF.
 
 Premere **Genera report** aggiorna le fonti Google, analizza il sito, raccoglie Gemini se abilitato e infine archivia il PDF. Lo stato di avanzamento rimane visibile e il pulsante è disabilitato durante la generazione. Gli errori delle fonti vengono conservati come limiti del documento. La generazione richiede il permesso CRM di scrittura; chi ha sola lettura può aprire e scaricare i documenti.
 
@@ -37,3 +37,6 @@ Il PDF mantiene copertina, colori e componenti grafici precedenti e aggiunge due
 La tabella GSC mostra URL completi per distinguere sottodomini e varianti HTTP/HTTPS della proprietà. GA4 è filtrato per sorgente google e mezzo organic: non equivale a tutti i canali né all’intero canale Organic Search. Gli invii `lead_submit` sono separati dai clic WhatsApp/telefono/email per evitare doppi conteggi. Soglie privacy, campionamento e dati mancanti restano espliciti; non si attribuiscono lead CRM alle query. Le proposte conservano il periodo della loro analisi originaria, indicato nel capitolo interventi.
 
 `prepareReportRevision` prepara una revisione di un PDF esistente mantenendo periodo, snapshot SEO e scansione Gemini. Il salvataggio avviene tramite `persistReportDocument` con trigger manuale, dopo la verifica del file: archivia anche su Nextcloud, senza inviare email.
+
+
+Il modello v5 include sempre il capitolo **Confronto e andamento**, per ogni tipo di report e modalità di generazione. La tabella mostra GSC e GA4 attuali, precedenti e variazioni; usa trattini quando mancano due finestre della stessa durata, dati completi o fonti attendibili. Gli aggiornamenti manuali sono disponibili anche con zero, uno o due giorni nuovi; da tre giorni confrontano il nuovo intervallo con quello immediatamente precedente di pari durata. In assenza di giorni nuovi si riporta l’ultima giornata disponibile. I report esistenti restano archiviati nel loro formato originale.

@@ -59,7 +59,7 @@ async function capturePayload(kind: ReportKind, snapshotId?: string, geoScanId?:
       citedSolair: row.result.citedSolair, competitorsMentioned: row.result.competitorsMentioned ?? [], reviewNotes: row.result.reviewNotes }] : []);
     documentGeo = { ...geo, startedAt: new Date(geo.startedAt).toISOString(), answers };
   }
-  const baseline = kind === "monthly" ? await startupBaseline().catch(() => null) : null;
+  const baseline = kind !== "startup" ? await startupBaseline().catch(() => null) : null;
   const metrics = await collectReportMetrics(SITE, resolved.current, resolved.compare);
   if (metrics.current.search?.daily.length) { current.totals = searchTotals(metrics.current.search.daily); current.window.archivedDays = current.totals.days; }
   if (previous && metrics.previous?.search?.daily.length) { previous.totals = searchTotals(metrics.previous.search.daily); previous.window.archivedDays = previous.totals.days; }

@@ -7,6 +7,7 @@ import { rankActions, reportReading, reportText, STABLE_CLICKS_BAND } from "../r
 import { summarizeScan, citationHost, SOURCE_CHECKS } from "../geo/summary";
 import type { GeoAnswer } from "../geo/answer";
 import type { ReportPayload } from "./model";
+import { comparisonData } from "./comparison";
 import { analyticsTotals } from "./metric-summary";
 import type { GscDatasetRow } from "../gsc";
 
@@ -302,9 +303,41 @@ export function renderReportPdf(payload: ReportPayload): Promise<Buffer> {
         analytics.limitations.forEach(note => para(note, 8.6, F.r, C.muted, 6));
       } else para("I dati Analytics non sono disponibili per il periodo del documento. Sessioni, coinvolgimento e contatti restano non misurati, senza sostituirli con zero.", 10, F.r, C.muted);
 
+      // A fixed chapter for every document, even without comparable measurements.
+      newPage();
+      chapter("03 / Confronto e andamento", "Come stanno andando i risultati", "Un riepilogo del periodo attuale rispetto al precedente, quando il confronto è disponibile.");
+      const comparison = comparisonData(payload);
+      para(comparison.reason, 10, F.r, C.muted, 16);
+      if (payload.period) para(`Periodo attuale: ${formatPeriod(payload.period)}.${payload.compare ? ` Periodo precedente: ${formatPeriod(payload.compare)}.` : " Periodo precedente: non ancora disponibile."}`, 9.5);
+      const cols = [W - 296, 90, 90, 116];
+      tableHeader([{ w: cols[0], label: "Parametro" }, { w: cols[1], label: "Attuale" }, { w: cols[2], label: "Precedente" }, { w: cols[3], label: "Variazione" }]);
+      function comparisonRow(label: string, current: number | undefined, before: number | undefined, ready: boolean, format = formatInt, mode = "relative") {
+        const available = ready && current !== undefined && before !== undefined;
+        let change = "Non disponibile";
+        if (available) change = mode === "points" ? `${signed((current - before) * 100)} p.p.` : mode === "position" ? `${signed(current - before)} pos.` : relDelta(current, before).text;
+        tableRow(cols, [(x, yy, w) => put(label, x, yy, w, 9, F.b, C.ink),
+          (x, yy, w) => put(current === undefined ? "-" : format(current), x, yy, w, 9, F.r, C.ink, { align: "right" }),
+          (x, yy, w) => put(available ? format(before) : "-", x, yy, w, 9, F.r, C.ink, { align: "right" }),
+          (x, yy, w) => put(change, x, yy, w, 8.3, F.r, available ? C.ink : C.muted)], 33);
+      }
+      comparisonRow("Clic da Google", totals?.current.clicks, totals?.previous?.clicks, comparison.searchReady);
+      comparisonRow("Impressioni", totals?.current.impressions, totals?.previous?.impressions, comparison.searchReady);
+      comparisonRow("CTR", totals?.current.ctr, totals?.previous?.ctr, comparison.searchReady, formatPercent, "points");
+      comparisonRow("Posizione media", totals?.current.position, totals?.previous?.position, comparison.searchReady, formatDecimal, "position");
+      comparisonRow("Sessioni organiche", comparison.currentAnalytics?.sessions, comparison.previousAnalytics?.sessions, comparison.analyticsReady);
+      comparisonRow("Coinvolgimento", comparison.currentAnalytics?.engagementRate, comparison.previousAnalytics?.engagementRate, comparison.analyticsReady, formatPercent, "points");
+      comparisonRow("Clic di contatto", comparison.currentAnalytics?.contactClicks, comparison.previousAnalytics?.contactClicks, comparison.analyticsReady);
+      comparisonRow("Invii configuratore", comparison.currentAnalytics?.forms, comparison.previousAnalytics?.forms, comparison.analyticsReady);
+      y += 16;
+      para("Per la posizione media un valore più basso è migliore. Le variazioni vanno lette insieme: più impressioni, da sole, non dimostrano più richieste. I clic di contatto sono eventi e non persone uniche.", 9, F.r, C.muted);
+      if (payload.baseline && comparison.searchReady && totals && payload.period) {
+        const baseline = payload.baseline;
+        card({ tint: C.mint, bar: C.green, title: "Rispetto all'avvio del servizio", blocks: [{ text: `Clic medi al giorno: ${formatDecimal(totals.current.clicks / Math.max(1, payload.period.archivedDays))} nel periodo attuale; ${formatDecimal(baseline.clicks / Math.max(1, baseline.days))} nello Start-up (${formatDate(baseline.from)} - ${formatDate(baseline.to)}). Il confronto per giorno tiene conto della diversa durata dei periodi.` }] });
+      }
+
       // ===== 02 Presenza nelle risposte AI ===============================================
       newPage();
-      chapter("03 / Presenza nelle risposte AI", "Come Gemini presenta Solair", payload.geo ? `Rilevazione del ${formatDateTime(new Date(payload.geo.startedAt))}  |  modello ${payload.geo.model ?? "non disponibile"}` : "Nessuna rilevazione Gemini disponibile per questo report.");
+      chapter("04 / Presenza nelle risposte AI", "Come Gemini presenta Solair", payload.geo ? `Rilevazione del ${formatDateTime(new Date(payload.geo.startedAt))}  |  modello ${payload.geo.model ?? "non disponibile"}` : "Nessuna rilevazione Gemini disponibile per questo report.");
       if (payload.geo && geo) {
         tileRow([
           { label: "Spontanee", value: `${geo.nonBrandMentioned}/${geo.nonBrandComplete}`, note: "nominano Solair", tone: geo.nonBrandMentioned ? "up" : "down", dark: true },
@@ -358,7 +391,7 @@ export function renderReportPdf(payload: ReportPayload): Promise<Buffer> {
 
       // ===== 03 Piano di miglioramento ==================================================
       newPage();
-      chapter("04 / Piano di miglioramento", "Gli interventi sostenuti dai dati", "Priorità sulle pagine e sui contenuti del sito. Nessuna modifica viene applicata automaticamente.");
+      chapter("05 / Piano di miglioramento", "Gli interventi sostenuti dai dati", "Priorità sulle pagine e sui contenuti del sito. Nessuna modifica viene applicata automaticamente.");
       if (data.windows) para(`Periodo delle evidenze che sostengono gli interventi: ${formatPeriod(data.windows.current)}. Queste proposte appartengono all’analisi SEO archiviata e possono riferirsi a un periodo diverso dai risultati Google delle sezioni precedenti.`, 9, F.r, C.muted, 16);
       const brandQuery = (query: unknown) => typeof query === "string" && /solair/i.test(query);
       const actions = rankActions((data.opportunities ?? []).filter(a => typeof a.action === "string" && typeof a.page === "string"));
@@ -383,7 +416,7 @@ export function renderReportPdf(payload: ReportPayload): Promise<Buffer> {
 
       // ===== 04 Fonti e metodo ===========================================================
       newPage();
-      chapter("05 / Fonti e metodo", "Come leggere questo report");
+      chapter("06 / Fonti e metodo", "Come leggere questo report");
       sub("Search Console", 6);
       para(windows ? `Proprietà ${SITE_LABEL}. Dati dal ${formatPeriod(windows.current)}${windows.previous ? `, confrontati con ${formatPeriod(windows.previous)}` : ""}. I totali provengono dalla serie giornaliera; query e pagine sono raccolte separatamente sullo stesso intervallo. I risultati vengono conservati insieme a questo PDF.` : "Periodo Google non disponibile.", 9.8);
       sub("Google Analytics 4", 6);

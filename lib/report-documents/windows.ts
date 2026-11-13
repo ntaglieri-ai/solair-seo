@@ -17,7 +17,7 @@ export type Resolved = { ok: true; current: Window; compare: Window | null } | {
  * monthly: ultimi `periodicDays` giorni conclusi all'ultimo dato, confrontati con i `periodicDays`
  * precedenti. `periodicDays` segue la cadenza impostata dal cliente (seo.engine_settings.analysis_days),
  * non più un mese di calendario fisso: un report ogni 90 giorni deve coprire 90 giorni, non 30.
- * update: dal giorno dopo la fine del documento precedente all'ultimo dato, nessun confronto.
+ * update: nuovi giorni disponibili; confronto con un intervallo precedente di pari durata da tre giorni in poi.
  */
 export function resolveWindow(input: { kind: ReportKind; lastDate: string | null; previousEnd: string | null; periodicDays?: number }): Resolved {
   const { kind, lastDate, previousEnd, periodicDays } = input;
@@ -30,9 +30,9 @@ export function resolveWindow(input: { kind: ReportKind; lastDate: string | null
     return { ok: true, current, compare };
   }
   if (!previousEnd) return { ok: false, error: "NEEDS_STARTUP" };
-  const current = { from: shiftDay(previousEnd, 1), to: lastDate };
+  const current = { from: previousEnd >= lastDate ? lastDate : shiftDay(previousEnd, 1), to: lastDate };
   const days = daysIn(current);
-  return days >= MIN_UPDATE_DAYS ? { ok: true, current, compare: null } : { ok: false, error: "TOO_FEW_DAYS", detail: `${Math.max(days, 0)}` };
+  return { ok: true, current, compare: days >= MIN_UPDATE_DAYS ? { from: shiftDay(current.from, -days), to: shiftDay(current.from, -1) } : null };
 }
 
 const MONTHS = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"];
