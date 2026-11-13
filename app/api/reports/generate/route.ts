@@ -5,7 +5,7 @@ import { generateReportDocument, ReportWindowError } from "../../../../lib/repor
 import { UUID } from "../../../../lib/report-documents/model";
 export const dynamic="force-dynamic";
 export const runtime="nodejs";
-export const maxDuration=120;
+export const maxDuration=240;
 const headers={"Cache-Control":"no-store"};
 /** Esporta solo fonti già archiviate del sito fisso. Non avvia raccolte né consumi AI. */
 export async function POST(request:NextRequest){

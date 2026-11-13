@@ -4,6 +4,8 @@ import { getSql } from "../db";
 import { readReport } from "../report-read";
 import type { GeoAnswer } from "../geo/answer";
 import { renderReportPdf } from "./render";
+import { collectReportMetrics } from "./metrics";
+import { searchTotals } from "./metric-summary";
 import { archiveReportDocument } from "./archive";
 import { getGscLastDate, getGscTotalsBetween } from "../engine/read";
 import { getEngineSettings } from "../engine/store";
@@ -58,7 +60,10 @@ async function capturePayload(kind: ReportKind, snapshotId?: string, geoScanId?:
     documentGeo = { ...geo, startedAt: new Date(geo.startedAt).toISOString(), answers };
   }
   const baseline = kind === "monthly" ? await startupBaseline().catch(() => null) : null;
-  return { version: PDF_TEMPLATE_VERSION, siteId: SITE, client: "Solair Group S.r.l.", generatedAt: new Date().toISOString(),
+  const metrics = await collectReportMetrics(SITE, resolved.current, resolved.compare);
+  if (metrics.current.search?.daily.length) { current.totals = searchTotals(metrics.current.search.daily); current.window.archivedDays = current.totals.days; }
+  if (previous && metrics.previous?.search?.daily.length) { previous.totals = searchTotals(metrics.previous.search.daily); previous.window.archivedDays = previous.totals.days; }
+  return { metrics, version: PDF_TEMPLATE_VERSION, siteId: SITE, client: "Solair Group S.r.l.", generatedAt: new Date().toISOString(),
     report: { id: report.id, status: report.status, createdAt: new Date(report.createdAt).toISOString(), data: report.data }, geo: documentGeo, geoRefreshFailed, sourceRefreshFailed, baseline,
     kind, period: current.window, compare: previous?.window ?? null, totals: { current: current.totals, previous: previous?.totals ?? null } };
 }
@@ -67,13 +72,18 @@ async function capturePayload(kind: ReportKind, snapshotId?: string, geoScanId?:
 export async function generateReportDocument(options: { kind?: ReportKind; snapshotId?: string; geoScanId?: string; trigger: "manual" | "scheduled"; geoRefreshFailed?: boolean; sourceRefreshFailed?: boolean }) {
   const kind = options.kind ?? await defaultKind(), payload = await capturePayload(kind, options.snapshotId, options.geoScanId, options.geoRefreshFailed, options.sourceRefreshFailed);
   if (!payload) return null;
+  return persistReportDocument(payload, options.trigger);
+}
+
+export async function persistReportDocument(payload: ReportPayload, trigger: "manual" | "scheduled") {
+  const kind = payload.kind;
   const sql = getSql(), fingerprint = documentFingerprint(payload);
   const [existing] = await sql<{ id: string }[]>`select id from seo.report_documents where site_id=${SITE} and fingerprint=${fingerprint}`;
   if (existing) return { ...documentUrls(existing.id), reused: true, kind, archive: await archiveReportDocument(existing.id) };
   const bytes = await renderReportPdf(payload);
   const sha256 = createHash("sha256").update(bytes).digest("hex");
   const [saved] = await sql<{ id: string }[]>`insert into seo.report_documents(site_id,snapshot_id,geo_scan_id,trigger,status,fingerprint,template_version,payload,pdf,sha256,kind,period_from,period_to)
-    values(${SITE},${payload.report.id},${payload.geo?.id ?? null},${options.trigger},${documentStatus(payload)},${fingerprint},${PDF_TEMPLATE_VERSION},${sql.json(payload as never)},${bytes},${sha256},${kind},${payload.period?.from ?? null},${payload.period?.to ?? null})
+    values(${SITE},${payload.report.id},${payload.geo?.id ?? null},${trigger},${documentStatus(payload)},${fingerprint},${PDF_TEMPLATE_VERSION},${sql.json(payload as never)},${bytes},${sha256},${kind},${payload.period?.from ?? null},${payload.period?.to ?? null})
     on conflict(site_id,fingerprint) do update set fingerprint=excluded.fingerprint returning id`;
   return { ...documentUrls(saved.id), reused: false, kind, archive: await archiveReportDocument(saved.id) };
 }
@@ -100,4 +110,23 @@ export async function getDocumentFileName(document: NonNullable<Awaited<ReturnTy
 export async function getLatestDocument() {
   const [row] = await getSql()<{ id: string }[]>`select id from seo.report_documents where site_id=${SITE} order by created_at desc limit 1`;
   return row ?? null;
+}
+
+/** Correct an existing document without rerunning SEO analysis or Gemini, or sending email. */
+export async function prepareReportRevision(id: string) {
+  const original = await getReportDocument(id);
+  if (!original?.payload.period) throw new Error("Documento senza periodo verificabile.");
+  const payload: ReportPayload = structuredClone(original.payload);
+  payload.version = PDF_TEMPLATE_VERSION;
+  payload.generatedAt = new Date().toISOString();
+  payload.metrics = await collectReportMetrics(SITE, payload.period!, payload.compare);
+  if (payload.metrics.current.search?.daily.length && payload.totals) {
+    payload.totals.current = searchTotals(payload.metrics.current.search.daily);
+    payload.period!.archivedDays = payload.totals.current.days;
+  }
+  if (payload.compare && payload.metrics.previous?.search?.daily.length && payload.totals) {
+    payload.totals.previous = searchTotals(payload.metrics.previous.search.daily);
+    payload.compare.archivedDays = payload.totals.previous.days;
+  }
+  return payload;
 }

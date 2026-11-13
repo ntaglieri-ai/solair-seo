@@ -26,3 +26,14 @@ La migrazione `20261113072840_report_nextcloud_archive.sql` aggiunge una coda pr
 La pagina del documento mostra il percorso solo dopo conferma del salvataggio; in caso di errore mostra lo stato in attesa e permette un nuovo tentativo manuale. Il PDF resta consultabile anche quando Nextcloud è temporaneamente indisponibile.
 
 Le email manuali e automatiche usano il nome **Solair WebSite SEO Report** e il mittente tecnico `no-reply@solairgroup.it`, sul dominio SES già verificato. Il testo invita a non rispondere; l’indirizzo resta visibile nei dettagli del messaggio. Il blocco delle risposte dipende dalla configurazione del server di posta in ingresso e non è garantito dal mittente no-reply.
+
+
+## Sezioni Google nel modello v4
+
+Il PDF mantiene copertina, colori e componenti grafici precedenti e aggiunge due pagine GSC (andamento giornaliero, query e URL principali, ricerche con/senza nome Solair) e una sezione Analytics dedicata a Google/organic (sessioni, coinvolgimento, clic di contatto e invii del configuratore per pagina di ingresso). Non mostra il bollino di completezza in copertina: gli stati e i limiti restano nel documento e nell’app.
+
+`collectReportMetrics` raccoglie query, pagine, serie giornaliera GSC e pagine di ingresso GA4 sulle date esatte del documento e dell’eventuale confronto. GSC include i dati recenti come la raccolta giornaliera già esistente; conserva e mostra `firstIncompleteDate`. I totali usano la serie giornaliera, non la somma delle query visibili. Le metriche vengono congelate nel payload e partecipano alla chiave del PDF: il download non consulta le API. Le richieste manuali e programmate usano lo stesso percorso e non eseguono nuove chiamate AI durante l’esportazione.
+
+La tabella GSC mostra URL completi per distinguere sottodomini e varianti HTTP/HTTPS della proprietà. GA4 è filtrato per sorgente google e mezzo organic: non equivale a tutti i canali né all’intero canale Organic Search. Gli invii `lead_submit` sono separati dai clic WhatsApp/telefono/email per evitare doppi conteggi. Soglie privacy, campionamento e dati mancanti restano espliciti; non si attribuiscono lead CRM alle query. Le proposte conservano il periodo della loro analisi originaria, indicato nel capitolo interventi.
+
+`prepareReportRevision` prepara una revisione di un PDF esistente mantenendo periodo, snapshot SEO e scansione Gemini. Il salvataggio avviene tramite `persistReportDocument` con trigger manuale, dopo la verifica del file: archivia anche su Nextcloud, senza inviare email.

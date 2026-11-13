@@ -4,7 +4,7 @@ import { generateScheduledDocuments } from "../../../../lib/report-documents/sch
 import { retryPendingReportArchives } from "../../../../lib/report-documents/archive";
 export const dynamic="force-dynamic";
 export const runtime="nodejs";
-export const maxDuration=240;
+export const maxDuration=300;
 export async function GET(request:NextRequest){
   if(!authorizedEngine(request))return NextResponse.json({error:"Non autorizzato."},{status:401});
   try{

@@ -6,7 +6,9 @@ import { formatPeriod } from "../comparison-periods";
 import { rankActions, reportReading, reportText, STABLE_CLICKS_BAND } from "../report-presentation";
 import { summarizeScan, citationHost, SOURCE_CHECKS } from "../geo/summary";
 import type { GeoAnswer } from "../geo/answer";
-import { documentStatus, type ReportPayload } from "./model";
+import type { ReportPayload } from "./model";
+import { analyticsTotals } from "./metric-summary";
+import type { GscDatasetRow } from "../gsc";
 
 const SITE_URL = "https://solairgroup.it", SITE_LABEL = "solairgroup.it";
 const C = {
@@ -140,10 +142,10 @@ export function renderReportPdf(payload: ReportPayload): Promise<Buffer> {
       const report = payload.report, data = report.data, kind = payload.kind ?? "update", totals = payload.totals;
       // Periodo e totali del documento vengono dall'archivio Search Console, non dalle finestre dell'analisi.
       const windows = payload.period ? { current: payload.period, previous: payload.compare } : null;
-      const measured = report.status !== "blocked" && !!totals && !!windows;
+      const measured = (report.status !== "blocked" || !!payload.metrics?.current.search) && !!totals && !!windows;
       const answers = (payload.geo?.answers ?? []) as GeoAnswer[];
       const geo = payload.geo ? summarizeScan(answers, payload.geo.planned) : null;
-      const complete = documentStatus(payload) === "complete";
+
 
       // ===== Copertina ========================================================
       doc.rect(0, 0, PW, 306).fill(C.forest);
@@ -160,7 +162,6 @@ export function renderReportPdf(payload: ReportPayload): Promise<Buffer> {
       put("Risultati, presenza su Gemini\ne prossimi interventi", M, 192, 320, 15, F.r, "#E3ECF5", { lineGap: 4 });
       put(SITE_LABEL, M, 244, 220, 12.5, F.b, C.amber, { link: SITE_URL, underline: true, lineBreak: false });
       put(`Documento generato il ${formatDateTime(new Date(payload.generatedAt))}`, M, 274, 320, 8.5, F.r, "#B7C6D8", { lineBreak: false });
-      pill(PW - M - 108, 271, complete ? "Rilevazione completa" : "Rilevazione parziale", complete ? C.forest : C.amberDark, complete ? C.amber : C.amberTint);
       y = 330;
 
       if (payload.sourceRefreshFailed) { para("Aggiornamento delle fonti Google parziale: questo documento conserva le evidenze archiviate e ne indica il periodo effettivo.", 9.5, F.b, C.amberDark, 10); }
@@ -209,9 +210,101 @@ export function renderReportPdf(payload: ReportPayload): Promise<Buffer> {
       }
       para("Le pagine successive distinguono riscontri misurati, interpretazione e opportunità da verificare. Le date delle fonti possono essere diverse da quella di generazione del PDF.", 8.6, F.r, C.muted, 0);
 
+      // ===== Search Console: exact document window =====================================
+      const metrics = payload.metrics, search = metrics?.current.search;
+      const metricPeriod = metrics ? formatPeriod(metrics.current.period) : "Periodo non disponibile";
+      const pageLabel = (value: string) => { try { return new URL(value).href; } catch { return value === "(not set)" ? "Pagina non attribuita" : value; } };
+      function searchTable(rows: GscDatasetRow[], label: string, limit: number, pages = false) {
+        const cols = [W - 236, 48, 76, 56, 56];
+        const headers = [{ w: cols[0], label }, { w: cols[1], label: "Clic" }, { w: cols[2], label: "Impressioni" }, { w: cols[3], label: "CTR" }, { w: cols[4], label: "Posiz." }];
+        const selected = [...rows].sort((a, b) => b.clicks - a.clicks || b.impressions - a.impressions).slice(0, limit);
+        if (!selected.length) { para("Nessuna riga restituita dalla fonte per questo periodo.", 9.5, F.r, C.muted); return; }
+        tableHeader(headers);
+        selected.forEach(row => {
+          const name = pages ? pageLabel(row.keys[0]) : row.keys[0];
+          const height = Math.max(28, hOf(name, 9, F.r, cols[0] - 16, 2) + 16);
+          if (y + height > FOOT) { newPage(); tableHeader(headers); }
+          tableRow(cols, [(x, yy, w) => put(name, x, yy, w, 9, F.r, C.ink, { lineGap: 2 }),
+            ...[formatInt(row.clicks), formatInt(row.impressions), formatPercent(row.ctr), formatDecimal(row.position)].map(v => (x: number, yy: number, w: number) => put(v, x, yy, w, 8.6, F.r, C.ink, { align: "right", lineBreak: false }))], height);
+        });
+        y += 12;
+      }
+      newPage();
+      chapter("01 / Visibilità su Google", "Come il sito viene trovato", `${metricPeriod}  |  Search Console · ricerca web`);
+      if (search) {
+        if (search.firstIncompleteDate) para(`Dati in elaborazione da Google a partire dal giorno ${formatDate(search.firstIncompleteDate)}; possono cambiare.`, 8.8, F.r, C.muted, 10);
+        const daily = [...search.daily].sort((a, b) => a.keys[0].localeCompare(b.keys[0]));
+        if (daily.length) {
+          sub("Clic da Google nel periodo", 8);
+          ensure(125);
+          const top = y, height = 76, max = Math.max(1, ...daily.map(r => r.clicks)), step = W / daily.length;
+          doc.moveTo(M, top + height).lineTo(M + W, top + height).strokeColor(C.line).lineWidth(0.6).stroke();
+          daily.forEach((r, i) => { const h = r.clicks / max * height; if (h) doc.rect(M + i * step + 1, top + height - h, Math.max(1, step - 2), h).fill(C.green); });
+          put(formatDate(daily[0].keys[0]), M, top + height + 7, 160, 8, F.r, C.muted);
+          put(formatDate(daily[daily.length - 1].keys[0]), M + W - 160, top + height + 7, 160, 8, F.r, C.muted, { align: "right" });
+          put(`Massimo giornaliero: ${formatInt(max)} clic`, M, top - 14, W, 8, F.r, C.muted, { align: "right" });
+          y += 113;
+          para("Barre riferite alle date restituite da Google; eventuali date assenti non sono sostituite con valori stimati.", 8.3, F.r, C.muted, 12);
+        }
+        sub("Le ricerche che portano al sito");
+        searchTable(search.queries, "Ricerca", 10);
+        para(`Prime ${Math.min(10, search.queries.length)} ricerche per clic, su ${formatInt(search.queries.length)} righe disponibili. Le query anonimizzate non sono incluse: la somma delle righe può differire dai totali in copertina.`, 8.6, F.r, C.muted);
+        if (search.truncated) para("Il dettaglio è limitato dal numero massimo di righe recuperabili.", 9, F.b, C.amberDark);
+        newPage();
+        chapter("01 / Visibilità su Google", "Le pagine e la domanda", `${metricPeriod}  |  Search Console`);
+        sub("Pagine che ricevono clic dalla ricerca");
+        searchTable(search.pages, "Indirizzo della pagina", 10, true);
+        para("Gli indirizzi sono distinti come restituiti dalla proprietà Search Console: eventuali sottodomini e versioni HTTP/HTTPS restano riconoscibili. I totali per pagina non vanno sommati per ricostruire i totali della proprietà.", 8.6, F.r, C.muted, 14);
+        const brand = search.queries.filter(r => /solair/i.test(r.keys[0])), other = search.queries.filter(r => !/solair/i.test(r.keys[0]));
+        const clicks = (rows: GscDatasetRow[]) => rows.reduce((n, r) => n + r.clicks, 0);
+        tileRow([{ label: "Query con Solair", value: formatInt(clicks(brand)), note: "clic su ricerche del marchio" }, { label: "Altre query visibili", value: formatInt(clicks(other)), note: "clic su ricerche senza Solair" }]);
+        card({ tint: C.mint, bar: C.green, title: "Quanto dipende dalla notorietà del marchio",
+          blocks: [{ text: "Le ricerche che contengono Solair indicano una domanda già legata al marchio. Le altre mostrano occasioni di scoperta del sito. Questa distinzione riguarda soltanto le query visibili: non descrive tutto il traffico organico e non misura nuovi clienti." }] });
+        if (payload.compare && metrics?.previous?.search && totals?.previous) {
+          const reading = reportReading(totals.current, totals.previous);
+          card({ tint: C.blueTint, bar: C.blue, title: reading.title, blocks: [{ text: reading.text }] });
+        }
+      } else para("Il dettaglio di query e pagine non è disponibile per il periodo del documento. I totali in copertina, se presenti, provengono dall'archivio Search Console.", 10, F.r, C.muted);
+
+      // ===== Google Analytics: sessions and actions, not unique leads ====================
+      newPage();
+      chapter("02 / Traffico e azioni sul sito", "Cosa accade dopo il clic", `${metricPeriod}  |  Google Analytics 4 · Google / organic`);
+      const analytics = metrics?.current.analytics;
+      if (analytics) {
+        if (!analytics.reliable) para("Analytics segnala limiti nella rilevazione. I conteggi sotto sono quelli restituiti dalla fonte; non sono usati per confronti o conclusioni sulle conversioni.", 9.5, F.b, C.amberDark);
+        const a = analyticsTotals(analytics), prev = metrics?.previous?.analytics;
+        tileRow([
+          { label: "Sessioni", value: formatInt(a.sessions), note: "da Google organico", dark: true },
+          { label: "Con coinvolgimento", value: formatInt(a.engaged), note: `${formatPercent(a.engagementRate)} delle sessioni` },
+          { label: "Clic di contatto", value: formatInt(a.contactClicks), note: "telefono, email, WhatsApp" },
+          { label: "Invii configuratore", value: formatInt(a.forms), note: "richieste registrate" },
+        ]);
+        if (prev?.reliable && analytics.reliable && metrics?.previous) {
+          const before = analyticsTotals(prev), delta = relDelta(a.sessions, before.sessions);
+          para(`Rispetto al ${formatPeriod(metrics.previous.period)}: sessioni ${delta.text} (${formatInt(before.sessions)} prima); clic di contatto ${formatInt(before.contactClicks)} prima, invii del configuratore ${formatInt(before.forms)} prima.`, 9.5);
+        }
+        sub("Risultati per pagina di ingresso");
+        const cols = [W - 292, 66, 76, 76, 74];
+        const headers = [{ w: cols[0], label: "Pagina" }, { w: cols[1], label: "Sessioni" }, { w: cols[2], label: "Coinvolte" }, { w: cols[3], label: "Clic cont." }, { w: cols[4], label: "Invii form" }];
+        tableHeader(headers);
+        [...analytics.pages].sort((a, b) => b.sessions - a.sessions).slice(0, 10).forEach(p => {
+          const name = pageLabel(p.page), height = Math.max(28, hOf(name, 9, F.r, cols[0] - 16, 2) + 16);
+          if (y + height > FOOT) { newPage(); tableHeader(headers); }
+          tableRow(cols, [(x, yy, w) => put(name, x, yy, w, 9, F.r, C.ink, { lineGap: 2 }),
+            ...[p.sessions, p.engagedSessions, Math.max(0, p.contactEvents - p.formSubmissions), p.formSubmissions].map(v => (x: number, yy: number, w: number) => put(formatInt(v), x, yy, w, 8.8, F.r, C.ink, { align: "right", lineBreak: false }))], height);
+        });
+        y += 16;
+        card({ tint: C.amberTint, bar: C.amber, title: "Come leggere contatti e richieste", blocks: [
+          { text: "I clic su telefono, email e WhatsApp sono intenzioni di contatto, non conversazioni o clienti acquisiti. Gli invii del configuratore sono conteggiati a parte e non vengono sommati una seconda volta ai clic." },
+          { text: "Questi sono conteggi di eventi, non persone uniche o lead verificati nel CRM. Un valore zero significa nessun evento registrato nel periodo, non prova l'assenza di richieste ricevute con altri mezzi." },
+        ] });
+        para(`Filtro: sorgente google, mezzo organic. Fuso della proprietà: ${analytics.timeZones.join(", ") || "non disponibile"}. Le sessioni GA4 e i clic GSC misurano fenomeni diversi: non devono coincidere.`, 8.6, F.r, C.muted);
+        analytics.limitations.forEach(note => para(note, 8.6, F.r, C.muted, 6));
+      } else para("I dati Analytics non sono disponibili per il periodo del documento. Sessioni, coinvolgimento e contatti restano non misurati, senza sostituirli con zero.", 10, F.r, C.muted);
+
       // ===== 02 Presenza nelle risposte AI ===============================================
       newPage();
-      chapter("02 / Presenza nelle risposte AI", "Come Gemini presenta Solair", payload.geo ? `Rilevazione del ${formatDateTime(new Date(payload.geo.startedAt))}  |  modello ${payload.geo.model ?? "non disponibile"}` : "Nessuna rilevazione Gemini disponibile per questo report.");
+      chapter("03 / Presenza nelle risposte AI", "Come Gemini presenta Solair", payload.geo ? `Rilevazione del ${formatDateTime(new Date(payload.geo.startedAt))}  |  modello ${payload.geo.model ?? "non disponibile"}` : "Nessuna rilevazione Gemini disponibile per questo report.");
       if (payload.geo && geo) {
         tileRow([
           { label: "Spontanee", value: `${geo.nonBrandMentioned}/${geo.nonBrandComplete}`, note: "nominano Solair", tone: geo.nonBrandMentioned ? "up" : "down", dark: true },
@@ -265,7 +358,8 @@ export function renderReportPdf(payload: ReportPayload): Promise<Buffer> {
 
       // ===== 03 Piano di miglioramento ==================================================
       newPage();
-      chapter("03 / Piano di miglioramento", "Gli interventi sostenuti dai dati", "Priorità sulle pagine e sui contenuti del sito. Nessuna modifica viene applicata automaticamente.");
+      chapter("04 / Piano di miglioramento", "Gli interventi sostenuti dai dati", "Priorità sulle pagine e sui contenuti del sito. Nessuna modifica viene applicata automaticamente.");
+      if (data.windows) para(`Periodo delle evidenze che sostengono gli interventi: ${formatPeriod(data.windows.current)}. Queste proposte appartengono all’analisi SEO archiviata e possono riferirsi a un periodo diverso dai risultati Google delle sezioni precedenti.`, 9, F.r, C.muted, 16);
       const brandQuery = (query: unknown) => typeof query === "string" && /solair/i.test(query);
       const actions = rankActions((data.opportunities ?? []).filter(a => typeof a.action === "string" && typeof a.page === "string"));
       if (!actions.length) para("Le evidenze disponibili non sostengono interventi prioritari in questa rilevazione. Questo non dimostra l'assenza di opportunità nel sito.");
@@ -289,22 +383,25 @@ export function renderReportPdf(payload: ReportPayload): Promise<Buffer> {
 
       // ===== 04 Fonti e metodo ===========================================================
       newPage();
-      chapter("04 / Fonti e metodo", "Come leggere questo report");
+      chapter("05 / Fonti e metodo", "Come leggere questo report");
       sub("Search Console", 6);
-      para(windows ? `Proprietà ${SITE_LABEL}. Dati dal ${formatPeriod(windows.current)}${windows.previous ? `, confrontati con ${formatPeriod(windows.previous)}` : ""}. I totali provengono dalle evidenze archiviate dell'analisi SEO indicata.` : "Periodo Google non disponibile.", 9.8);
+      para(windows ? `Proprietà ${SITE_LABEL}. Dati dal ${formatPeriod(windows.current)}${windows.previous ? `, confrontati con ${formatPeriod(windows.previous)}` : ""}. I totali provengono dalla serie giornaliera; query e pagine sono raccolte separatamente sullo stesso intervallo. I risultati vengono conservati insieme a questo PDF.` : "Periodo Google non disponibile.", 9.8);
+      sub("Google Analytics 4", 6);
+      para("Traffico con sorgente google e mezzo organic, nel periodo indicato. Le sessioni, il coinvolgimento e gli eventi sono aggregati per pagina di ingresso. Il fuso orario della proprietà può differire da quello di Search Console; non viene attribuito un contatto a una singola ricerca.", 9.8);
       sub("Gemini e citazioni", 6);
       para(payload.geo ? `Campione di ${payload.geo.planned} domande. Sono contate soltanto risposte complete e citazioni native. I collegamenti non raggiunti o non risolti non confermano né smentiscono il contenuto della risposta. Le domande con nome Solair sono separate dalla scoperta spontanea.` : "Non sono presenti risposte Gemini nel documento. La presenza AI resta non misurata.", 9.8);
       const all = new Map<string, { prompts: Set<string>; url: string }>();
       answers.forEach(a => a.citations.forEach(c => { const host = citationHost(c); if (!host) return; const e = all.get(host) ?? { prompts: new Set<string>(), url: c.finalUrl ?? `https://${host}` }; e.prompts.add(a.promptId); all.set(host, e); }));
       if (all.size) {
         sub("Siti citati dal motore", 6);
-        [...all].sort((a, b) => b[1].prompts.size - a[1].prompts.size || a[0].localeCompare(b[0])).slice(0, 10)
+        [...all].sort((a, b) => b[1].prompts.size - a[1].prompts.size || a[0].localeCompare(b[0])).slice(0, 6)
           .forEach(([host, e]) => link(`${host}${host === "solairgroup.it" || host.endsWith(".solairgroup.it") ? " (sito ufficiale)" : ""}  -  citato in ${e.prompts.size} ${e.prompts.size === 1 ? "risposta" : "risposte"}`, e.url, M, W, 9));
         y += 4;
       }
       link("Apri l'analisi SEO archiviata nell'app", `https://solair-seo.vercel.app/analisi?id=${report.id}`);
       link("Consulta risposte integrali e storico Gemini nell'app", "https://solair-seo.vercel.app/visibilita-ai");
       y += 4; sub("Limiti delle fonti", 6);
+      [metrics?.current, metrics?.previous].forEach(m => m?.limitations.forEach(note => para(`-  ${note}`, 8.8, F.r, C.muted, 4)));
       (data.limitations ?? []).forEach(note => para(`-  ${note}`, 8.8, F.r, C.muted, 4));
       para("Le soglie editoriali o tecniche del servizio non sono requisiti imposti da Google. Nessun punteggio globale nuovo viene dedotto automaticamente dai soli risultati di questo documento.", 8.6, F.r, C.muted, 0);
 

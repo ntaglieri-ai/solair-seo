@@ -138,23 +138,27 @@ export type GscRow = {
 
 export type GscDatasetRow = { keys: string[]; clicks: number; impressions: number; ctr: number; position: number };
 
-/** Dataset finalizzato, paginato. Le query anonimizzate da Google restano escluse. */
+/** Dataset paginato, finalizzato per default. I report possono includere dati recenti, conservandone lo stato. */
 export async function queryGscDataset(
   siteUrl: string,
   period: { from: string; to: string },
   dimensions: string[],
+  dataState: "final" | "all" = "final",
 ) {
   const api = google.searchconsole({ version: "v1", auth: getOAuthClient() });
-  return readAllRows<GscDatasetRow>(async (startRow, rowLimit) => {
+  let firstIncompleteDate: string | null = null;
+  const result = await readAllRows<GscDatasetRow>(async (startRow, rowLimit) => {
     const { data } = await api.searchanalytics.query({
       siteUrl,
-      requestBody: { startDate: period.from, endDate: period.to, dimensions, startRow, rowLimit, dataState: "final", type: "web" },
+      requestBody: { startDate: period.from, endDate: period.to, dimensions, startRow, rowLimit, dataState, type: "web" },
     }, { timeout: 20000 });
+    firstIncompleteDate = data.metadata?.firstIncompleteDate ?? firstIncompleteDate;
     return { rows: (data.rows ?? []).map((row) => ({
       keys: row.keys ?? [], clicks: row.clicks ?? 0, impressions: row.impressions ?? 0,
       ctr: row.ctr ?? 0, position: row.position ?? 0,
     })) };
   }, 25000);
+  return { ...result, firstIncompleteDate };
 }
 
 /**
